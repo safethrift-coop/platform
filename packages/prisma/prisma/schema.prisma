@@ -1,0 +1,835 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────
+
+enum MembershipStatus {
+  pending
+  active
+  suspended
+  closed
+}
+
+enum Gender {
+  male
+  female
+  non_binary
+  prefer_not_to_say
+}
+
+enum MigrationStatus {
+  uk_citizen
+  settled_status
+  pre_settled_status
+  visa_holder
+  refugee
+  asylum_seeker
+  other
+}
+
+enum RegistrationChannel {
+  web_portal
+  mobile_app
+  field_officer
+  branch
+}
+
+enum DocumentType {
+  passport
+  national_id
+  residence_permit
+  driver_license
+  biometric_residence_permit
+}
+
+enum KycStatus {
+  pending
+  in_progress
+  verified
+  rejected
+  expired
+}
+
+enum AccountType {
+  savings_fsa
+  savings_rsa
+  savings_gsa
+  loan
+  shares
+  emergency_fund
+}
+
+enum AccountStatus {
+  active
+  frozen
+  closed
+  pending_closure
+}
+
+enum TransactionType {
+  deposit
+  auto_deposit
+  cash_deposit
+  mobile_money
+  bank_transfer
+}
+
+enum TransactionStatus {
+  pending
+  completed
+  failed
+  reversed
+}
+
+enum WithdrawalStatus {
+  pending
+  approved
+  completed
+  rejected
+}
+
+enum IncomeSourceType {
+  salary
+  self_employment
+  casual_work
+  remittance
+  benefits
+  pension
+  mixed
+  other
+}
+
+enum ReminderType {
+  savings_nudge
+  repayment_due
+  late_payment
+  general_notice
+  membership_renewal
+  kyc_expiry
+}
+
+enum ReminderChannel {
+  sms
+  email
+  whatsapp
+  app_notification
+  call
+}
+
+enum DeliveryStatus {
+  queued
+  sent
+  delivered
+  failed
+  bounced
+}
+
+enum ReminderResponseType {
+  paid_after_reminder
+  saved_after_reminder
+  ignored
+  responded
+  requested_extension
+}
+
+enum LoanApplicationStatus {
+  pending
+  under_review
+  approved
+  rejected
+  withdrawn
+}
+
+enum LoanStatus {
+  active
+  completed
+  defaulted
+  restructured
+  written_off
+  disbursement_pending
+}
+
+enum InstallmentStatus {
+  due
+  paid
+  partial
+  late
+  missed
+}
+
+enum PaymentStatus {
+  pending
+  completed
+  failed
+  reversed
+}
+
+enum RiskBand {
+  low_risk
+  moderate_risk
+  high_risk
+  unscored
+}
+
+enum ShareStatus {
+  active
+  transferred
+  cancelled
+}
+
+enum GroupType {
+  savings_circle
+  community_investment_circle
+  household_group
+  enterprise_group
+}
+
+enum GroupStatus {
+  forming
+  active
+  dissolved
+}
+
+enum GroupRole {
+  member
+  facilitator
+  treasurer
+  chair
+}
+
+enum GroupMembershipStatus {
+  active
+  suspended
+  left
+}
+
+enum AuditActionType {
+  insert
+  update
+  delete
+  login
+  logout
+  export
+  admin_action
+}
+
+// ─────────────────────────────────────────────
+// TABLE A — members
+// Central table. Every other table FKs here.
+// ─────────────────────────────────────────────
+
+model Member {
+  id                 String           @id @default(cuid()) @map("member_id")
+  membershipNumber   String           @unique @map("membership_number")
+  firstName          String           @map("first_name")
+  lastName           String           @map("last_name")
+  dateOfBirth        DateTime         @map("date_of_birth") @db.Date
+  gender             Gender?
+  phoneNumber        String           @map("phone_number")
+  email              String           @unique
+  nationalIdNumber   String?          @map("national_id_number")
+  addressLine1       String           @map("address_line_1")
+  addressLine2       String?          @map("address_line_2")
+  city               String
+  region             String?
+  postcode           String
+  country            String           @default("GB")
+  occupation         String?
+  householdSize      Int?             @map("household_size")
+  migrationStatus    MigrationStatus? @map("migration_status")
+  joinedDate         DateTime         @default(now()) @map("joined_date")
+  membershipStatus   MembershipStatus @default(pending) @map("membership_status")
+  preferredLanguage  String           @default("en") @map("preferred_language")
+  mfaEnabled         Boolean          @default(false) @map("mfa_enabled")
+  mfaSecret          String?          @map("mfa_secret")
+  emailVerified      Boolean          @default(false) @map("email_verified")
+  emailVerifiedAt    DateTime?        @map("email_verified_at")
+  savingsPointsTotal Int              @default(0) @map("savings_points_total")
+  currentRiskBand    RiskBand         @default(unscored) @map("current_risk_band")
+  createdAt          DateTime         @default(now()) @map("created_at")
+  updatedAt          DateTime         @updatedAt @map("updated_at")
+
+  registration          MemberRegistration[]
+  kycVerifications      KycVerification[]
+  nextOfKin             NextOfKin[]
+  accounts              MemberAccount[]
+  savingsTransactions   SavingsTransaction[]
+  withdrawals           WithdrawalTransaction[]
+  incomeRecords         IncomeRecord[]
+  reminderLogs          ReminderLog[]
+  reminderResponses     ReminderResponse[]
+  loanApplications      LoanApplication[]
+  loans                 Loan[]
+  repaymentTransactions RepaymentTransaction[]
+  behaviouralSnapshots  BehaviouralFeatureSnapshot[]
+  riskScores            RiskScore[]
+  repaymentOutcomes     RepaymentOutcome[]
+  shares                MemberShare[]
+  groupMemberships      GroupMembership[]
+  auditLogs             AuditLog[]
+
+  @@index([membershipStatus])
+  @@index([city, region])
+  @@index([joinedDate])
+  @@map("members")
+}
+
+// ─────────────────────────────────────────────
+// TABLE B — member_registration
+// Captures how and when the member joined.
+// Stores all GDPR consent fields with timestamps.
+// ─────────────────────────────────────────────
+
+model MemberRegistration {
+  id                     String              @id @default(cuid()) @map("registration_id")
+  memberId               String              @map("member_id")
+  registrationDate       DateTime            @default(now()) @map("registration_date")
+  registrationChannel    RegistrationChannel @map("registration_channel")
+  registeredBy           String?             @map("registered_by")
+  initialDepositAmount   Decimal?            @map("initial_deposit_amount") @db.Decimal(12, 2)
+  membershipFeePaid      Boolean             @default(false) @map("membership_fee_paid")
+  membershipFeeAmount    Decimal?            @map("membership_fee_amount") @db.Decimal(12, 2)
+  membershipType         String?             @map("membership_type")
+  householdMembersJson   String?             @map("household_members_json")
+  termsAccepted          Boolean             @default(false) @map("terms_accepted")
+  termsAcceptedAt        DateTime?           @map("terms_accepted_at")
+  consentDataProcessing  Boolean             @default(false) @map("consent_data_processing")
+  consentDataProcessedAt DateTime?           @map("consent_data_processed_at")
+  consentCreditAssess    Boolean             @default(false) @map("consent_credit_assessment")
+  consentCreditAssessAt  DateTime?           @map("consent_credit_assessed_at")
+  referralSource         String?             @map("referral_source")
+  whyJoining             String?             @map("why_joining")
+  preferredPaymentMethod String?             @map("preferred_payment_method")
+  signatureText          String?             @map("signature_text")
+  registrationNotes      String?             @map("registration_notes")
+  ipAddress              String?             @map("ip_address")
+  userAgent              String?             @map("user_agent")
+  createdAt              DateTime            @default(now()) @map("created_at")
+
+  member Member @relation(fields: [memberId], references: [id])
+
+  @@index([memberId])
+  @@index([registrationDate])
+  @@map("member_registration")
+}
+
+// ─────────────────────────────────────────────
+// TABLE C — kyc_verification
+// One row per KYC attempt. Updated by Onfido webhook.
+// ─────────────────────────────────────────────
+
+model KycVerification {
+  id                   String       @id @default(cuid()) @map("kyc_id")
+  memberId             String       @map("member_id")
+  documentType         DocumentType @map("document_type")
+  documentNumber       String?      @map("document_number")
+  documentIssueDate    DateTime?    @map("document_issue_date") @db.Date
+  documentExpiryDate   DateTime?    @map("document_expiry_date") @db.Date
+  verificationStatus   KycStatus    @default(pending) @map("verification_status")
+  onfidoApplicantId    String?      @map("onfido_applicant_id")
+  onfidoCheckId        String?      @map("onfido_check_id")
+  verifiedBy           String?      @map("verified_by")
+  verificationDate     DateTime?    @map("verification_date")
+  proofOfAddressType   String?      @map("proof_of_address_type")
+  proofOfAddressStatus KycStatus?   @map("proof_of_address_status")
+  riskFlag             Boolean      @default(false) @map("risk_flag")
+  riskFlagReason       String?      @map("risk_flag_reason")
+  notes                String?
+  createdAt            DateTime     @default(now()) @map("created_at")
+  updatedAt            DateTime     @updatedAt @map("updated_at")
+
+  member Member @relation(fields: [memberId], references: [id])
+
+  @@index([memberId])
+  @@index([verificationStatus])
+  @@index([onfidoCheckId])
+  @@map("kyc_verification")
+}
+
+// ─────────────────────────────────────────────
+// TABLE D — next_of_kin
+// ─────────────────────────────────────────────
+
+model NextOfKin {
+  id                   String   @id @default(cuid()) @map("nok_id")
+  memberId             String   @map("member_id")
+  fullName             String   @map("full_name")
+  relationshipToMember String   @map("relationship_to_member")
+  phoneNumber          String?  @map("phone_number")
+  email                String?
+  address              String?
+  isBeneficiary        Boolean  @default(false) @map("is_beneficiary")
+  createdAt            DateTime @default(now()) @map("created_at")
+
+  member Member @relation(fields: [memberId], references: [id])
+
+  @@index([memberId])
+  @@map("next_of_kin")
+}
+
+// ─────────────────────────────────────────────
+// TABLE E — member_accounts
+// One member can hold FSA + RSA + GSA simultaneously.
+// Balance is ONLY updated inside a Prisma $transaction
+// that also inserts a savings_transaction row.
+// ─────────────────────────────────────────────
+
+model MemberAccount {
+  id             String        @id @default(cuid()) @map("account_id")
+  memberId       String        @map("member_id")
+  accountType    AccountType   @map("account_type")
+  accountNumber  String        @unique @map("account_number")
+  accountStatus  AccountStatus @default(active) @map("account_status")
+  openedDate     DateTime      @default(now()) @map("opened_date")
+  closedDate     DateTime?     @map("closed_date")
+  currentBalance Decimal       @default(0) @map("current_balance") @db.Decimal(12, 2)
+  goalTarget     Decimal?      @map("goal_target") @db.Decimal(12, 2)
+  goalDeadline   DateTime?     @map("goal_deadline") @db.Date
+  goalReached    Boolean       @default(false) @map("goal_reached")
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+
+  member              Member                  @relation(fields: [memberId], references: [id])
+  savingsTransactions SavingsTransaction[]
+  withdrawals         WithdrawalTransaction[]
+  loans               Loan[]
+
+  @@unique([memberId, accountType])
+  @@index([memberId])
+  @@index([accountStatus])
+  @@map("member_accounts")
+}
+
+// ─────────────────────────────────────────────
+// TABLE F — savings_transactions
+// Every deposit. Partitioned by transaction_date in prod.
+// ─────────────────────────────────────────────
+
+model SavingsTransaction {
+  id              String            @id @default(cuid()) @map("savings_txn_id")
+  memberId        String            @map("member_id")
+  accountId       String            @map("account_id")
+  transactionDate DateTime          @default(now()) @map("transaction_date")
+  amount          Decimal           @db.Decimal(12, 2)
+  transactionType TransactionType   @map("transaction_type")
+  channel         String?
+  referenceNumber String?           @unique @map("reference_number")
+  recordedBy      String?           @map("recorded_by")
+  status          TransactionStatus @default(pending)
+  idempotencyKey  String?           @unique @map("idempotency_key")
+  metadata        String?
+  createdAt       DateTime          @default(now()) @map("created_at")
+
+  member  Member        @relation(fields: [memberId], references: [id])
+  account MemberAccount @relation(fields: [accountId], references: [id])
+
+  @@index([memberId])
+  @@index([accountId, transactionDate(sort: Desc)])
+  @@index([transactionDate])
+  @@map("savings_transactions")
+}
+
+// ─────────────────────────────────────────────
+// TABLE G — withdrawal_transactions
+// ─────────────────────────────────────────────
+
+model WithdrawalTransaction {
+  id               String           @id @default(cuid()) @map("withdrawal_txn_id")
+  memberId         String           @map("member_id")
+  accountId        String           @map("account_id")
+  transactionDate  DateTime         @default(now()) @map("transaction_date")
+  amount           Decimal          @db.Decimal(12, 2)
+  withdrawalReason String?          @map("withdrawal_reason")
+  approvedBy       String?          @map("approved_by")
+  channel          String?
+  referenceNumber  String?          @unique @map("reference_number")
+  status           WithdrawalStatus @default(pending)
+  idempotencyKey   String?          @unique @map("idempotency_key")
+  createdAt        DateTime         @default(now()) @map("created_at")
+
+  member  Member        @relation(fields: [memberId], references: [id])
+  account MemberAccount @relation(fields: [accountId], references: [id])
+
+  @@index([memberId])
+  @@index([accountId, transactionDate(sort: Desc)])
+  @@map("withdrawal_transactions")
+}
+
+// ─────────────────────────────────────────────
+// TABLE H — income_records
+// ─────────────────────────────────────────────
+
+model IncomeRecord {
+  id                     String           @id @default(cuid()) @map("income_record_id")
+  memberId               String           @map("member_id")
+  recordPeriodStart      DateTime         @map("record_period_start") @db.Date
+  recordPeriodEnd        DateTime         @map("record_period_end") @db.Date
+  incomeSourceType       IncomeSourceType @map("income_source_type")
+  estimatedMonthlyIncome Decimal          @map("estimated_monthly_income") @db.Decimal(12, 2)
+  incomeVolatilityScore  Decimal?         @map("income_volatility_score") @db.Decimal(5, 4)
+  incomeVerified         Boolean          @default(false) @map("income_verified")
+  verificationMethod     String?          @map("verification_method")
+  notes                  String?
+  createdAt              DateTime         @default(now()) @map("created_at")
+
+  member Member @relation(fields: [memberId], references: [id])
+
+  @@index([memberId])
+  @@index([recordPeriodStart])
+  @@map("income_records")
+}
+
+// ─────────────────────────────────────────────
+// TABLE I — reminder_logs
+// ─────────────────────────────────────────────
+
+model ReminderLog {
+  id              String          @id @default(cuid()) @map("reminder_id")
+  memberId        String          @map("member_id")
+  relatedLoanId   String?         @map("related_loan_id")
+  reminderType    ReminderType    @map("reminder_type")
+  reminderChannel ReminderChannel @map("reminder_channel")
+  sentDate        DateTime        @default(now()) @map("sent_date")
+  dueDate         DateTime?       @map("due_date")
+  messageTemplate String?         @map("message_template")
+  deliveryStatus  DeliveryStatus  @default(queued) @map("delivery_status")
+  externalId      String?         @map("external_id")
+  createdAt       DateTime        @default(now()) @map("created_at")
+
+  member    Member             @relation(fields: [memberId], references: [id])
+  loan      Loan?              @relation(fields: [relatedLoanId], references: [id])
+  responses ReminderResponse[]
+
+  @@index([memberId])
+  @@index([relatedLoanId])
+  @@index([sentDate])
+  @@map("reminder_logs")
+}
+
+// ─────────────────────────────────────────────
+// TABLE J — reminder_responses
+// How members react to reminders.
+// Feeds directly into response_to_reminders feature.
+// ─────────────────────────────────────────────
+
+model ReminderResponse {
+  id                String               @id @default(cuid()) @map("response_id")
+  reminderId        String               @map("reminder_id")
+  memberId          String               @map("member_id")
+  responseType      ReminderResponseType @map("response_type")
+  responseDate      DateTime             @default(now()) @map("response_date")
+  responseTimeHours Decimal?             @map("response_time_hours") @db.Decimal(8, 2)
+  notes             String?
+  createdAt         DateTime             @default(now()) @map("created_at")
+
+  reminder ReminderLog @relation(fields: [reminderId], references: [id])
+  member   Member      @relation(fields: [memberId], references: [id])
+
+  @@index([reminderId])
+  @@index([memberId])
+  @@map("reminder_responses")
+}
+
+// ─────────────────────────────────────────────
+// TABLE K — loan_applications
+// Separated from loans so rejected applications
+// are preserved with their score snapshot.
+// ─────────────────────────────────────────────
+
+model LoanApplication {
+  id                            String                @id @default(cuid()) @map("application_id")
+  memberId                      String                @map("member_id")
+  applicationDate               DateTime              @default(now()) @map("application_date")
+  requestedAmount               Decimal               @map("requested_amount") @db.Decimal(12, 2)
+  loanPurpose                   String                @map("loan_purpose")
+  requestedTermMonths           Int                   @map("requested_term_months")
+  applicationStatus             LoanApplicationStatus @default(pending) @map("application_status")
+  behaviouralScoreAtApplication Decimal?              @map("behavioural_score_at_application") @db.Decimal(10, 6)
+  predictedRepaymentProbability Decimal?              @map("predicted_repayment_probability") @db.Decimal(5, 4)
+  riskBandAtApplication         RiskBand?             @map("risk_band_at_application")
+  savingsPointsAtApplication    Int?                  @map("savings_points_at_application")
+  reviewedBy                    String?               @map("reviewed_by")
+  reviewDate                    DateTime?             @map("review_date")
+  decisionNotes                 String?               @map("decision_notes")
+  createdAt                     DateTime              @default(now()) @map("created_at")
+  updatedAt                     DateTime              @updatedAt @map("updated_at")
+
+  member Member @relation(fields: [memberId], references: [id])
+  loan   Loan?
+
+  @@index([memberId])
+  @@index([applicationStatus])
+  @@index([applicationDate])
+  @@map("loan_applications")
+}
+
+// ─────────────────────────────────────────────
+// TABLE L — loans
+// interest_rate is always 0.00 for Safethrift.
+// ─────────────────────────────────────────────
+
+model Loan {
+  id                String     @id @default(cuid()) @map("loan_id")
+  memberId          String     @map("member_id")
+  applicationId     String     @unique @map("application_id")
+  loanAccountId     String     @map("loan_account_id")
+  approvalDate      DateTime   @default(now()) @map("approval_date")
+  disbursementDate  DateTime?  @map("disbursement_date")
+  principalAmount   Decimal    @map("principal_amount") @db.Decimal(12, 2)
+  interestRate      Decimal    @default(0) @map("interest_rate") @db.Decimal(5, 4)
+  termMonths        Int        @map("term_months")
+  installmentAmount Decimal    @map("installment_amount") @db.Decimal(12, 2)
+  loanStatus        LoanStatus @default(disbursement_pending) @map("loan_status")
+  maturityDate      DateTime   @map("maturity_date") @db.Date
+  guarantorRequired Boolean    @default(false) @map("guarantor_required")
+  createdAt         DateTime   @default(now()) @map("created_at")
+  updatedAt         DateTime   @updatedAt @map("updated_at")
+
+  member                Member                 @relation(fields: [memberId], references: [id])
+  application           LoanApplication        @relation(fields: [applicationId], references: [id])
+  loanAccount           MemberAccount          @relation(fields: [loanAccountId], references: [id])
+  repaymentSchedule     RepaymentSchedule[]
+  repaymentTransactions RepaymentTransaction[]
+  reminderLogs          ReminderLog[]
+  outcomes              RepaymentOutcome[]
+
+  @@index([memberId])
+  @@index([loanStatus])
+  @@index([maturityDate])
+  @@map("loans")
+}
+
+// ─────────────────────────────────────────────
+// TABLE M — repayment_schedule
+// Auto-generated on loan approval via BullMQ job.
+// ─────────────────────────────────────────────
+
+model RepaymentSchedule {
+  id                String            @id @default(cuid()) @map("schedule_id")
+  loanId            String            @map("loan_id")
+  installmentNumber Int               @map("installment_number")
+  dueDate           DateTime          @map("due_date") @db.Date
+  principalDue      Decimal           @map("principal_due") @db.Decimal(12, 2)
+  interestDue       Decimal           @default(0) @map("interest_due") @db.Decimal(12, 2)
+  totalDue          Decimal           @map("total_due") @db.Decimal(12, 2)
+  totalPaid         Decimal           @default(0) @map("total_paid") @db.Decimal(12, 2)
+  status            InstallmentStatus @default(due)
+  paidDate          DateTime?         @map("paid_date")
+  createdAt         DateTime          @default(now()) @map("created_at")
+
+  loan                  Loan                   @relation(fields: [loanId], references: [id])
+  repaymentTransactions RepaymentTransaction[]
+
+  @@unique([loanId, installmentNumber])
+  @@index([loanId])
+  @@index([dueDate])
+  @@index([status])
+  @@map("repayment_schedule")
+}
+
+// ─────────────────────────────────────────────
+// TABLE N — repayment_transactions
+// ─────────────────────────────────────────────
+
+model RepaymentTransaction {
+  id              String        @id @default(cuid()) @map("repayment_txn_id")
+  loanId          String        @map("loan_id")
+  memberId        String        @map("member_id")
+  scheduleId      String?       @map("schedule_id")
+  paymentDate     DateTime      @default(now()) @map("payment_date")
+  amountPaid      Decimal       @map("amount_paid") @db.Decimal(12, 2)
+  paymentChannel  String        @map("payment_channel")
+  referenceNumber String?       @unique @map("reference_number")
+  recordedBy      String?       @map("recorded_by")
+  paymentStatus   PaymentStatus @default(pending) @map("payment_status")
+  idempotencyKey  String?       @unique @map("idempotency_key")
+  createdAt       DateTime      @default(now()) @map("created_at")
+
+  loan     Loan               @relation(fields: [loanId], references: [id])
+  member   Member             @relation(fields: [memberId], references: [id])
+  schedule RepaymentSchedule? @relation(fields: [scheduleId], references: [id])
+
+  @@index([loanId, paymentDate(sort: Desc)])
+  @@index([memberId])
+  @@map("repayment_transactions")
+}
+
+// ─────────────────────────────────────────────
+// TABLE O — behavioural_feature_snapshots
+// The xi vector. Computed nightly by BullMQ job.
+// ─────────────────────────────────────────────
+
+model BehaviouralFeatureSnapshot {
+  id                   String   @id @default(cuid()) @map("snapshot_id")
+  memberId             String   @map("member_id")
+  snapshotDate         DateTime @default(now()) @map("snapshot_date")
+  savingsRegularity    Decimal  @map("savings_regularity") @db.Decimal(5, 4)
+  savingsConsistency   Decimal  @map("savings_consistency") @db.Decimal(5, 4)
+  withdrawalDiscipline Decimal  @map("withdrawal_discipline") @db.Decimal(5, 4)
+  incomeStability      Decimal  @map("income_stability") @db.Decimal(5, 4)
+  responseToReminders  Decimal  @map("response_to_reminders") @db.Decimal(5, 4)
+  featureWindowStart   DateTime @map("feature_window_start") @db.Date
+  featureWindowEnd     DateTime @map("feature_window_end") @db.Date
+  modelVersion         String   @map("computed_by_model_version")
+  createdAt            DateTime @default(now()) @map("created_at")
+
+  member     Member      @relation(fields: [memberId], references: [id])
+  riskScores RiskScore[]
+
+  @@index([memberId])
+  @@index([snapshotDate])
+  @@map("behavioural_feature_snapshots")
+}
+
+// ─────────────────────────────────────────────
+// TABLE P — risk_scores
+// si = β0 + β·xi
+// pi = 1 / (1 + e^-si)
+// ─────────────────────────────────────────────
+
+model RiskScore {
+  id                     String   @id @default(cuid()) @map("risk_score_id")
+  memberId               String   @map("member_id")
+  snapshotId             String   @map("snapshot_id")
+  beta0                  Decimal  @map("beta_0") @db.Decimal(10, 6)
+  scoreSi                Decimal  @map("score_s_i") @db.Decimal(10, 6)
+  repaymentProbabilityPi Decimal  @map("repayment_probability_p_i") @db.Decimal(5, 4)
+  riskBand               RiskBand @map("risk_band")
+  modelName              String   @map("model_name")
+  modelVersion           String   @map("model_version")
+  scoredAt               DateTime @default(now()) @map("scored_at")
+
+  member   Member                     @relation(fields: [memberId], references: [id])
+  snapshot BehaviouralFeatureSnapshot @relation(fields: [snapshotId], references: [id])
+
+  @@index([memberId, scoredAt(sort: Desc)])
+  @@index([riskBand])
+  @@map("risk_scores")
+}
+
+// ─────────────────────────────────────────────
+// TABLE Q — repayment_outcomes
+// Stores the realised yi value.
+// Used to retrain the scoring model.
+// ─────────────────────────────────────────────
+
+model RepaymentOutcome {
+  id                     String   @id @default(cuid()) @map("outcome_id")
+  memberId               String   @map("member_id")
+  loanId                 String   @map("loan_id")
+  observationPeriodStart DateTime @map("observation_period_start") @db.Date
+  observationPeriodEnd   DateTime @map("observation_period_end") @db.Date
+  repaymentReliable      Boolean  @map("repayment_reliable")
+  daysPastDue            Int      @default(0) @map("days_past_due")
+  defaultFlag            Boolean  @default(false) @map("default_flag")
+  generatedFromRule      String?  @map("generated_from_rule")
+  createdAt              DateTime @default(now()) @map("created_at")
+
+  member Member @relation(fields: [memberId], references: [id])
+  loan   Loan   @relation(fields: [loanId], references: [id])
+
+  @@index([memberId])
+  @@index([loanId])
+  @@map("repayment_outcomes")
+}
+
+// ─────────────────────────────────────────────
+// TABLE R — member_shares
+// Cooperative ownership. CIC limited by shares.
+// ─────────────────────────────────────────────
+
+model MemberShare {
+  id                String      @id @default(cuid()) @map("share_id")
+  memberId          String      @map("member_id")
+  sharePurchaseDate DateTime    @default(now()) @map("share_purchase_date")
+  numberOfShares    Int         @map("number_of_shares")
+  shareValue        Decimal     @map("share_value") @db.Decimal(12, 2)
+  totalShareValue   Decimal     @map("total_share_value") @db.Decimal(12, 2)
+  status            ShareStatus @default(active)
+  createdAt         DateTime    @default(now()) @map("created_at")
+
+  member Member @relation(fields: [memberId], references: [id])
+
+  @@index([memberId])
+  @@map("member_shares")
+}
+
+// ─────────────────────────────────────────────
+// TABLE S — group_memberships
+// ─────────────────────────────────────────────
+
+model GroupMembership {
+  id          String                @id @default(cuid()) @map("group_membership_id")
+  memberId    String                @map("member_id")
+  groupId     String                @map("group_id")
+  joinDate    DateTime              @default(now()) @map("join_date")
+  roleInGroup GroupRole             @default(member) @map("role_in_group")
+  status      GroupMembershipStatus @default(active)
+  createdAt   DateTime              @default(now()) @map("created_at")
+
+  member Member @relation(fields: [memberId], references: [id])
+  group  Group  @relation(fields: [groupId], references: [id])
+
+  @@unique([memberId, groupId])
+  @@index([memberId])
+  @@index([groupId])
+  @@map("group_memberships")
+}
+
+// ─────────────────────────────────────────────
+// TABLE T — groups
+// Savings circles and Community Investment Circles.
+// ─────────────────────────────────────────────
+
+model Group {
+  id              String      @id @default(cuid()) @map("group_id")
+  groupName       String      @map("group_name")
+  groupType       GroupType   @map("group_type")
+  formationDate   DateTime    @default(now()) @map("formation_date")
+  status          GroupStatus @default(forming)
+  facilitatorName String?     @map("facilitator_name")
+  description     String?
+  targetAmount    Decimal?    @map("target_amount") @db.Decimal(12, 2)
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+
+  memberships GroupMembership[]
+
+  @@index([status])
+  @@index([groupType])
+  @@map("groups")
+}
+
+// ─────────────────────────────────────────────
+// TABLE U — audit_logs
+// APPEND-ONLY — a Postgres trigger added in the
+// first migration prevents any UPDATE or DELETE.
+// Every financial table writes here automatically.
+// ─────────────────────────────────────────────
+
+model AuditLog {
+  id         String          @id @default(cuid()) @map("audit_id")
+  tableName  String          @map("table_name")
+  recordId   String          @map("record_id")
+  actionType AuditActionType @map("action_type")
+  oldValue   String?         @map("old_value")
+  newValue   String?         @map("new_value")
+  changedBy  String?         @map("changed_by")
+  ipAddress  String?         @map("ip_address")
+  userAgent  String?         @map("user_agent")
+  changedAt  DateTime        @default(now()) @map("changed_at")
+
+  member Member? @relation(fields: [changedBy], references: [id])
+
+  @@index([tableName, recordId])
+  @@index([changedBy])
+  @@index([changedAt])
+  @@map("audit_logs")
+}
