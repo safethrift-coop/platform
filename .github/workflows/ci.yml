@@ -1,13 +1,94 @@
 name: CI
 
 on:
+  push:
+    branches: [ main, develop ]
   pull_request:
-    branches: [main]
+    branches: [ main ]
 
 jobs:
   ci:
+    name: Lint, typecheck, and test
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: safethrift
+          POSTGRES_PASSWORD: safethrift_test
+          POSTGRES_DB: safethrift_test
+        ports:
+          - "5432:5432"
+        options: >-
+          --health-cmd pg_isready --health-interval 10s --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - "6379:6379"
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 10s --health-timeout
+          5s --health-retries 5
+
     steps:
-      - uses: actions/checkout@v4
-      - name: Placeholder
-        run: echo "CI pipeline — to be expanded in T08"
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.20.2"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Approve build scripts
+        run: pnpm approve-builds --all || true
+
+      - name: Reinstall after approvals
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck API
+        run: pnpm --filter @safethrift/api exec tsc --noEmit
+
+      - name: Typecheck web
+        run: pnpm --filter @safethrift/web exec tsc --noEmit
+
+      - name: Lint API
+        run: pnpm --filter @safethrift/api run lint
+
+      - name: Lint web
+        run: pnpm --filter @safethrift/web run lint
+
+      - name: Generate Prisma client
+        run: pnpm --filter @safethrift/prisma run generate
+        env:
+          DATABASE_URL: postgresql://safethrift:safethrift_test@localhost:5432/safethrift_test
+
+      - name: Run database migrations
+        run: pnpm --filter @safethrift/prisma run migrate:deploy
+        env:
+          DATABASE_URL: postgresql://safethrift:safethrift_test@localhost:5432/safethrift_test
+
+      - name: Run API unit tests
+        run: pnpm --filter @safethrift/api run test
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://safethrift:safethrift_test@localhost:5432/safethrift_test
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          JWT_SECRET: test_jwt_secret_minimum_32_characters
+          JWT_REFRESH_SECRET: test_refresh_secret_minimum_32_chars
+          ENCRYPTION_KEY: "0000000000000000000000000000000000000000000000000000000000000000"
+
+      - name: Security audit
+        run: pnpm audit --audit-level=high
+        continue-on-error: true
