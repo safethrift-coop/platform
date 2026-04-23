@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import request from 'supertest';
+import * as supertest from 'supertest';
 import { AppModule } from '../src/app.module';
 
 interface HealthResponse {
@@ -25,7 +25,8 @@ describe('AppController (e2e)', () => {
   });
 
   it('/health (GET)', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await supertest
+      .agent(app.getHttpServer() as Parameters<typeof supertest.agent>[0])
       .get('/health')
       .expect(200);
 

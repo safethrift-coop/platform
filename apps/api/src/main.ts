@@ -51,4 +51,4 @@ async function bootstrap() {
   console.log(`Safethrift API running on port ${port}`);
 }
 
-bootstrap();
+void bootstrap();
