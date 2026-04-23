@@ -1,7 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import * as request from 'supertest';
+import request from 'supertest';
 import { AppModule } from '../src/app.module';
+
+interface HealthResponse {
+  status: string;
+  timestamp: string;
+}
 
 describe('AppController (e2e)', () => {
   let app: INestApplication;
@@ -19,12 +24,13 @@ describe('AppController (e2e)', () => {
     await app.close();
   });
 
-  it('/health (GET)', () => {
-    return request(app.getHttpServer())
+  it('/health (GET)', async () => {
+    const response = await request(app.getHttpServer())
       .get('/health')
-      .expect(200)
-      .expect((res) => {
-        expect(res.body.status).toBe('ok');
-      });
+      .expect(200);
+
+    const body = response.body as HealthResponse;
+    expect(body.status).toBe('ok');
+    expect(body.timestamp).toBeDefined();
   });
 });
