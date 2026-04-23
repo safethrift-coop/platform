@@ -3,13 +3,13 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "generate": "prisma generate",
-    "migrate:dev": "prisma migrate dev",
-    "migrate:deploy": "prisma migrate deploy",
-    "migrate:reset": "prisma migrate reset --force",
-    "studio": "prisma studio",
-    "format": "prisma format",
-    "validate": "prisma validate"
+    "generate": "pnpm exec prisma generate",
+    "migrate:dev": "pnpm exec prisma migrate dev",
+    "migrate:deploy": "pnpm exec prisma migrate deploy",
+    "migrate:reset": "pnpm exec prisma migrate reset --force",
+    "studio": "pnpm exec prisma studio",
+    "format": "pnpm exec prisma format",
+    "validate": "pnpm exec prisma validate"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.7.0",
