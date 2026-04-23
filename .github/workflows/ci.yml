@@ -70,15 +70,14 @@ jobs:
         run: pnpm --filter @safethrift/web run lint
 
       - name: Generate Prisma client
-        run: pnpm --filter @safethrift/prisma run generate
+        run: pnpm --filter @safethrift/prisma exec prisma generate
         env:
           DATABASE_URL: postgresql://safethrift:safethrift_test@localhost:5432/safethrift_test
 
       - name: Run database migrations
-        run: pnpm --filter @safethrift/prisma run migrate:deploy
+        run: pnpm --filter @safethrift/prisma exec prisma migrate deploy
         env:
           DATABASE_URL: postgresql://safethrift:safethrift_test@localhost:5432/safethrift_test
-
       - name: Run API unit tests
         run: pnpm --filter @safethrift/api run test
         env:
