@@ -25,12 +25,5 @@
     "forceConsistentCasingInFileNames": true,
     "ignoreDeprecations": "5.0",
     "types": ["jest", "node"]
-  },
-  "include": ["src/**/*", "test/**/*"],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "test",
-    "src/core/database/prisma.service.ts"
-  ]
+  }
 }
