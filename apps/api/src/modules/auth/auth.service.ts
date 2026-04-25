@@ -6,7 +6,6 @@ import {
   Logger,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../core/database/prisma.service';
 import { RedisService } from '../../core/redis/redis.service';
 import { RegisterDto } from '../../core/dto/register.dto';
@@ -46,7 +45,6 @@ export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwt: JwtService,
-    private readonly config: ConfigService,
     private readonly redis: RedisService,
   ) {}
 
@@ -403,7 +401,7 @@ export class AuthService {
     };
 
     const accessToken = this.jwt.sign(payload, {
-      secret: this.config.getOrThrow<string>('JWT_SECRET'),
+      secret: process.env['JWT_SECRET'] ?? '',
       expiresIn: ACCESS_TOKEN_EXPIRY,
     });
 

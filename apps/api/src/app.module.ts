@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import { validate } from './core/config/env.validation';
 import { RedisModule } from './core/redis/redis.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { DatabaseModule } from './core/database/database.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { AuthModule } from './modules/auth/auth.module';
       { name: 'short', ttl: 60000, limit: 60 },
       { name: 'medium', ttl: 3600000, limit: 500 },
     ]),
+    DatabaseModule,
     RedisModule,
     AuthModule,
   ],

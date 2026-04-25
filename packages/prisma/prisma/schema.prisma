@@ -251,6 +251,7 @@ model Member {
   mfaSecret          String?          @map("mfa_secret")
   emailVerified      Boolean          @default(false) @map("email_verified")
   emailVerifiedAt    DateTime?        @map("email_verified_at")
+  passwordHash       String           @map("password_hash")
   savingsPointsTotal Int              @default(0) @map("savings_points_total")
   currentRiskBand    RiskBand         @default(unscored) @map("current_risk_band")
   createdAt          DateTime         @default(now()) @map("created_at")
