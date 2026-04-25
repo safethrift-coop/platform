@@ -57,6 +57,11 @@ jobs:
       - name: Reinstall after approvals
         run: pnpm install --frozen-lockfile
 
+      - name: Generate Prisma client
+        run: pnpm --filter @safethrift/prisma exec prisma generate
+        env:
+          DATABASE_URL: postgresql://safethrift:safethrift_test@localhost:5432/safethrift_test
+
       - name: Typecheck API
         run: pnpm --filter @safethrift/api exec tsc --noEmit
 
@@ -68,11 +73,6 @@ jobs:
 
       - name: Lint web
         run: pnpm --filter @safethrift/web run lint
-
-      - name: Generate Prisma client
-        run: pnpm --filter @safethrift/prisma exec prisma generate
-        env:
-          DATABASE_URL: postgresql://safethrift:safethrift_test@localhost:5432/safethrift_test
 
       - name: Run database migrations
         run: pnpm --filter @safethrift/prisma exec prisma migrate deploy
