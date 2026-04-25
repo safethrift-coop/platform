@@ -96,6 +96,7 @@ export class RegisterDto {
   @IsOptional()
   @MaxLength(100)
   occupation?: string;
+  @IsOptional()
   @IsIn([
     'uk_citizen',
     'settled_status',
