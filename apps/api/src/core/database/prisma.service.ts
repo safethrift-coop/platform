@@ -4,15 +4,15 @@ import {
   OnModuleDestroy,
   Logger,
 } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 
 @Injectable()
 export class PrismaService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(PrismaService.name);
-  private readonly client: any;
+  private client: any;
 
   constructor() {
+    const { PrismaClient } = require('@prisma/client');
     const adapter = new PrismaPg({
       connectionString: process.env['DATABASE_URL'] ?? '',
     });
@@ -96,10 +96,6 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
     ...values: unknown[]
   ): Promise<T> {
     return this.client.$queryRaw(query, ...values);
-  }
-
-  get member_count() {
-    return this.client.member.count();
   }
 
   async onModuleInit(): Promise<void> {
