@@ -7,6 +7,7 @@ import { RedisModule } from './core/redis/redis.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { DatabaseModule } from './core/database/database.module';
 import { MembersModule } from './modules/members/members.module';
+import { MembershipModule } from './modules/membership/membership.module';
 import { LoggerModule } from './core/logger/logger.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { LoggingInterceptor } from './core/interceptors/logging.interceptor';
@@ -27,6 +28,7 @@ import { LoggingInterceptor } from './core/interceptors/logging.interceptor';
     RedisModule,
     AuthModule,
     MembersModule,
+    MembershipModule,
   ],
   controllers: [AppController],
   providers: [
