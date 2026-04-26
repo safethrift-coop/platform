@@ -167,7 +167,7 @@ export class AuthService {
     );
 
     // New — structured, searchable
-    this.logger.log('Member registered', {
+    this.logger.info('Member registered', {
       memberId: member.id,
       ipAddress,
       membershipType: dto.membershipType,
@@ -277,10 +277,7 @@ export class AuthService {
     });
 
     await this.redis.del(`${EMAIL_VERIFY_PREFIX}${token}`);
-    this.logger.log({
-      level: 'info',
-      message: `Email verified for member ${memberId}`,
-    });
+    this.logger.info(`Email verified for member ${memberId}`);
 
     return { message: 'Email verified successfully. You can now log in.' };
   }
@@ -342,7 +339,7 @@ export class AuthService {
 
   async logout(memberId: string): Promise<{ message: string }> {
     await this.redis.del(`${REFRESH_TOKEN_PREFIX}${memberId}`);
-    this.logger.log({
+    this.logger.info({
       level: 'info',
       message: `Member ${memberId} logged out`,
     });
@@ -364,7 +361,7 @@ export class AuthService {
       token,
       STEP_UP_TTL_SECONDS,
     );
-    this.logger.log({
+    this.logger.info({
       level: 'info',
       message: `Step-up initiated for member ${memberId} action: ${action}`,
     });
@@ -388,10 +385,9 @@ export class AuthService {
 
     // One-time use — delete immediately after successful verification
     await this.redis.del(`${STEP_UP_PREFIX}${memberId}:${action}`);
-    this.logger.log({
-      level: 'info',
-      message: `Step-up verified for member ${memberId} action: ${action}`,
-    });
+    this.logger.info(
+      `Step-up verified for member ${memberId} action: ${action}`,
+    );
   }
 
   // ─────────────────────────────────────────────
