@@ -1,17 +1,17 @@
-import {
-  Injectable,
-  OnModuleInit,
-  OnModuleDestroy,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import Redis from 'ioredis';
+import { Inject } from '@nestjs/common';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
+import { Logger } from 'winston';
 
 @Injectable()
 export class RedisService implements OnModuleInit, OnModuleDestroy {
-  private readonly logger = new Logger(RedisService.name);
   private client!: Redis;
 
-  constructor() {}
+  constructor(
+    @Inject(WINSTON_MODULE_PROVIDER)
+    private readonly logger: Logger,
+  ) {}
 
   onModuleInit(): void {
     this.client = new Redis({
@@ -21,7 +21,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       retryStrategy: (times: number) => Math.min(times * 50, 2000),
     });
 
-    this.client.on('connect', () => this.logger.log('Redis connected'));
+    this.client.on('connect', () => this.logger.info('Redis connected'));
 
     this.client.on('error', (err: Error) =>
       this.logger.error(`Redis error: ${err.message}`),

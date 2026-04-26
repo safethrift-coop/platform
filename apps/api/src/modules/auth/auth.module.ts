@@ -1,3 +1,5 @@
+import { LoggerModule } from '../../core/logger/logger.module';
+
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
@@ -9,6 +11,7 @@ import { PrismaService } from '../../core/database/prisma.service';
 
 @Module({
   imports: [
+    LoggerModule,
     PassportModule,
     JwtModule.register({
       secret: process.env['JWT_SECRET'] ?? '',

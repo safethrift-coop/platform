@@ -3,7 +3,6 @@ import {
   ConflictException,
   UnauthorizedException,
   BadRequestException,
-  Logger,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../../core/database/prisma.service';
@@ -14,6 +13,9 @@ import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
+import { Inject } from '@nestjs/common';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
+import { Logger } from 'winston';
 
 const BCRYPT_ROUNDS = 12;
 const ACCESS_TOKEN_EXPIRY = '15m';
@@ -42,12 +44,13 @@ export interface MemberProfile {
 
 @Injectable()
 export class AuthService {
-  private readonly logger = new Logger(AuthService.name);
-
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwt: JwtService,
     private readonly redis: RedisService,
+
+    @Inject(WINSTON_MODULE_PROVIDER)
+    private readonly logger: Logger,
   ) {}
 
   // ─────────────────────────────────────────────
@@ -163,9 +166,12 @@ export class AuthService {
       EMAIL_VERIFY_TTL_SECONDS,
     );
 
-    this.logger.log(
-      `New member registered: ${member.id} from IP ${ipAddress ?? 'unknown'}`,
-    );
+    // New — structured, searchable
+    this.logger.log('Member registered', {
+      memberId: member.id,
+      ipAddress,
+      membershipType: dto.membershipType,
+    });
 
     return {
       message:
@@ -271,7 +277,10 @@ export class AuthService {
     });
 
     await this.redis.del(`${EMAIL_VERIFY_PREFIX}${token}`);
-    this.logger.log(`Email verified for member ${memberId}`);
+    this.logger.log({
+      level: 'info',
+      message: `Email verified for member ${memberId}`,
+    });
 
     return { message: 'Email verified successfully. You can now log in.' };
   }
@@ -298,9 +307,10 @@ export class AuthService {
     if (!isValid) {
       // Token mismatch — possible theft. Wipe all sessions immediately.
       await this.redis.del(`${REFRESH_TOKEN_PREFIX}${memberId}`);
-      this.logger.warn(
-        `Refresh token replay detected for member ${memberId}. All sessions terminated.`,
-      );
+      this.logger.warn({
+        level: 'warn',
+        message: `Refresh token replay detected for member ${memberId}. All sessions terminated.`,
+      });
       throw new UnauthorizedException(
         'Invalid session detected. All sessions have been terminated for your security. Please log in again.',
       );
@@ -332,7 +342,10 @@ export class AuthService {
 
   async logout(memberId: string): Promise<{ message: string }> {
     await this.redis.del(`${REFRESH_TOKEN_PREFIX}${memberId}`);
-    this.logger.log(`Member ${memberId} logged out`);
+    this.logger.log({
+      level: 'info',
+      message: `Member ${memberId} logged out`,
+    });
     return { message: 'Logged out successfully.' };
   }
 
@@ -351,9 +364,10 @@ export class AuthService {
       token,
       STEP_UP_TTL_SECONDS,
     );
-    this.logger.log(
-      `Step-up initiated for member ${memberId} action: ${action}`,
-    );
+    this.logger.log({
+      level: 'info',
+      message: `Step-up initiated for member ${memberId} action: ${action}`,
+    });
     return { stepUpToken: token, expiresInSeconds: STEP_UP_TTL_SECONDS };
   }
 
@@ -374,9 +388,10 @@ export class AuthService {
 
     // One-time use — delete immediately after successful verification
     await this.redis.del(`${STEP_UP_PREFIX}${memberId}:${action}`);
-    this.logger.log(
-      `Step-up verified for member ${memberId} action: ${action}`,
-    );
+    this.logger.log({
+      level: 'info',
+      message: `Step-up verified for member ${memberId} action: ${action}`,
+    });
   }
 
   // ─────────────────────────────────────────────
@@ -412,7 +427,7 @@ export class AuthService {
     // TODO (T36): Send email via SendGrid with reset link
     // The link will be: https://safethrift.coop/reset-password?token={resetToken}
     // For now, log the token so you can test it manually
-    this.logger.log(
+    this.logger.info(
       `Password reset token for member ${member.id}: ${resetToken}`,
     );
 
@@ -450,7 +465,7 @@ export class AuthService {
     // If an attacker triggered this reset, they cannot keep the old session alive
     await this.redis.del(`${REFRESH_TOKEN_PREFIX}${memberId}`);
 
-    this.logger.log(`Password reset completed for member ${memberId}`);
+    this.logger.info(`Password reset completed for member ${memberId}`);
 
     return {
       message:
@@ -544,13 +559,17 @@ export class AuthService {
           where: { id: memberId },
           data: { passwordHash: newHash } as Record<string, unknown>,
         });
-        this.logger.log(
-          `Password rehashed for member ${memberId} (rounds: ${currentRounds} → ${BCRYPT_ROUNDS})`,
-        );
+        this.logger.info({
+          level: 'info',
+          message: `Password rehashed for member ${memberId} (rounds: ${currentRounds} → ${BCRYPT_ROUNDS})`,
+        });
       }
     } catch {
       // Never block login due to rehash failure
-      this.logger.warn(`Rehash failed for member ${memberId} — skipping`);
+      this.logger.warn({
+        level: 'warn',
+        message: `Rehash failed for member ${memberId} — skipping`,
+      });
     }
   }
 

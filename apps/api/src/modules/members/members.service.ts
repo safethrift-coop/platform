@@ -1,6 +1,8 @@
-import { Injectable, NotFoundException, Logger } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject } from '@nestjs/common';
 import { PrismaService } from '../../core/database/prisma.service';
 import { UpdateMemberDto } from './dto/update-member.dto';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
+import { Logger } from 'winston';
 
 export interface MemberProfile {
   id: string;
@@ -21,9 +23,12 @@ export interface MemberProfile {
 
 @Injectable()
 export class MembersService {
-  private readonly logger = new Logger(MembersService.name);
+  constructor(
+    private readonly prisma: PrismaService,
 
-  constructor(private readonly prisma: PrismaService) {}
+    @Inject(WINSTON_MODULE_PROVIDER)
+    private readonly logger: Logger,
+  ) {}
 
   async findById(memberId: string): Promise<MemberProfile> {
     const member = await this.prisma.member.findUnique({
@@ -85,7 +90,7 @@ export class MembersService {
       data: updateData,
     });
 
-    this.logger.log(`Member ${memberId} updated profile`);
+    this.logger.info(`Member ${memberId} updated profile`);
 
     return this.findById(memberId);
   }
@@ -174,7 +179,7 @@ export class MembersService {
       }),
     ]);
 
-    this.logger.log(`Data export requested by member ${memberId}`);
+    this.logger.info(`Data export requested by member ${memberId}`);
 
     return {
       exportedAt: new Date().toISOString(),
@@ -214,7 +219,7 @@ export class MembersService {
       },
     });
 
-    this.logger.log(`Member ${memberId} anonymised (GDPR erasure request)`);
+    this.logger.info(`Member ${memberId} anonymised (GDPR erasure request)`);
 
     return {
       message:

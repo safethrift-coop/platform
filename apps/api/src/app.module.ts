@@ -7,9 +7,13 @@ import { RedisModule } from './core/redis/redis.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { DatabaseModule } from './core/database/database.module';
 import { MembersModule } from './modules/members/members.module';
+import { LoggerModule } from './core/logger/logger.module';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { LoggingInterceptor } from './core/interceptors/logging.interceptor';
 
 @Module({
   imports: [
+    LoggerModule,
     ConfigModule.forRoot({
       isGlobal: true,
       validate,
@@ -25,6 +29,11 @@ import { MembersModule } from './modules/members/members.module';
     MembersModule,
   ],
   controllers: [AppController],
-  providers: [],
+  providers: [
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: LoggingInterceptor,
+    },
+  ],
 })
 export class AppModule {}

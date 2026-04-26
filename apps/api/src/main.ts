@@ -6,6 +6,8 @@ dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
+import { WinstonModule } from 'nest-winston';
+import { winstonConfig } from './core/logger/logger.config';
 import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from './core/filters/global-exception.filter';
@@ -13,6 +15,7 @@ import { GlobalExceptionFilter } from './core/filters/global-exception.filter';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     rawBody: true,
+    logger: WinstonModule.createLogger(winstonConfig),
   });
 
   app.use(
