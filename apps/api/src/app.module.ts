@@ -6,6 +6,7 @@ import { validate } from './core/config/env.validation';
 import { RedisModule } from './core/redis/redis.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { DatabaseModule } from './core/database/database.module';
+import { MembersModule } from './modules/members/members.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { DatabaseModule } from './core/database/database.module';
     DatabaseModule,
     RedisModule,
     AuthModule,
+    MembersModule,
   ],
   controllers: [AppController],
   providers: [],
