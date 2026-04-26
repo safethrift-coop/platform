@@ -23,6 +23,8 @@ const EMAIL_VERIFY_PREFIX = 'email_verify:';
 const EMAIL_VERIFY_TTL_SECONDS = 60 * 60 * 24; // 24 hours
 const STEP_UP_TTL_SECONDS = 300; // 5 minutes
 const STEP_UP_PREFIX = 'stepup:';
+const PASSWORD_RESET_PREFIX = 'pwd_reset:';
+const PASSWORD_RESET_TTL_SECONDS = 60 * 60; // 1 hour
 
 export interface AuthTokens {
   accessToken: string;
@@ -375,6 +377,85 @@ export class AuthService {
     this.logger.log(
       `Step-up verified for member ${memberId} action: ${action}`,
     );
+  }
+
+  // ─────────────────────────────────────────────
+  // FORGOT PASSWORD
+  // ─────────────────────────────────────────────
+
+  async forgotPassword(email: string): Promise<{ message: string }> {
+    const member = await this.prisma.member.findUnique({
+      where: { email },
+      select: { id: true, firstName: true, membershipStatus: true },
+    });
+
+    // Always return the same message regardless of whether the email exists.
+    // This prevents attackers from using this endpoint to discover
+    // which email addresses have Safethrift accounts (account enumeration).
+    const genericMessage = {
+      message:
+        'If an account with that email exists, a password reset link has been sent.',
+    };
+
+    if (!member || member.membershipStatus === 'closed') {
+      return genericMessage;
+    }
+
+    const resetToken = uuidv4();
+
+    await this.redis.set(
+      `${PASSWORD_RESET_PREFIX}${resetToken}`,
+      member.id,
+      PASSWORD_RESET_TTL_SECONDS,
+    );
+
+    // TODO (T36): Send email via SendGrid with reset link
+    // The link will be: https://safethrift.coop/reset-password?token={resetToken}
+    // For now, log the token so you can test it manually
+    this.logger.log(
+      `Password reset token for member ${member.id}: ${resetToken}`,
+    );
+
+    return genericMessage;
+  }
+
+  // ─────────────────────────────────────────────
+  // RESET PASSWORD
+  // ─────────────────────────────────────────────
+
+  async resetPassword(
+    token: string,
+    newPassword: string,
+  ): Promise<{ message: string }> {
+    const memberId = await this.redis.get(`${PASSWORD_RESET_PREFIX}${token}`);
+
+    if (!memberId) {
+      throw new BadRequestException(
+        'This password reset link has expired or is invalid. Please request a new one.',
+      );
+    }
+    await this.checkBreachedPassword(newPassword);
+
+    const newHash = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
+
+    await this.prisma.member.update({
+      where: { id: memberId },
+      data: { passwordHash: newHash } as Record<string, unknown>,
+    });
+
+    // Delete the reset token so it cannot be used again
+    await this.redis.del(`${PASSWORD_RESET_PREFIX}${token}`);
+
+    // Invalidate all existing sessions — wipe refresh tokens
+    // If an attacker triggered this reset, they cannot keep the old session alive
+    await this.redis.del(`${REFRESH_TOKEN_PREFIX}${memberId}`);
+
+    this.logger.log(`Password reset completed for member ${memberId}`);
+
+    return {
+      message:
+        'Password reset successfully. Please log in with your new password.',
+    };
   }
 
   // ─────────────────────────────────────────────

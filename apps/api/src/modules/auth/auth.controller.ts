@@ -17,6 +17,10 @@ import type { Response, Request as ExpressRequest } from 'express';
 import { AuthService, MemberProfile } from './auth.service';
 import { RegisterDto } from '../dto/register.dto';
 import { RefreshDto } from '../dto/refresh.dto';
+import {
+  ForgotPasswordDto,
+  ResetPasswordDto,
+} from '../dto/forgot-password.dto';
 import { JwtAuthGuard } from '../../core/guards/jwt-auth.guard';
 import { CurrentMember } from '../../core/decorators/current-member.decorator';
 import type { JwtPayload } from '../../core/decorators/current-member.decorator';
@@ -122,5 +126,23 @@ export class AuthController {
     @CurrentMember() member: JwtPayload,
   ): Promise<{ stepUpToken: string; expiresInSeconds: number }> {
     return this.authService.initiateStepUp(member.sub, action);
+  }
+
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ short: { limit: 3, ttl: 3600000 } })
+  async forgotPassword(
+    @Body() dto: ForgotPasswordDto,
+  ): Promise<{ message: string }> {
+    return this.authService.forgotPassword(dto.email);
+  }
+
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ short: { limit: 5, ttl: 3600000 } })
+  async resetPassword(
+    @Body() dto: ResetPasswordDto,
+  ): Promise<{ message: string }> {
+    return this.authService.resetPassword(dto.token, dto.newPassword);
   }
 }
