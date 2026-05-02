@@ -11,6 +11,7 @@ import { MembershipModule } from './modules/membership/membership.module';
 import { LoggerModule } from './core/logger/logger.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { LoggingInterceptor } from './core/interceptors/logging.interceptor';
+import { SavingsModule } from './modules/savings/savings.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { LoggingInterceptor } from './core/interceptors/logging.interceptor';
     AuthModule,
     MembersModule,
     MembershipModule,
+    SavingsModule,
   ],
   controllers: [AppController],
   providers: [

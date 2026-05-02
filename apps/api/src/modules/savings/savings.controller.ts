@@ -1,0 +1,91 @@
+import {
+  Controller,
+  Post,
+  Get,
+  Body,
+  Param,
+  UseGuards,
+  HttpCode,
+  HttpStatus,
+  Headers,
+  Query,
+} from '@nestjs/common';
+import { SavingsService } from './savings.service';
+import { OpenAccountDto } from './dto/open-account.dto';
+import { DepositDto } from './dto/deposit.dto';
+import { WithdrawDto } from './dto/withdraw.dto';
+import { JwtAuthGuard } from '../../core/guards/jwt-auth.guard';
+import { CurrentMember } from '../../core/decorators/current-member.decorator';
+import type { JwtPayload } from '../../core/decorators/current-member.decorator';
+import { v4 as uuidv4 } from 'uuid';
+
+@Controller('accounts')
+@UseGuards(JwtAuthGuard)
+export class SavingsController {
+  constructor(private readonly savingsService: SavingsService) {}
+
+  @Post()
+  @HttpCode(HttpStatus.CREATED)
+  async openAccount(
+    @CurrentMember() member: JwtPayload,
+    @Body() dto: OpenAccountDto,
+  ): Promise<unknown> {
+    return this.savingsService.openAccount(member.sub, dto);
+  }
+
+  @Get()
+  async getAccounts(@CurrentMember() member: JwtPayload): Promise<unknown[]> {
+    return this.savingsService.getAccounts(member.sub);
+  }
+
+  @Get(':id')
+  async getAccount(
+    @Param('id') accountId: string,
+    @CurrentMember() member: JwtPayload,
+  ): Promise<unknown> {
+    return this.savingsService.getAccount(accountId, member.sub);
+  }
+
+  @Post(':id/deposit')
+  @HttpCode(HttpStatus.CREATED)
+  async deposit(
+    @Param('id') accountId: string,
+    @CurrentMember() member: JwtPayload,
+    @Body() dto: DepositDto,
+    @Headers('idempotency-key') idempotencyKey: string,
+  ): Promise<unknown> {
+    // If no idempotency key is provided, generate one
+    // This handles clients that do not send the header
+    const key = idempotencyKey ?? uuidv4();
+    return this.savingsService.deposit(accountId, member.sub, dto, key);
+  }
+
+  @Post(':id/withdraw')
+  @HttpCode(HttpStatus.CREATED)
+  async withdraw(
+    @Param('id') accountId: string,
+    @CurrentMember() member: JwtPayload,
+    @Body() dto: WithdrawDto,
+    @Headers('idempotency-key') idempotencyKey: string,
+  ): Promise<unknown> {
+    const key = idempotencyKey ?? uuidv4();
+    return this.savingsService.withdraw(accountId, member.sub, dto, key);
+  }
+
+  @Get(':id/transactions')
+  async getTransactions(
+    @Param('id') accountId: string,
+    @CurrentMember() member: JwtPayload,
+    @Query('cursor') cursor?: string,
+    @Query('limit') limit?: string,
+  ): Promise<unknown> {
+    // Convert limit from string to number — query params are always strings
+    const parsedLimit = limit ? parseInt(limit, 10) : 20;
+    return this.savingsService.getTransactions(
+      accountId,
+      member.sub,
+      cursor,
+      parsedLimit,
+    );
+  }
+}
