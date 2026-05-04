@@ -11,6 +11,7 @@ import { winstonConfig } from './core/logger/logger.config';
 import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from './core/filters/global-exception.filter';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -59,6 +60,51 @@ async function bootstrap() {
   app.setGlobalPrefix('api/v1', {
     exclude: ['health'],
   });
+
+  // Only enable Swagger in development
+  // In production, API docs should not be publicly accessible
+  if (process.env['NODE_ENV'] !== 'production') {
+    const swaggerConfig = new DocumentBuilder()
+      .setTitle('Safethrift API')
+      .setDescription(
+        'Safethrift cooperative finance platform — REST API documentation. ' +
+          'All financial endpoints require a valid JWT access token.',
+      )
+      .setVersion('1.0')
+      .setContact(
+        'Safethrift Engineering',
+        'https://safethrift.coop',
+        'engineering@safethrift.coop',
+      )
+      .setLicense('Private', '')
+      // This adds the Authorize button in the UI
+      // so you can paste a JWT token and test protected endpoints
+      .addBearerAuth(
+        {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+          description: 'Paste your access token here',
+        },
+        'access-token', // this name is referenced in @ApiBearerAuth() decorators
+      )
+      .addTag('auth', 'Registration, login, password reset')
+      .addTag('members', 'Member profile and GDPR controls')
+      .addTag('membership', 'Membership applications and admin approval')
+      .addTag('accounts', 'Savings accounts, deposits, and withdrawals')
+      .addTag('points', 'Savings points balance and history')
+      .build();
+
+    const document = SwaggerModule.createDocument(app, swaggerConfig);
+
+    SwaggerModule.setup('api/docs', app, document, {
+      swaggerOptions: {
+        persistAuthorization: true, // token stays after page refresh
+        tagsSorter: 'alpha',
+        operationsSorter: 'alpha',
+      },
+    });
+  }
 
   const port = process.env.PORT ?? 3000;
   await app.listen(port);
