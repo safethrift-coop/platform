@@ -12,6 +12,8 @@ import { LoggerModule } from './core/logger/logger.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { LoggingInterceptor } from './core/interceptors/logging.interceptor';
 import { SavingsModule } from './modules/savings/savings.module';
+import { PointsModule } from './modules/points/points.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 @Module({
   imports: [
@@ -25,12 +27,16 @@ import { SavingsModule } from './modules/savings/savings.module';
       { name: 'short', ttl: 60000, limit: 60 },
       { name: 'medium', ttl: 3600000, limit: 500 },
     ]),
+
+    EventEmitterModule.forRoot(),
+
     DatabaseModule,
     RedisModule,
     AuthModule,
     MembersModule,
     MembershipModule,
     SavingsModule,
+    PointsModule,
   ],
   controllers: [AppController],
   providers: [

@@ -1,3 +1,5 @@
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { SAVINGS_DEPOSITED_EVENT } from '../points/points.events';
 import {
   Injectable,
   NotFoundException,
@@ -21,6 +23,7 @@ export class SavingsService {
     private readonly prisma: PrismaService,
     @Inject(WINSTON_MODULE_PROVIDER)
     private readonly logger: Logger,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async openAccount(memberId: string, dto: OpenAccountDto): Promise<unknown> {
@@ -204,6 +207,20 @@ export class SavingsService {
         data: {
           currentBalance: newBalance.toNumber(),
         },
+      });
+
+      // Fire the event so PointsService can calculate points
+      // This happens after the deposit is committed — it cannot affect the deposit
+      this.eventEmitter.emit(SAVINGS_DEPOSITED_EVENT, {
+        memberId,
+        accountId,
+        accountType: account.accountType,
+        amount: depositAmount.toNumber(),
+        newBalance: newBalance.toNumber(),
+        goalTarget: account.goalTarget
+          ? new Decimal(account.goalTarget.toString()).toNumber()
+          : null,
+        goalReached: account.goalReached,
       });
 
       return transaction;
