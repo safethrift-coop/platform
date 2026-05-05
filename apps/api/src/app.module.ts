@@ -14,6 +14,7 @@ import { LoggingInterceptor } from './core/interceptors/logging.interceptor';
 import { SavingsModule } from './modules/savings/savings.module';
 import { PointsModule } from './modules/points/points.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { LoansModule } from './modules/loans/loans.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
     MembershipModule,
     SavingsModule,
     PointsModule,
+    LoansModule,
   ],
   controllers: [AppController],
   providers: [
