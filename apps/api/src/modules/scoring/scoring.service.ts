@@ -247,7 +247,7 @@ export class ScoringService {
     // Get the unique months that had at least one deposit
     // We use a Set to automatically deduplicate
     const monthsWithDeposits = new Set(
-      deposits.map((d) => {
+      deposits.map((d: { transactionDate: Date | string }) => {
         const date = new Date(d.transactionDate);
         // Format as "YYYY-MM" so each month is a unique string
         return `${date.getFullYear()}-${date.getMonth()}`;
@@ -284,24 +284,28 @@ export class ScoringService {
     }
 
     // Convert amounts to numbers
-    const amounts = deposits.map((d) =>
+    const amounts = deposits.map((d: { amount: { toString: () => string } }) =>
       new Decimal(d.amount.toString()).toNumber(),
     );
 
     // Calculate the mean (average) deposit amount
-    const sum = amounts.reduce((total, amount) => total + amount, 0);
+    const sum = amounts.reduce(
+      (total: number, amount: number) => total + amount,
+      0,
+    );
     const mean = sum / amounts.length;
 
     // Calculate standard deviation — how spread out the amounts are
     // A low standard deviation means deposits are similar amounts (consistent)
     // A high standard deviation means amounts vary wildly (inconsistent)
-    const squaredDifferences = amounts.map((amount) => {
+    const squaredDifferences = amounts.map((amount: number) => {
       const difference = amount - mean;
       return difference * difference;
     });
 
     const variance =
-      squaredDifferences.reduce((total, sq) => total + sq, 0) / amounts.length;
+      squaredDifferences.reduce((total: number, sq: number) => total + sq, 0) /
+      amounts.length;
 
     const standardDeviation = Math.sqrt(variance);
 
@@ -384,7 +388,7 @@ export class ScoringService {
     const incomeRecords = await this.prisma.incomeRecord.findMany({
       where: {
         memberId,
-        recordPeriodStart: { gte: windowStart },
+        recordPeriodStart: { gte: windowStart, lte: windowEnd },
       },
       select: { incomeVolatilityScore: true },
     });
@@ -440,7 +444,7 @@ export class ScoringService {
       return 0.5;
     }
 
-    const reminderIds = reminders.map((r) => r.id);
+    const reminderIds = reminders.map((r: { id: string }) => r.id);
 
     // Count how many reminders got a positive response
     // Positive = paid after reminder or saved after reminder
