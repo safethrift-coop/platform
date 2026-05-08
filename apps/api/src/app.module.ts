@@ -15,6 +15,7 @@ import { SavingsModule } from './modules/savings/savings.module';
 import { PointsModule } from './modules/points/points.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { LoansModule } from './modules/loans/loans.module';
+import { ScoringModule } from './modules/scoring/scoring.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { LoansModule } from './modules/loans/loans.module';
     SavingsModule,
     PointsModule,
     LoansModule,
+    ScoringModule,
   ],
   controllers: [AppController],
   providers: [
