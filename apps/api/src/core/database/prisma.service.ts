@@ -82,6 +82,9 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   get auditLog() {
     return this.client.auditLog;
   }
+  get complianceFlag() {
+    return this.client.complianceFlag;
+  }
 
   $transaction<T>(fn: (tx: any) => Promise<T>): Promise<T> {
     return this.client.$transaction(fn);

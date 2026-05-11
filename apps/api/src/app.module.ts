@@ -16,6 +16,7 @@ import { PointsModule } from './modules/points/points.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { LoansModule } from './modules/loans/loans.module';
 import { ScoringModule } from './modules/scoring/scoring.module';
+import { ComplianceModule } from './modules/compliance/compliance.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { ScoringModule } from './modules/scoring/scoring.module';
     MembersModule,
     MembershipModule,
     SavingsModule,
+    ComplianceModule,
     PointsModule,
     LoansModule,
     ScoringModule,
