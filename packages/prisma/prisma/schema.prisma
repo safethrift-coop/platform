@@ -275,6 +275,7 @@ model Member {
   shares                MemberShare[]
   groupMemberships      GroupMembership[]
   auditLogs             AuditLog[]
+  complianceFlags       ComplianceFlag[]
 
   @@index([membershipStatus])
   @@index([city, region])
@@ -833,4 +834,40 @@ model AuditLog {
   @@index([changedBy])
   @@index([changedAt])
   @@map("audit_logs")
+}
+
+enum ComplianceFlagStatus {
+  open
+  under_review
+  resolved
+  escalated
+}
+
+enum ComplianceFlagType {
+  large_single_deposit
+  high_velocity
+  monthly_spike
+  round_amount_pattern
+  manual_flag
+}
+
+model ComplianceFlag {
+  id          String               @id @default(cuid()) @map("flag_id")
+  memberId    String               @map("member_id")
+  flagType    ComplianceFlagType   @map("flag_type")
+  status      ComplianceFlagStatus @default(open)
+  description String
+  triggerData String?              @map("trigger_data")
+  reviewedBy  String?              @map("reviewed_by")
+  reviewNotes String?              @map("review_notes")
+  resolvedAt  DateTime?            @map("resolved_at")
+  createdAt   DateTime             @default(now()) @map("created_at")
+  updatedAt   DateTime             @updatedAt @map("updated_at")
+
+  member Member @relation(fields: [memberId], references: [id])
+
+  @@index([memberId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("compliance_flags")
 }
