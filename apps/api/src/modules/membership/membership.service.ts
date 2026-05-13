@@ -9,6 +9,7 @@ import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { PrismaService } from '../../core/database/prisma.service';
 import { ApplyMembershipDto, MembershipTier } from './dto/apply-membership.dto';
+import { NotificationsService } from '../notifications/notifications.service';
 
 const MEMBERSHIP_FEE: Record<MembershipTier, number> = {
   [MembershipTier.Individual]: 30,
@@ -19,6 +20,7 @@ const MEMBERSHIP_FEE: Record<MembershipTier, number> = {
 export class MembershipService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly notificationsService: NotificationsService,
     @Inject(WINSTON_MODULE_PROVIDER)
     private readonly logger: Logger,
   ) {}
@@ -189,6 +191,26 @@ export class MembershipService {
     });
 
     // TODO (T36): Send approval email with payment instructions
+    const member = await this.prisma.member.findUnique({
+      where: { id: registration.memberId },
+      select: {
+        email: true,
+        firstName: true,
+        membershipNumber: true,
+        preferredPaymentMethod: true,
+      },
+    });
+
+    if (member) {
+      await this.notificationsService.sendMembershipApproved(
+        member.email,
+        member.firstName,
+        member.membershipNumber,
+        registration.membershipType ?? 'individual',
+        MEMBERSHIP_FEE[registration.membershipType as MembershipTier] ?? 30,
+        registration.preferredPaymentMethod ?? 'bank_transfer',
+      );
+    }
 
     return {
       message:
@@ -228,6 +250,18 @@ export class MembershipService {
     });
 
     // TODO (T36): Send rejection email with reason
+    const memberForEmail = await this.prisma.member.findUnique({
+      where: { id: registration.memberId },
+      select: { email: true, firstName: true },
+    });
+
+    if (memberForEmail) {
+      await this.notificationsService.sendMembershipRejected(
+        memberForEmail.email,
+        memberForEmail.firstName,
+        decisionNotes,
+      );
+    }
 
     return { message: 'Application rejected.' };
   }

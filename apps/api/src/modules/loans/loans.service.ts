@@ -9,6 +9,8 @@ import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { PrismaService } from '../../core/database/prisma.service';
 import { ApplyLoanDto } from './dto/apply-loan.dto';
+import { NotificationsService } from '../notifications/notifications.service';
+
 import { RepayLoanDto } from './dto/repay-loan.dto';
 import Decimal from 'decimal.js';
 import { v4 as uuidv4 } from 'uuid';
@@ -33,6 +35,7 @@ const MIN_POINTS_REQUIRED = 100;
 export class LoansService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly notificationsService: NotificationsService,
     @Inject(WINSTON_MODULE_PROVIDER)
     private readonly logger: Logger,
   ) {}
@@ -477,6 +480,21 @@ export class LoansService {
     });
 
     // TODO (T36): Send approval email to member
+    const memberForEmail = await this.prisma.member.findUnique({
+      where: { id: application.memberId },
+      select: { email: true, firstName: true },
+    });
+
+    if (memberForEmail) {
+      await this.notificationsService.sendLoanApproved(
+        memberForEmail.email,
+        memberForEmail.firstName,
+        principal.toNumber(),
+        monthlyInstalment.toNumber(),
+        termMonths,
+        maturityDate,
+      );
+    }
 
     return {
       loanId: loan.id,
@@ -526,6 +544,19 @@ export class LoansService {
     });
 
     // TODO (T36): Send rejection email with reason
+    // In reject() — replace the TODO with:
+    const memberForEmail = await this.prisma.member.findUnique({
+      where: { id: application.memberId },
+      select: { email: true, firstName: true },
+    });
+
+    if (memberForEmail) {
+      await this.notificationsService.sendLoanRejected(
+        memberForEmail.email,
+        memberForEmail.firstName,
+        decisionNotes,
+      );
+    }
 
     return { message: 'Application rejected.' };
   }

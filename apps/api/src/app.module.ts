@@ -17,6 +17,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { LoansModule } from './modules/loans/loans.module';
 import { ScoringModule } from './modules/scoring/scoring.module';
 import { ComplianceModule } from './modules/compliance/compliance.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { ComplianceModule } from './modules/compliance/compliance.module';
     PointsModule,
     LoansModule,
     ScoringModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [

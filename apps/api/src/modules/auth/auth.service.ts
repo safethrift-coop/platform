@@ -9,6 +9,7 @@ import { PrismaService } from '../../core/database/prisma.service';
 import { RedisService } from '../../core/redis/redis.service';
 import { RegisterDto } from '../dto/register.dto';
 import { JwtPayload } from '../../core/decorators/current-member.decorator';
+import { NotificationsService } from '../notifications/notifications.service';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import axios from 'axios';
@@ -48,7 +49,7 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly jwt: JwtService,
     private readonly redis: RedisService,
-
+    private readonly notifications: NotificationsService,
     @Inject(WINSTON_MODULE_PROVIDER)
     private readonly logger: Logger,
   ) {}
@@ -167,11 +168,11 @@ export class AuthService {
     );
 
     // New — structured, searchable
-    this.logger.info('Member registered', {
-      memberId: member.id,
-      ipAddress,
-      membershipType: dto.membershipType,
-    });
+    await this.notifications.sendVerificationEmail(
+      dto.email,
+      dto.firstName,
+      verifyToken,
+    );
 
     return {
       message:
@@ -423,10 +424,11 @@ export class AuthService {
     // TODO (T36): Send email via SendGrid with reset link
     // The link will be: https://safethrift.coop/reset-password?token={resetToken}
     // For now, log the token so you can test it manually
-    this.logger.info(
-      `Password reset token for member ${member.id}: ${resetToken}`,
+    await this.notifications.sendPasswordResetEmail(
+      email,
+      member.firstName,
+      resetToken,
     );
-
     return genericMessage;
   }
 
