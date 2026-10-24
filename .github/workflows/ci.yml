@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -45,7 +45,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
-          node-version: "20.20.2"
+          node-version-file: ".nvmrc"
           cache: "pnpm"
 
       - name: Install dependencies
@@ -73,6 +73,12 @@ jobs:
 
       - name: Lint web
         run: pnpm --filter @safethrift/web run lint
+
+      - name: Build public website
+        run: pnpm --filter @safethrift/web build
+
+      - name: Test public website production output
+        run: pnpm --filter @safethrift/web test:production
 
       - name: Run database migrations
         run: pnpm --filter @safethrift/prisma exec prisma migrate deploy

@@ -1,0 +1,398 @@
+{
+  "checks": [
+    {
+      "route": "/",
+      "width": 1440,
+      "overflow": false,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": [
+            {
+              "target": [
+                ".hero-caption > span[aria-hidden=\"true\"]"
+              ],
+              "html": "<span aria-hidden=\"true\">◌</span>",
+              "summary": "Fix any of the following:\n  Element content contains only non-text characters",
+              "checks": [
+                {
+                  "id": "color-contrast",
+                  "message": "Element content contains only non-text characters",
+                  "data": {
+                    "messageKey": "nonBmp"
+                  },
+                  "relatedNodes": []
+                }
+              ]
+            },
+            {
+              "target": [
+                ".label-top"
+              ],
+              "html": "<div class=\"art-label label-top\">ROOTED IN COMMUNITY</div>",
+              "summary": "Fix any of the following:\n  Element's background color could not be determined because it is overlapped by another element",
+              "checks": [
+                {
+                  "id": "color-contrast",
+                  "message": "Element's background color could not be determined because it is overlapped by another element",
+                  "data": {
+                    "contrastRatio": 0,
+                    "fontSize": "7.0pt (9.28px)",
+                    "fontWeight": "normal",
+                    "messageKey": "bgOverlap",
+                    "expectedContrastRatio": "4.5:1"
+                  },
+                  "relatedNodes": []
+                }
+              ]
+            },
+            {
+              "target": [
+                ".label-bottom"
+              ],
+              "html": "<div class=\"art-label label-bottom\">GROWING TOGETHER</div>",
+              "summary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient",
+              "checks": [
+                {
+                  "id": "color-contrast",
+                  "message": "Element's background color could not be determined due to a background gradient",
+                  "data": {
+                    "contrastRatio": 0,
+                    "fontSize": "7.0pt (9.28px)",
+                    "fontWeight": "normal",
+                    "messageKey": "bgGradient",
+                    "expectedContrastRatio": "4.5:1"
+                  },
+                  "relatedNodes": [
+                    {
+                      "html": "<div class=\"art-grid\"></div>",
+                      "target": [
+                        ".art-grid"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "target": [
+                ".text-link[href$=\"about\"] > span[aria-hidden=\"true\"]"
+              ],
+              "html": "<span aria-hidden=\"true\">→</span>",
+              "summary": "Fix any of the following:\n  Element content contains only non-text characters",
+              "checks": [
+                {
+                  "id": "color-contrast",
+                  "message": "Element content contains only non-text characters",
+                  "data": {
+                    "messageKey": "nonBmp"
+                  },
+                  "relatedNodes": []
+                }
+              ]
+            },
+            {
+              "target": [
+                ".card.product-card:nth-child(1) > .card-top > .status > span[aria-hidden=\"true\"]"
+              ],
+              "html": "<span aria-hidden=\"true\">◌</span>",
+              "summary": "Fix any of the following:\n  Element content contains only non-text characters",
+              "checks": [
+                {
+                  "id": "color-contrast",
+                  "message": "Element content contains only non-text characters",
+                  "data": {
+                    "messageKey": "nonBmp"
+                  },
+                  "relatedNodes": []
+                }
+              ]
+            },
+            {
+              "target": [
+                "a[href$=\"products#fsa\"] > span[aria-hidden=\"true\"]"
+              ],
+              "html": "<span aria-hidden=\"true\">→</span>",
+              "summary": "Fix any of the following:\n  Element content contains only non-text characters",
+              "checks": [
+                {
+                  "id": "color-contrast",
+                  "message": "Element content contains only non-text characters",
+                  "data": {
+                    "messageKey": "nonBmp"
+                  },
+                  "relatedNodes": []
+                }
+              ]
+            },
+            {
+              "target": [
+                ".card.product-card:nth-child(2) > .card-top > .status > span[aria-hidden=\"true\"]"
+              ],
+              "html": "<span aria-hidden=\"true\">◌</span>",
+              "summary": "Fix any of the following:\n  Element content contains only non-text characters",
+              "checks": [
+                {
+                  "id": "color-contrast",
+                  "message": "Element content contains only non-text characters",
+                  "data": {
+                    "messageKey": "nonBmp"
+                  },
+                  "relatedNodes": []
+                }
+              ]
+            },
+            {
+              "target": [
+                "a[href$=\"products#rsa\"] > span[aria-hidden=\"true\"]"
+              ],
+              "html": "<span aria-hidden=\"true\">→</span>",
+              "summary": "Fix any of the following:\n  Element content contains only non-text characters",
+              "checks": [
+                {
+                  "id": "color-contrast",
+                  "message": "Element content contains only non-text characters",
+                  "data": {
+                    "messageKey": "nonBmp"
+                  },
+                  "relatedNodes": []
+                }
+              ]
+            },
+            {
+              "target": [
+                ".card.product-card:nth-child(3) > .card-top > .status > span[aria-hidden=\"true\"]"
+              ],
+              "html": "<span aria-hidden=\"true\">◌</span>",
+              "summary": "Fix any of the following:\n  Element content contains only non-text characters",
+              "checks": [
+                {
+                  "id": "color-contrast",
+                  "message": "Element content contains only non-text characters",
+                  "data": {
+                    "messageKey": "nonBmp"
+                  },
+                  "relatedNodes": []
+                }
+              ]
+            },
+            {
+              "target": [
+                "a[href$=\"products#gsa\"] > span[aria-hidden=\"true\"]"
+              ],
+              "html": "<span aria-hidden=\"true\">→</span>",
+              "summary": "Fix any of the following:\n  Element content contains only non-text characters",
+              "checks": [
+                {
+                  "id": "color-contrast",
+                  "message": "Element content contains only non-text characters",
+                  "data": {
+                    "messageKey": "nonBmp"
+                  },
+                  "relatedNodes": []
+                }
+              ]
+            },
+            {
+              "target": [
+                "article:nth-child(2) > .value-icon[aria-hidden=\"true\"]"
+              ],
+              "html": "<span class=\"value-icon\" aria-hidden=\"true\">◎</span>",
+              "summary": "Fix any of the following:\n  Element content contains only non-text characters",
+              "checks": [
+                {
+                  "id": "color-contrast",
+                  "message": "Element content contains only non-text characters",
+                  "data": {
+                    "messageKey": "nonBmp"
+                  },
+                  "relatedNodes": []
+                }
+              ]
+            },
+            {
+              "target": [
+                ".text-link[href$=\"knowledge-centre\"] > span[aria-hidden=\"true\"]"
+              ],
+              "html": "<span aria-hidden=\"true\">→</span>",
+              "summary": "Fix any of the following:\n  Element content contains only non-text characters",
+              "checks": [
+                {
+                  "id": "color-contrast",
+                  "message": "Element content contains only non-text characters",
+                  "data": {
+                    "messageKey": "nonBmp"
+                  },
+                  "relatedNodes": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route": "/about",
+      "width": 1440,
+      "overflow": false,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/products",
+      "width": 1440,
+      "overflow": false,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": [
+            {
+              "target": [
+                "#fsa > .card-top > .status > span[aria-hidden=\"true\"]"
+              ],
+              "html": "<span aria-hidden=\"true\">◌</span>",
+              "summary": "Fix any of the following:\n  Element content contains only non-text characters",
+              "checks": [
+                {
+                  "id": "color-contrast",
+                  "message": "Element content contains only non-text characters",
+                  "data": {
+                    "messageKey": "nonBmp"
+                  },
+                  "relatedNodes": []
+                }
+              ]
+            },
+            {
+              "target": [
+                "#rsa > .card-top > .status > span[aria-hidden=\"true\"]"
+              ],
+              "html": "<span aria-hidden=\"true\">◌</span>",
+              "summary": "Fix any of the following:\n  Element content contains only non-text characters",
+              "checks": [
+                {
+                  "id": "color-contrast",
+                  "message": "Element content contains only non-text characters",
+                  "data": {
+                    "messageKey": "nonBmp"
+                  },
+                  "relatedNodes": []
+                }
+              ]
+            },
+            {
+              "target": [
+                "#gsa > .card-top > .status > span[aria-hidden=\"true\"]"
+              ],
+              "html": "<span aria-hidden=\"true\">◌</span>",
+              "summary": "Fix any of the following:\n  Element content contains only non-text characters",
+              "checks": [
+                {
+                  "id": "color-contrast",
+                  "message": "Element content contains only non-text characters",
+                  "data": {
+                    "messageKey": "nonBmp"
+                  },
+                  "relatedNodes": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route": "/membership",
+      "width": 1440,
+      "overflow": false,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/knowledge-centre",
+      "width": 1440,
+      "overflow": false,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": [
+            {
+              "target": [
+                "article:nth-child(1) > div > .status > span[aria-hidden=\"true\"]"
+              ],
+              "html": "<span aria-hidden=\"true\">◌</span>",
+              "summary": "Fix any of the following:\n  Element content contains only non-text characters",
+              "checks": [
+                {
+                  "id": "color-contrast",
+                  "message": "Element content contains only non-text characters",
+                  "data": {
+                    "messageKey": "nonBmp"
+                  },
+                  "relatedNodes": []
+                }
+              ]
+            },
+            {
+              "target": [
+                "article:nth-child(2) > div > .status > span[aria-hidden=\"true\"]"
+              ],
+              "html": "<span aria-hidden=\"true\">◌</span>",
+              "summary": "Fix any of the following:\n  Element content contains only non-text characters",
+              "checks": [
+                {
+                  "id": "color-contrast",
+                  "message": "Element content contains only non-text characters",
+                  "data": {
+                    "messageKey": "nonBmp"
+                  },
+                  "relatedNodes": []
+                }
+              ]
+            },
+            {
+              "target": [
+                "article:nth-child(3) > div > .status > span[aria-hidden=\"true\"]"
+              ],
+              "html": "<span aria-hidden=\"true\">◌</span>",
+              "summary": "Fix any of the following:\n  Element content contains only non-text characters",
+              "checks": [
+                {
+                  "id": "color-contrast",
+                  "message": "Element content contains only non-text characters",
+                  "data": {
+                    "messageKey": "nonBmp"
+                  },
+                  "relatedNodes": []
+                }
+              ]
+            },
+            {
+              "target": [
+                "article:nth-child(4) > div > .status > span[aria-hidden=\"true\"]"
+              ],
+              "html": "<span aria-hidden=\"true\">◌</span>",
+              "summary": "Fix any of the following:\n  Element content contains only non-text characters",
+              "checks": [
+                {
+                  "id": "color-contrast",
+                  "message": "Element content contains only non-text characters",
+                  "data": {
+                    "messageKey": "nonBmp"
+                  },
+                  "relatedNodes": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "keyboard": "PASS",
+  "mobileNavigation": "PASS",
+  "reducedMotion": "PASS"
+}
