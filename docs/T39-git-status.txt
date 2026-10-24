@@ -1,0 +1,48 @@
+## feat/t39-public-marketing-website
+ M .github/workflows/ci.yml
+ M .nvmrc
+ M apps/web/README.md
+ M apps/web/next.config.ts
+ M apps/web/package.json
+ D apps/web/src/app/favicon.ico
+ M apps/web/src/app/globals.css
+ M apps/web/src/app/layout.tsx
+ M apps/web/src/app/page.tsx
+ M pnpm-lock.yaml
+?? apps/web/src/app/about/page.tsx
+?? apps/web/src/app/icon.svg
+?? apps/web/src/app/knowledge-centre/page.tsx
+?? apps/web/src/app/membership/page.tsx
+?? apps/web/src/app/not-found.tsx
+?? apps/web/src/app/opengraph-image/route.tsx
+?? apps/web/src/app/products/page.tsx
+?? apps/web/src/app/robots.ts
+?? apps/web/src/app/sitemap.ts
+?? apps/web/src/components/icon.tsx
+?? apps/web/src/components/marketing.tsx
+?? apps/web/src/components/site-header.tsx
+?? apps/web/src/lib/content.ts
+?? apps/web/src/lib/seo.ts
+?? apps/web/tests/browser-check.mjs
+?? apps/web/tests/production-check.mjs
+?? apps/web/tests/public-site.test.mjs
+?? apps/web/tests/seo-config.test.mjs
+?? docs/T39-baseline.md
+?? docs/T39-browser-results.json
+?? docs/T39-contrast-baseline.json
+?? docs/T39-git-status.txt
+?? docs/T39-lighthouse-results.json
+?? docs/T39-pull-request.md
+?? docs/T39-report.md
+?? docs/screenshots/t39-about-desktop.png
+?? docs/screenshots/t39-about-mobile.png
+?? docs/screenshots/t39-before-home-desktop.png
+?? docs/screenshots/t39-before-home-mobile.png
+?? docs/screenshots/t39-home-desktop.png
+?? docs/screenshots/t39-home-mobile.png
+?? docs/screenshots/t39-knowledge-centre-desktop.png
+?? docs/screenshots/t39-knowledge-centre-mobile.png
+?? docs/screenshots/t39-membership-desktop.png
+?? docs/screenshots/t39-membership-mobile.png
+?? docs/screenshots/t39-products-desktop.png
+?? docs/screenshots/t39-products-mobile.png
