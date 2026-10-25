@@ -245,6 +245,7 @@ model Member {
   householdSize      Int?             @map("household_size")
   migrationStatus    MigrationStatus? @map("migration_status")
   joinedDate         DateTime         @default(now()) @map("joined_date")
+  isAdmin            Boolean          @default(false) @map("is_admin")
   membershipStatus   MembershipStatus @default(pending) @map("membership_status")
   preferredLanguage  String           @default("en") @map("preferred_language")
   mfaEnabled         Boolean          @default(false) @map("mfa_enabled")

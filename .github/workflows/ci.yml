@@ -104,10 +104,21 @@ jobs:
           NODE_ENV: test
           SAVINGS_TEST_DATABASE_URL: postgresql://safethrift:safethrift_test@localhost:5432/safethrift_savings_migration_test
 
-      - name: API e2e and PostgreSQL savings safety integration
+      - name: Verify governance authority migration preserves existing data
+        run: |
+          createdb --host localhost --username safethrift safethrift_governance_migration_test
+          pnpm --filter @safethrift/api test:governance-migrations
+        env:
+          PGPASSWORD: safethrift_test
+          NODE_ENV: test
+          GOVERNANCE_MIGRATION_TEST_DATABASE_URL: postgresql://safethrift:safethrift_test@localhost:5432/safethrift_governance_migration_test
+
+      - name: API e2e, governance, authentication and savings integration
         run: pnpm --filter @safethrift/api test:e2e --runInBand
         env:
           NODE_ENV: test
+          GOVERNANCE_TEST_DATABASE_URL: postgresql://safethrift:safethrift_test@localhost:5432/safethrift_test
+          AUTH_TEST_REDIS_URL: redis://localhost:6379
           SAVINGS_SIMULATION_ENABLED: "false"
           SAVINGS_TEST_DATABASE_URL: postgresql://safethrift:safethrift_test@localhost:5432/safethrift_test
           DATABASE_URL: postgresql://safethrift:safethrift_test@localhost:5432/safethrift_test

@@ -18,7 +18,8 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "test:migrations": "node test/verify-savings-migrations.mjs"
+    "test:migrations": "node test/verify-savings-migrations.mjs",
+    "test:governance-migrations": "node test/verify-governance-migration.mjs"
   },
   "dependencies": {
     "@nestjs/bull": "^11.0.4",

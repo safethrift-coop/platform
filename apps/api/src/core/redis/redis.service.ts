@@ -44,6 +44,27 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     await this.client.del(key);
   }
 
+  // Rotation/revocation must only change the exact authenticated session slot.
+  async compareAndSwap(
+    key: string,
+    expected: string,
+    replacement: string | null,
+    ttlSeconds: number,
+  ): Promise<boolean> {
+    const result = await this.client.eval(
+      `if redis.call('GET', KEYS[1]) ~= ARGV[1] then return 0 end
+       if ARGV[2] == '' then redis.call('DEL', KEYS[1])
+       else redis.call('SET', KEYS[1], ARGV[2], 'EX', ARGV[3]) end
+       return 1`,
+      1,
+      key,
+      expected,
+      replacement ?? '',
+      ttlSeconds,
+    );
+    return result === 1;
+  }
+
   async exists(key: string): Promise<boolean> {
     const result = await this.client.exists(key);
     return result === 1;

@@ -13,7 +13,6 @@ import { NotificationsService } from '../notifications/notifications.service';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import axios from 'axios';
-import { v4 as uuidv4 } from 'uuid';
 import { Inject } from '@nestjs/common';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
@@ -22,6 +21,9 @@ const BCRYPT_ROUNDS = 12;
 const ACCESS_TOKEN_EXPIRY = '15m';
 const REFRESH_TOKEN_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 days
 const REFRESH_TOKEN_PREFIX = 'refresh:';
+// Public timing padding, not a credential: missing slots still do bcrypt work.
+const MISSING_REFRESH_HASH =
+  '$2b$10$vjWoBOrS9eErsQft9HnYxejO97KgYvKXZWO2eD/8aM2SfSv6b5vJG';
 const EMAIL_VERIFY_PREFIX = 'email_verify:';
 const EMAIL_VERIFY_TTL_SECONDS = 60 * 60 * 24; // 24 hours
 const STEP_UP_TTL_SECONDS = 300; // 5 minutes
@@ -160,7 +162,7 @@ export class AuthService {
     });
 
     // 7. Generate email verification token and store in Redis
-    const verifyToken = uuidv4();
+    const verifyToken = crypto.randomUUID();
     await this.redis.set(
       `${EMAIL_VERIFY_PREFIX}${verifyToken}`,
       member.id,
@@ -238,22 +240,29 @@ export class AuthService {
     member: MemberProfile,
     ipAddress?: string,
   ): Promise<AuthTokens & { refreshToken: string }> {
-    if (!member.emailVerified) {
-      throw new UnauthorizedException(
-        'Please verify your email address before logging in',
-      );
-    }
-
+    // Reload trusted authority instead of accepting a role from the local profile.
+    const current = await this.prisma.member.findUnique({
+      where: { id: member.id },
+      select: {
+        id: true,
+        email: true,
+        emailVerified: true,
+        membershipStatus: true,
+        isAdmin: true,
+      },
+    });
     if (
-      member.membershipStatus === 'suspended' ||
-      member.membershipStatus === 'closed'
-    ) {
-      throw new UnauthorizedException(
-        'Your account has been suspended. Please contact support.',
-      );
-    }
-
-    return this.issueTokens(member.id, member.email, 'member', ipAddress);
+      !current ||
+      !current.emailVerified ||
+      ['suspended', 'closed'].includes(current.membershipStatus)
+    )
+      throw new UnauthorizedException('Account cannot authenticate.');
+    return this.issueTokens(
+      current.id,
+      current.email,
+      current.isAdmin ? 'admin' : 'member',
+      ipAddress,
+    );
   }
 
   // ─────────────────────────────────────────────
@@ -289,49 +298,71 @@ export class AuthService {
 
   async refresh(
     memberId: string,
-    token: string,
+    token: string | undefined,
     ipAddress?: string,
   ): Promise<AuthTokens & { refreshToken: string }> {
-    const storedHash = await this.redis.get(
-      `${REFRESH_TOKEN_PREFIX}${memberId}`,
+    const rejected = () =>
+      new UnauthorizedException('Invalid or expired refresh session.');
+    if (
+      typeof memberId !== 'string' ||
+      !/^[A-Za-z0-9_-]{1,128}$/.test(memberId) ||
+      typeof token !== 'string' ||
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+        token,
+      )
+    )
+      throw rejected();
+    const key = `${REFRESH_TOKEN_PREFIX}${memberId}`;
+    const storedHash = await this.redis.get(key);
+    const matches = await bcrypt.compare(
+      token,
+      storedHash ?? MISSING_REFRESH_HASH,
     );
+    if (!storedHash || !matches) throw rejected();
 
-    if (!storedHash) {
-      throw new UnauthorizedException('Session expired. Please log in again.');
-    }
-
-    const isValid = await bcrypt.compare(token, storedHash);
-
-    if (!isValid) {
-      // Token mismatch — possible theft. Wipe all sessions immediately.
-      await this.redis.del(`${REFRESH_TOKEN_PREFIX}${memberId}`);
-      this.logger.warn({
-        level: 'warn',
-        message: `Refresh token replay detected for member ${memberId}. All sessions terminated.`,
-      });
-      throw new UnauthorizedException(
-        'Invalid session detected. All sessions have been terminated for your security. Please log in again.',
-      );
-    }
-
+    // No member lookup or token issuance before proving possession of the secret.
     const member = await this.prisma.member.findUnique({
       where: { id: memberId },
-      select: { id: true, email: true, membershipStatus: true },
+      select: {
+        id: true,
+        email: true,
+        emailVerified: true,
+        membershipStatus: true,
+        isAdmin: true,
+      },
     });
-
     if (
       !member ||
-      member.membershipStatus === 'suspended' ||
-      member.membershipStatus === 'closed'
+      !member.emailVerified ||
+      ['suspended', 'closed'].includes(member.membershipStatus)
     ) {
-      await this.redis.del(`${REFRESH_TOKEN_PREFIX}${memberId}`);
-      throw new UnauthorizedException('Account is no longer active.');
+      await this.redis.compareAndSwap(
+        key,
+        storedHash,
+        null,
+        REFRESH_TOKEN_TTL_SECONDS,
+      );
+      throw rejected();
     }
-
-    // Delete old refresh token before issuing new one (rotation)
-    await this.redis.del(`${REFRESH_TOKEN_PREFIX}${memberId}`);
-
-    return this.issueTokens(memberId, member.email, 'member', ipAddress);
+    const prepared = await this.prepareTokens(
+      member.id,
+      member.email,
+      member.isAdmin ? 'admin' : 'member',
+      ipAddress,
+    );
+    if (
+      !(await this.redis.compareAndSwap(
+        key,
+        storedHash,
+        prepared.refreshTokenHash,
+        REFRESH_TOKEN_TTL_SECONDS,
+      ))
+    )
+      throw rejected();
+    return {
+      accessToken: prepared.accessToken,
+      refreshToken: prepared.refreshToken,
+    };
   }
 
   // ─────────────────────────────────────────────
@@ -356,7 +387,7 @@ export class AuthService {
     memberId: string,
     action: string,
   ): Promise<{ stepUpToken: string; expiresInSeconds: number }> {
-    const token = uuidv4();
+    const token = crypto.randomUUID();
     await this.redis.set(
       `${STEP_UP_PREFIX}${memberId}:${action}`,
       token,
@@ -413,7 +444,7 @@ export class AuthService {
       return genericMessage;
     }
 
-    const resetToken = uuidv4();
+    const resetToken = crypto.randomUUID();
 
     await this.redis.set(
       `${PASSWORD_RESET_PREFIX}${resetToken}`,
@@ -459,8 +490,7 @@ export class AuthService {
     // Delete the reset token so it cannot be used again
     await this.redis.del(`${PASSWORD_RESET_PREFIX}${token}`);
 
-    // Invalidate all existing sessions — wipe refresh tokens
-    // If an attacker triggered this reset, they cannot keep the old session alive
+    // Revoke the refresh session. Already issued access JWTs still expire normally.
     await this.redis.del(`${REFRESH_TOKEN_PREFIX}${memberId}`);
 
     this.logger.info(`Password reset completed for member ${memberId}`);
@@ -475,12 +505,12 @@ export class AuthService {
   // PRIVATE HELPERS
   // ─────────────────────────────────────────────
 
-  private async issueTokens(
+  private async prepareTokens(
     memberId: string,
     email: string,
     role: string,
     ipAddress?: string,
-  ): Promise<AuthTokens & { refreshToken: string }> {
+  ): Promise<AuthTokens & { refreshToken: string; refreshTokenHash: string }> {
     // Bind token to a hash of the IP — logged but not hard-rejected
     // Mobile users change IPs frequently so we never block on mismatch
     const ipHash = ipAddress
@@ -499,16 +529,28 @@ export class AuthService {
       expiresIn: ACCESS_TOKEN_EXPIRY,
     });
 
-    const refreshToken = uuidv4();
+    const refreshToken = crypto.randomUUID();
     const refreshTokenHash = await bcrypt.hash(refreshToken, 10);
 
+    return { accessToken, refreshToken, refreshTokenHash };
+  }
+
+  private async issueTokens(
+    memberId: string,
+    email: string,
+    role: string,
+    ipAddress?: string,
+  ): Promise<AuthTokens & { refreshToken: string }> {
+    const prepared = await this.prepareTokens(memberId, email, role, ipAddress);
     await this.redis.set(
       `${REFRESH_TOKEN_PREFIX}${memberId}`,
-      refreshTokenHash,
+      prepared.refreshTokenHash,
       REFRESH_TOKEN_TTL_SECONDS,
     );
-
-    return { accessToken, refreshToken };
+    return {
+      accessToken: prepared.accessToken,
+      refreshToken: prepared.refreshToken,
+    };
   }
 
   private async checkBreachedPassword(password: string): Promise<void> {

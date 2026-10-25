@@ -3,13 +3,15 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { Request } from 'express';
 import * as crypto from 'crypto';
+import { PrismaService } from '../database/prisma.service';
+import type { Prisma } from '@prisma/client';
 import { JwtPayload } from '../decorators/current-member.decorator';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   private readonly logger = new Logger(JwtStrategy.name);
 
-  constructor() {
+  constructor(private readonly prisma: PrismaService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
@@ -18,11 +20,16 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  validate(
+  async validate(
     req: Request,
     payload: JwtPayload & { ipHash?: string },
-  ): JwtPayload {
-    if (!payload.sub || !payload.email) {
+  ): Promise<JwtPayload> {
+    if (
+      typeof payload.sub !== 'string' ||
+      !payload.sub ||
+      typeof payload.email !== 'string' ||
+      !payload.email
+    ) {
       throw new UnauthorizedException('Invalid token payload');
     }
 
@@ -44,6 +51,23 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       }
     }
 
-    return payload;
+    const members = this.prisma.member as Prisma.TransactionClient['member'];
+    const member = await members.findUnique({
+      where: { id: payload.sub },
+      select: { email: true, membershipStatus: true, isAdmin: true },
+    });
+    if (!member || ['suspended', 'closed'].includes(member.membershipStatus))
+      throw new UnauthorizedException('Account cannot authenticate.');
+    return {
+      ...payload,
+      email: member.email,
+      // Only administrative authority changes here. Existing signed staff,
+      // compliance and board claims retain their prior policy; no new grants.
+      role: member.isAdmin
+        ? 'admin'
+        : payload.role === 'admin'
+          ? 'member'
+          : payload.role,
+    };
   }
 }

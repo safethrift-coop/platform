@@ -102,16 +102,13 @@ export class AuthController {
     @Req() req: ExpressRequest,
     @Res({ passthrough: true }) res: Response,
   ): Promise<{ accessToken: string }> {
-    // Read member ID from the existing access token
-    // The refresh token comes from the HttpOnly cookie
-    const cookieToken = req.cookies[REFRESH_COOKIE_NAME] as string | undefined;
-
-    const tokenToUse = cookieToken ?? dto.refreshToken;
-
-    // memberId must come from a valid but possibly expired access token
-    // For now we use the body — in T31 this will use a dedicated refresh JWT
+    // memberId is an untrusted locator; only a verified refresh secret
+    // authenticates it. Cookie takes precedence over the optional body fallback.
+    const cookieToken = req.cookies?.[REFRESH_COOKIE_NAME] as unknown;
+    const tokenToUse =
+      typeof cookieToken === 'string' ? cookieToken : dto.refreshToken;
     const tokens = await this.authService.refresh(
-      dto.refreshToken,
+      dto.memberId,
       tokenToUse,
       req.ip,
     );
@@ -170,7 +167,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Reset password using token from email' })
   @ApiResponse({
     status: 200,
-    description: 'Password changed — all sessions invalidated',
+    description: 'Password changed — refresh session revoked',
   })
   @ApiResponse({ status: 400, description: 'Token expired or invalid' })
   @Post('reset-password')
