@@ -4,6 +4,7 @@ import {
   OnModuleDestroy,
   Logger,
 } from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 
 @Injectable()
@@ -86,8 +87,22 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
     return this.client.complianceFlag;
   }
 
-  $transaction<T>(fn: (tx: any) => Promise<T>): Promise<T> {
-    return this.client.$transaction(fn);
+  get savingsRequest() {
+    return this.client.savingsRequest;
+  }
+  get savingsPointsReceipt() {
+    return this.client.savingsPointsReceipt;
+  }
+
+  $transaction<T>(
+    fn: (tx: Prisma.TransactionClient) => Promise<T>,
+    options?: {
+      isolationLevel?: Prisma.TransactionIsolationLevel;
+      maxWait?: number;
+      timeout?: number;
+    },
+  ): Promise<T> {
+    return this.client.$transaction(fn, options);
   }
 
   $executeRawUnsafe(query: string): Promise<unknown> {

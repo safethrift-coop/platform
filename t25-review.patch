@@ -1,0 +1,1155 @@
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+index 9034a49..71389b6 100644
+--- a/.github/workflows/ci.yml
++++ b/.github/workflows/ci.yml
+@@ -95,6 +95,30 @@ jobs:
+           JWT_REFRESH_SECRET: test_refresh_secret_minimum_32_chars
+           ENCRYPTION_KEY: "0000000000000000000000000000000000000000000000000000000000000000"
+ 
++      - name: Verify additive migrations preserve legacy savings data
++        run: |
++          createdb --host localhost --username safethrift safethrift_savings_migration_test
++          pnpm --filter @safethrift/api test:migrations
++        env:
++          PGPASSWORD: safethrift_test
++          NODE_ENV: test
++          SAVINGS_TEST_DATABASE_URL: postgresql://safethrift:safethrift_test@localhost:5432/safethrift_savings_migration_test
++
++      - name: API e2e and PostgreSQL savings safety integration
++        run: pnpm --filter @safethrift/api test:e2e --runInBand
++        env:
++          NODE_ENV: test
++          SAVINGS_SIMULATION_ENABLED: "false"
++          SAVINGS_TEST_DATABASE_URL: postgresql://safethrift:safethrift_test@localhost:5432/safethrift_test
++          DATABASE_URL: postgresql://safethrift:safethrift_test@localhost:5432/safethrift_test
++          REDIS_HOST: localhost
++          REDIS_PORT: 6379
++          REDIS_PASSWORD: ""
++          JWT_SECRET: test_jwt_secret_minimum_32_characters
++          JWT_REFRESH_SECRET: test_refresh_secret_minimum_32_chars
++          ENCRYPTION_KEY: "0000000000000000000000000000000000000000000000000000000000000000"
++          RESEND_API_KEY: re_test_not_a_live_key
++
+       - name: Security audit
+         run: pnpm audit --audit-level=high
+         continue-on-error: true
+diff --git a/apps/api/.env.example b/apps/api/.env.example
+index 5333d89..6793a62 100644
+--- a/apps/api/.env.example
++++ b/apps/api/.env.example
+@@ -9,4 +9,6 @@ JWT_REFRESH_SECRET=
+ ENCRYPTION_KEY=
+ RESEND_API_KEY=
+ RESEND_FROM_EMAIL=
+-APP_URL=
+\ No newline at end of file
++APP_URL=
++# Simulation only; always rejected in staging/production. No external funds move.
++SAVINGS_SIMULATION_ENABLED=false
+diff --git a/apps/api/package.json b/apps/api/package.json
+index 549fe43..46713c3 100644
+--- a/apps/api/package.json
++++ b/apps/api/package.json
+@@ -17,7 +17,8 @@
+     "test:watch": "jest --watch",
+     "test:cov": "jest --coverage",
+     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
+-    "test:e2e": "jest --config ./test/jest-e2e.json"
++    "test:e2e": "jest --config ./test/jest-e2e.json",
++    "test:migrations": "node test/verify-savings-migrations.mjs"
+   },
+   "dependencies": {
+     "@nestjs/bull": "^11.0.4",
+diff --git a/apps/api/src/core/config/env.validation.ts b/apps/api/src/core/config/env.validation.ts
+index 7c84f93..d8e88fb 100644
+--- a/apps/api/src/core/config/env.validation.ts
++++ b/apps/api/src/core/config/env.validation.ts
+@@ -1,6 +1,7 @@
+ import { plainToInstance } from 'class-transformer';
+ import {
+   IsEnum,
++  IsIn,
+   IsInt,
+   IsString,
+   Min,
+@@ -19,6 +20,9 @@ class EnvironmentVariables {
+   @IsEnum(Environment)
+   NODE_ENV: Environment = Environment.Development;
+ 
++  @IsIn(['true', 'false'])
++  SAVINGS_SIMULATION_ENABLED: string = 'false';
++
+   @IsInt()
+   @Min(1)
+   PORT: number = 3000;
+diff --git a/apps/api/src/core/database/prisma.service.ts b/apps/api/src/core/database/prisma.service.ts
+index 030b622..af72215 100644
+--- a/apps/api/src/core/database/prisma.service.ts
++++ b/apps/api/src/core/database/prisma.service.ts
+@@ -4,6 +4,7 @@ import {
+   OnModuleDestroy,
+   Logger,
+ } from '@nestjs/common';
++import type { Prisma } from '@prisma/client';
+ import { PrismaPg } from '@prisma/adapter-pg';
+ 
+ @Injectable()
+@@ -86,8 +87,22 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
+     return this.client.complianceFlag;
+   }
+ 
+-  $transaction<T>(fn: (tx: any) => Promise<T>): Promise<T> {
+-    return this.client.$transaction(fn);
++  get savingsRequest() {
++    return this.client.savingsRequest;
++  }
++  get savingsPointsReceipt() {
++    return this.client.savingsPointsReceipt;
++  }
++
++  $transaction<T>(
++    fn: (tx: Prisma.TransactionClient) => Promise<T>,
++    options?: {
++      isolationLevel?: Prisma.TransactionIsolationLevel;
++      maxWait?: number;
++      timeout?: number;
++    },
++  ): Promise<T> {
++    return this.client.$transaction(fn, options);
+   }
+ 
+   $executeRawUnsafe(query: string): Promise<unknown> {
+diff --git a/apps/api/src/modules/compliance/compliance.service.ts b/apps/api/src/modules/compliance/compliance.service.ts
+index fdcb8e8..612fbfd 100644
+--- a/apps/api/src/modules/compliance/compliance.service.ts
++++ b/apps/api/src/modules/compliance/compliance.service.ts
+@@ -45,14 +45,14 @@ export class ComplianceService {
+   private async checkLargeDeposit(
+     payload: SavingsDepositedPayload,
+   ): Promise<void> {
+-    if (payload.amount < LARGE_DEPOSIT_THRESHOLD) {
++    if (new Decimal(payload.amount).lt(LARGE_DEPOSIT_THRESHOLD)) {
+       return; // Not a large deposit — no flag needed
+     }
+ 
+     await this.createFlag(
+       payload.memberId,
+       'large_single_deposit',
+-      `Single deposit of £${payload.amount.toFixed(2)} exceeds the £${LARGE_DEPOSIT_THRESHOLD} threshold`,
++      `Single deposit of £${new Decimal(payload.amount).toFixed(2)} exceeds the £${LARGE_DEPOSIT_THRESHOLD} threshold`,
+       { amount: payload.amount, accountId: payload.accountId },
+     );
+   }
+@@ -114,9 +114,9 @@ export class ComplianceService {
+     });
+ 
+     const thisMonthTotal = thisMonthDeposits.reduce(
+-      (sum: number, d: { amount: { toString: () => string } }) =>
+-        sum + new Decimal(d.amount.toString()).toNumber(),
+-      0,
++      (sum: Decimal, d: { amount: { toString: () => string } }) =>
++        sum.plus(d.amount.toString()),
++      new Decimal(0),
+     );
+ 
+     // Sum all deposits in the previous 6 months to calculate the average
+@@ -135,21 +135,21 @@ export class ComplianceService {
+     }
+ 
+     const historicalTotal = historicalDeposits.reduce(
+-      (sum: number, d: { amount: { toString: () => string } }) =>
+-        sum + new Decimal(d.amount.toString()).toNumber(),
+-      0,
++      (sum: Decimal, d: { amount: { toString: () => string } }) =>
++        sum.plus(d.amount.toString()),
++      new Decimal(0),
+     );
+ 
+     // Average monthly deposit over the historical window
+-    const monthlyAverage = historicalTotal / 6;
++    const monthlyAverage = historicalTotal.div(6);
+ 
+     // If no historical average, skip — cannot compare to zero
+-    if (monthlyAverage === 0) {
++    if (monthlyAverage.isZero()) {
+       return;
+     }
+ 
+     // Check if this month's total exceeds the spike threshold
+-    if (thisMonthTotal < monthlyAverage * MONTHLY_SPIKE_MULTIPLIER) {
++    if (thisMonthTotal.lt(monthlyAverage.times(MONTHLY_SPIKE_MULTIPLIER))) {
+       return; // Normal activity
+     }
+ 
+@@ -157,12 +157,12 @@ export class ComplianceService {
+       payload.memberId,
+       'monthly_spike',
+       `This month's deposits total £${thisMonthTotal.toFixed(2)}, ` +
+-        `which is ${(thisMonthTotal / monthlyAverage).toFixed(1)}x the ` +
++        `which is ${thisMonthTotal.div(monthlyAverage).toFixed(1)}x the ` +
+         `6-month average of £${monthlyAverage.toFixed(2)}`,
+       {
+-        thisMonthTotal,
+-        monthlyAverage,
+-        multiplier: thisMonthTotal / monthlyAverage,
++        thisMonthTotal: thisMonthTotal.toString(),
++        monthlyAverage: monthlyAverage.toString(),
++        multiplier: thisMonthTotal.div(monthlyAverage).toString(),
+       },
+     );
+   }
+@@ -191,10 +191,10 @@ export class ComplianceService {
+     let consecutiveRoundCount = 0;
+ 
+     for (const deposit of recentDeposits) {
+-      const amount = new Decimal(deposit.amount.toString()).toNumber();
++      const amount = new Decimal(deposit.amount.toString());
+ 
+       // Check if the amount is a round number (divisible by 100)
+-      if (amount % 100 === 0) {
++      if (amount.mod(100).isZero()) {
+         consecutiveRoundCount++;
+       } else {
+         // As soon as we see a non-round amount, the streak is broken
+diff --git a/apps/api/src/modules/points/points.events.ts b/apps/api/src/modules/points/points.events.ts
+index c92c896..ef96b40 100644
+--- a/apps/api/src/modules/points/points.events.ts
++++ b/apps/api/src/modules/points/points.events.ts
+@@ -1,17 +1,14 @@
+-// This file defines the event payloads that travel
+-// between the SavingsModule and the PointsModule.
+-// When a deposit happens, SavingsService fires a
+-// 'savings.deposited' event with this payload.
+-// PointsService listens for it and recalculates points.
+-
+ export const SAVINGS_DEPOSITED_EVENT = 'savings.deposited';
+ 
++// All amounts are exact decimal strings; no assertion of external settlement.
+ export interface SavingsDepositedPayload {
++  transactionId: string;
+   memberId: string;
+   accountId: string;
+   accountType: string;
+-  amount: number;
+-  newBalance: number;
+-  goalTarget: number | null;
++  amount: string;
++  newBalance: string;
++  goalTarget: string | null;
+   goalReached: boolean;
++  simulation: true;
+ }
+diff --git a/apps/api/src/modules/points/points.service.ts b/apps/api/src/modules/points/points.service.ts
+index 23d6c7d..b0788ba 100644
+--- a/apps/api/src/modules/points/points.service.ts
++++ b/apps/api/src/modules/points/points.service.ts
+@@ -47,106 +47,62 @@ export class PointsService {
+   private async calculateAndAwardPoints(
+     payload: SavingsDepositedPayload,
+   ): Promise<void> {
+-    const amount = new Decimal(payload.amount);
+-    let pointsToAward = 0;
+-
+-    if (payload.accountType === 'savings_fsa') {
+-      // FSA: straightforward — multiply amount by rate
+-      pointsToAward = amount.times(POINTS_RATE_FSA).floor().toNumber();
+-    } else if (payload.accountType === 'savings_rsa') {
+-      // RSA: enhanced rate — 1.5 points per £1
+-      pointsToAward = amount.times(POINTS_RATE_RSA).floor().toNumber();
+-    } else if (payload.accountType === 'savings_gsa') {
+-      // GSA: check if this deposit hit a milestone
+-      // If it did, award the bonus rate. Otherwise award normal rate.
+-      const isMilestoneDeposit = this.checkGsaMilestone(
+-        payload.newBalance,
+-        payload.goalTarget,
+-        amount.toNumber(),
+-      );
+-
+-      const rate = isMilestoneDeposit
+-        ? POINTS_RATE_GSA_MILESTONE
+-        : POINTS_RATE_GSA_NORMAL;
+-
+-      pointsToAward = amount.times(rate).floor().toNumber();
+-
+-      if (isMilestoneDeposit) {
+-        this.logger.info('GSA milestone reached — bonus points awarded', {
+-          memberId: payload.memberId,
+-          accountId: payload.accountId,
+-          newBalance: payload.newBalance,
+-          goalTarget: payload.goalTarget,
+-          bonusPoints: pointsToAward,
+-        });
++    // Validate against the committed request; do not trust event amounts or replay
++    // historical deposits whose previous processing cannot be established.
++    await this.prisma.$transaction(async (tx) => {
++      const request = await tx.savingsRequest.findUnique({
++        where: { transactionId: payload.transactionId },
++      });
++      if (!request || request.operation !== 'deposit' || !request.event)
++        throw new Error('No committed simulated deposit event');
++      const event = request.event as unknown as SavingsDepositedPayload;
++      const transaction = await tx.savingsTransaction.findUniqueOrThrow({
++        where: { id: payload.transactionId },
++      });
++      if (
++        !transaction.isSimulation ||
++        transaction.status !== 'completed' ||
++        transaction.memberId !== request.memberId ||
++        transaction.accountId !== request.accountId ||
++        event.transactionId !== transaction.id
++      )
++        throw new Error('Invalid committed deposit');
++      const amount = new Decimal(transaction.amount.toString());
++      let rate = new Decimal(0);
++      if (event.accountType === 'savings_fsa')
++        rate = new Decimal(POINTS_RATE_FSA);
++      if (event.accountType === 'savings_rsa')
++        rate = new Decimal(POINTS_RATE_RSA);
++      if (event.accountType === 'savings_gsa') {
++        const milestone =
++          event.goalTarget !== null &&
++          new Decimal(event.goalTarget).gt(0) &&
++          GSA_MILESTONES.some((fraction) => {
++            const target = new Decimal(event.goalTarget!).times(
++              String(fraction),
++            );
++            return (
++              new Decimal(event.newBalance).minus(amount).lt(target) &&
++              new Decimal(event.newBalance).gte(target)
++            );
++          });
++        rate = new Decimal(
++          milestone ? POINTS_RATE_GSA_MILESTONE : POINTS_RATE_GSA_NORMAL,
++        );
+       }
+-    }
+-
+-    // If no points to award, stop here
+-    if (pointsToAward <= 0) {
+-      return;
+-    }
+-
+-    // Update the member's total points in the database
+-    // We read the current total first, add the new points, then save
+-    const member = await this.prisma.member.findUnique({
+-      where: { id: payload.memberId },
+-      select: { id: true, savingsPointsTotal: true },
+-    });
+-
+-    if (!member) {
+-      this.logger.error('Member not found during points calculation', {
+-        memberId: payload.memberId,
++      const points = amount.times(rate).floor().toNumber(); // Integer points, never monetary arithmetic.
++      const receipt = await tx.savingsPointsReceipt.createMany({
++        data: [{ transactionId: transaction.id, points }],
++        skipDuplicates: true,
+       });
+-      return;
+-    }
+-
+-    const newTotal = member.savingsPointsTotal + pointsToAward;
+-
+-    await this.prisma.member.update({
+-      where: { id: payload.memberId },
+-      data: { savingsPointsTotal: newTotal },
+-    });
+-
+-    this.logger.info('Points awarded', {
+-      memberId: payload.memberId,
+-      accountType: payload.accountType,
+-      depositAmount: payload.amount,
+-      pointsAwarded: pointsToAward,
+-      newTotal,
++      if (receipt.count === 1 && points > 0)
++        await tx.member.update({
++          where: { id: transaction.memberId },
++          data: { savingsPointsTotal: { increment: points } },
++        });
+     });
+   }
+ 
+-  // Checks if a deposit crossed a GSA milestone threshold.
+-  // Example: goal is £1000, previous balance was £240, new balance is £260.
+-  // The 25% milestone (£250) was crossed by this deposit, so it returns true.
+-  private checkGsaMilestone(
+-    newBalance: number,
+-    goalTarget: number | null,
+-    depositAmount: number,
+-  ): boolean {
+-    // If there is no goal target, there can be no milestone
+-    if (!goalTarget || goalTarget <= 0) {
+-      return false;
+-    }
+-
+-    const previousBalance = newBalance - depositAmount;
+-
+-    // Check each milestone percentage
+-    for (const milestone of GSA_MILESTONES) {
+-      const milestoneAmount = goalTarget * milestone;
+-
+-      // The deposit crossed this milestone if:
+-      // - the previous balance was below the milestone amount
+-      // - the new balance is at or above the milestone amount
+-      if (previousBalance < milestoneAmount && newBalance >= milestoneAmount) {
+-        return true;
+-      }
+-    }
+-
+-    return false;
+-  }
+-
+   // Returns the member's current points balance and breakdown
+   async getMyPoints(memberId: string): Promise<{
+     total: number;
+@@ -189,17 +145,19 @@ export class PointsService {
+ 
+       // Add up all deposit amounts for this account
+       const totalDeposited = deposits.reduce(
+-        (sum: number, txn: { amount: { toString: () => string } }) => {
+-          return sum + new Decimal(txn.amount.toString()).toNumber();
+-        },
+-        0,
++        (sum: Decimal, txn: { amount: { toString: () => string } }) =>
++          sum.plus(txn.amount.toString()),
++        new Decimal(0),
+       );
+       if (account.accountType === 'savings_fsa') {
+-        fsaPoints += Math.floor(totalDeposited * POINTS_RATE_FSA);
++        fsaPoints += totalDeposited.times(POINTS_RATE_FSA).floor().toNumber();
+       } else if (account.accountType === 'savings_rsa') {
+-        rsaPoints += Math.floor(totalDeposited * POINTS_RATE_RSA);
++        rsaPoints += totalDeposited.times(POINTS_RATE_RSA).floor().toNumber();
+       } else if (account.accountType === 'savings_gsa') {
+-        gsaPoints += Math.floor(totalDeposited * POINTS_RATE_GSA_NORMAL);
++        gsaPoints += totalDeposited
++          .times(POINTS_RATE_GSA_NORMAL)
++          .floor()
++          .toNumber();
+       }
+     }
+ 
+diff --git a/apps/api/src/modules/savings/dto/deposit.dto.ts b/apps/api/src/modules/savings/dto/deposit.dto.ts
+index 13f05df..f91de5f 100644
+--- a/apps/api/src/modules/savings/dto/deposit.dto.ts
++++ b/apps/api/src/modules/savings/dto/deposit.dto.ts
+@@ -1,19 +1,11 @@
+-import {
+-  IsNumber,
+-  IsPositive,
+-  IsOptional,
+-  IsString,
+-  MaxLength,
+-  Max,
+-} from 'class-validator';
++import { IsString, Matches, IsOptional, MaxLength } from 'class-validator';
+ 
+ export class DepositDto {
+-  @IsNumber({ maxDecimalPlaces: 2 })
+-  @IsPositive()
+-  @Max(10000)
+-  amount!: number;
++  // Exact decimal input. Numeric JSON amounts are deliberately not accepted.
++  @IsString()
++  @Matches(/^(?:0|[1-9]\d{0,4})(?:\.\d{1,2})?$/)
++  amount!: string;
+ 
+-  // Optional note the member can add to explain the deposit
+   @IsOptional()
+   @IsString()
+   @MaxLength(200)
+diff --git a/apps/api/src/modules/savings/dto/withdraw.dto.ts b/apps/api/src/modules/savings/dto/withdraw.dto.ts
+index 16cb568..653c9e8 100644
+--- a/apps/api/src/modules/savings/dto/withdraw.dto.ts
++++ b/apps/api/src/modules/savings/dto/withdraw.dto.ts
+@@ -1,19 +1,11 @@
+-import {
+-  IsNumber,
+-  IsPositive,
+-  IsOptional,
+-  IsString,
+-  MaxLength,
+-  Max,
+-} from 'class-validator';
++import { IsString, Matches, IsOptional, MaxLength } from 'class-validator';
+ 
+ export class WithdrawDto {
+-  @IsNumber({ maxDecimalPlaces: 2 })
+-  @IsPositive()
+-  @Max(10000)
+-  amount!: number;
++  // Exact decimal input. Numeric JSON amounts are deliberately not accepted.
++  @IsString()
++  @Matches(/^(?:0|[1-9]\d{0,4})(?:\.\d{1,2})?$/)
++  amount!: string;
+ 
+-  // Required for withdrawals — we need to know why
+   @IsOptional()
+   @IsString()
+   @MaxLength(500)
+diff --git a/apps/api/src/modules/savings/savings.controller.ts b/apps/api/src/modules/savings/savings.controller.ts
+index 18bd55b..a42e8ff 100644
+--- a/apps/api/src/modules/savings/savings.controller.ts
++++ b/apps/api/src/modules/savings/savings.controller.ts
+@@ -23,7 +23,6 @@ import {
+   ApiResponse,
+   ApiBearerAuth,
+ } from '@nestjs/swagger';
+-import { v4 as uuidv4 } from 'uuid';
+ 
+ @ApiTags('Savings Accounts')
+ @Controller('accounts')
+@@ -64,8 +63,14 @@ export class SavingsController {
+ 
+   @Post(':id/deposit')
+   @ApiBearerAuth('access-token')
+-  @ApiOperation({ summary: 'Deposit funds into a savings account' })
+-  @ApiResponse({ status: 201, description: 'Funds deposited successfully' })
++  @ApiOperation({
++    summary:
++      'Simulate a savings deposit (development/test only; no funds moved)',
++  })
++  @ApiResponse({
++    status: 201,
++    description: 'Simulation recorded; no external settlement',
++  })
+   @HttpCode(HttpStatus.CREATED)
+   async deposit(
+     @Param('id') accountId: string,
+@@ -73,25 +78,37 @@ export class SavingsController {
+     @Body() dto: DepositDto,
+     @Headers('idempotency-key') idempotencyKey: string,
+   ): Promise<unknown> {
+-    // If no idempotency key is provided, generate one
+-    // This handles clients that do not send the header
+-    const key = idempotencyKey ?? uuidv4();
+-    return this.savingsService.deposit(accountId, member.sub, dto, key);
++    return this.savingsService.deposit(
++      accountId,
++      member.sub,
++      dto,
++      idempotencyKey,
++    );
+   }
+ 
+   @Post(':id/withdraw')
+   @HttpCode(HttpStatus.CREATED)
+   @ApiBearerAuth('access-token')
+-  @ApiOperation({ summary: 'Withdraw funds from a savings account' })
+-  @ApiResponse({ status: 201, description: 'Funds withdrawn successfully' })
++  @ApiOperation({
++    summary:
++      'Simulate a savings withdrawal (development/test only; no funds moved)',
++  })
++  @ApiResponse({
++    status: 201,
++    description: 'Simulation recorded; no external settlement',
++  })
+   async withdraw(
+     @Param('id') accountId: string,
+     @CurrentMember() member: JwtPayload,
+     @Body() dto: WithdrawDto,
+     @Headers('idempotency-key') idempotencyKey: string,
+   ): Promise<unknown> {
+-    const key = idempotencyKey ?? uuidv4();
+-    return this.savingsService.withdraw(accountId, member.sub, dto, key);
++    return this.savingsService.withdraw(
++      accountId,
++      member.sub,
++      dto,
++      idempotencyKey,
++    );
+   }
+ 
+   @Get(':id/transactions')
+diff --git a/apps/api/src/modules/savings/savings.service.ts b/apps/api/src/modules/savings/savings.service.ts
+index 5e8edaf..6b2d094 100644
+--- a/apps/api/src/modules/savings/savings.service.ts
++++ b/apps/api/src/modules/savings/savings.service.ts
+@@ -1,4 +1,12 @@
+ import { EventEmitter2 } from '@nestjs/event-emitter';
++import type { Prisma } from '@prisma/client';
++import type { SavingsDepositedPayload } from '../points/points.events';
++import {
++  databaseCode,
++  requireSavingsSimulation,
++  retrySavingsTransaction,
++  validateMutation,
++} from './savings-safety';
+ import { SAVINGS_DEPOSITED_EVENT } from '../points/points.events';
+ import {
+   Injectable,
+@@ -15,7 +23,7 @@ import { OpenAccountDto, AccountType } from './dto/open-account.dto';
+ import { DepositDto } from './dto/deposit.dto';
+ import { WithdrawDto } from './dto/withdraw.dto';
+ import Decimal from 'decimal.js';
+-import { v4 as uuidv4 } from 'uuid';
++import { randomUUID } from 'node:crypto';
+ 
+ @Injectable()
+ export class SavingsService {
+@@ -144,210 +152,270 @@ export class SavingsService {
+     accountId: string,
+     memberId: string,
+     dto: DepositDto,
+-    idempotencyKey: string,
++    key: string,
+   ): Promise<unknown> {
+-    // Step 1 — Check for duplicate request using idempotency key
+-    const existing = await this.prisma.savingsTransaction.findFirst({
+-      where: { idempotencyKey },
+-    });
+-
+-    if (existing) {
+-      // Return the original transaction — do not process again
+-      this.logger.info('Duplicate deposit request — returning original', {
+-        idempotencyKey,
+-        transactionId: existing.id,
+-      });
+-      return existing;
+-    }
+-
+-    // Step 2 — Fetch and validate the account
+-    const account = await this.prisma.memberAccount.findUnique({
+-      where: { id: accountId },
+-    });
+-
+-    if (!account) {
+-      throw new NotFoundException('Account not found');
+-    }
+-
+-    if (account.memberId !== memberId) {
+-      throw new ForbiddenException('You do not have access to this account');
+-    }
+-
+-    if (account.accountStatus !== 'active') {
+-      throw new BadRequestException(
+-        'You can only deposit into an active account',
+-      );
+-    }
+-
+-    // Step 3 — Convert amount to Decimal for safe arithmetic
+-    const depositAmount = new Decimal(dto.amount);
+-    const currentBalance = new Decimal(account.currentBalance.toString());
+-    const newBalance = currentBalance.plus(depositAmount);
+-
+-    // Step 4 — Create the transaction and update balance atomically
+-    // Both operations happen together or neither happens
+-    const result = await this.prisma.$transaction(async (tx) => {
+-      // Create the transaction record first
+-      const transaction = await tx.savingsTransaction.create({
+-        data: {
+-          memberId,
+-          accountId,
+-          amount: depositAmount.toNumber(),
+-          transactionType: 'deposit',
+-          status: 'completed',
+-          idempotencyKey,
+-          referenceNumber: `DEP-${uuidv4().slice(0, 8).toUpperCase()}`,
+-          channel: 'web_portal',
+-        },
+-      });
+-
+-      // Then update the balance
+-      await tx.memberAccount.update({
+-        where: { id: accountId },
+-        data: {
+-          currentBalance: newBalance.toNumber(),
+-        },
+-      });
+-
+-      // Fire the event so PointsService can calculate points
+-      // This happens after the deposit is committed — it cannot affect the deposit
+-      this.eventEmitter.emit(SAVINGS_DEPOSITED_EVENT, {
+-        memberId,
+-        accountId,
+-        accountType: account.accountType,
+-        amount: depositAmount.toNumber(),
+-        newBalance: newBalance.toNumber(),
+-        goalTarget: account.goalTarget
+-          ? new Decimal(account.goalTarget.toString()).toNumber()
+-          : null,
+-        goalReached: account.goalReached,
+-      });
+-
+-      return transaction;
+-    });
+-
+-    // Step 5 — Check if GSA goal has been reached
+-    if (account.accountType === 'savings_gsa' && account.goalTarget) {
+-      const goalTarget = new Decimal(account.goalTarget.toString());
+-
+-      if (newBalance.gte(goalTarget) && !account.goalReached) {
+-        await this.prisma.memberAccount.update({
+-          where: { id: accountId },
+-          data: { goalReached: true },
+-        });
+-
+-        this.logger.info('GSA goal reached', {
+-          memberId,
+-          accountId,
+-          goalTarget: goalTarget.toString(),
+-          finalBalance: newBalance.toString(),
+-        });
+-      }
+-    }
+-
+-    this.logger.info('Deposit completed', {
+-      memberId,
++    return this.mutate(
++      'deposit',
+       accountId,
+-      amount: depositAmount.toString(),
+-      newBalance: newBalance.toString(),
+-      transactionId: result.id,
+-    });
+-
+-    return {
+-      transaction: result,
+-      newBalance: newBalance.toNumber(),
+-    };
++      memberId,
++      dto.amount,
++      dto.note,
++      key,
++    );
+   }
+ 
+   async withdraw(
+     accountId: string,
+     memberId: string,
+     dto: WithdrawDto,
+-    idempotencyKey: string,
++    key: string,
+   ): Promise<unknown> {
+-    // Step 1 — Idempotency check
+-    const existing = await this.prisma.withdrawalTransaction.findFirst({
+-      where: { idempotencyKey },
+-    });
+-
+-    if (existing) {
+-      return existing;
+-    }
+-
+-    // Step 2 — Fetch and validate the account
+-    const account = await this.prisma.memberAccount.findUnique({
+-      where: { id: accountId },
+-    });
+-
+-    if (!account) {
+-      throw new NotFoundException('Account not found');
+-    }
+-
+-    if (account.memberId !== memberId) {
+-      throw new ForbiddenException('You do not have access to this account');
+-    }
++    return this.mutate(
++      'withdrawal',
++      accountId,
++      memberId,
++      dto.amount,
++      dto.reason,
++      key,
++    );
++  }
+ 
+-    if (account.accountStatus !== 'active') {
+-      throw new BadRequestException(
+-        'You can only withdraw from an active account',
+-      );
++  private async mutate(
++    operation: 'deposit' | 'withdrawal',
++    accountId: string,
++    memberId: string,
++    input: string,
++    detail: string | undefined,
++    key: string,
++  ): Promise<unknown> {
++    requireSavingsSimulation();
++    const amount = validateMutation(input, key);
++    if (
++      detail !== undefined &&
++      (typeof detail !== 'string' ||
++        detail.length > (operation === 'deposit' ? 200 : 500))
++    ) {
++      throw new BadRequestException('Invalid transaction detail');
+     }
++    const payload = JSON.stringify({ amount, detail: detail ?? null });
++    const replay = (request: {
++      memberId: string;
++      accountId: string;
++      operation: string;
++      payload: string;
++      response: Prisma.JsonValue | null;
++    }) => {
++      if (
++        request.memberId !== memberId ||
++        request.accountId !== accountId ||
++        request.operation !== operation ||
++        request.payload !== payload
++      ) {
++        throw new ConflictException(
++          'Idempotency-Key is already bound to a different request',
++        );
++      }
++      if (!request.response)
++        throw new ConflictException(
++          'Request outcome is unavailable; do not create a replacement operation',
++        );
++      return request.response;
++    };
+ 
+-    // Step 3 — GSA withdrawal rules
+-    // Members can only withdraw from a GSA when the goal is reached
+-    // or after the cooling-off period (we treat this as goal not reached yet)
+-    if (account.accountType === 'savings_gsa' && !account.goalReached) {
+-      throw new BadRequestException(
+-        'You can only withdraw from your goal-based account once your savings goal has been reached',
++    let outcome: {
++      response: Prisma.JsonValue;
++      event?: SavingsDepositedPayload;
++    };
++    try {
++      outcome = await retrySavingsTransaction(() =>
++        this.prisma.$transaction(
++          async (tx) => {
++            const existing = await tx.savingsRequest.findUnique({
++              where: { key },
++            });
++            if (existing) return { response: replay(existing) };
++
++            // Old rows have no saved response or request detail. Never invent either.
++            const [oldDeposit, oldWithdrawal] = await Promise.all([
++              tx.savingsTransaction.findUnique({
++                where: { idempotencyKey: key },
++                select: { id: true },
++              }),
++              tx.withdrawalTransaction.findUnique({
++                where: { idempotencyKey: key },
++                select: { id: true },
++              }),
++            ]);
++            if (oldDeposit || oldWithdrawal)
++              throw new ConflictException(
++                'Legacy Idempotency-Key cannot be safely replayed; manual review required',
++              );
++
++            await tx.savingsRequest.create({
++              data: { key, memberId, accountId, operation, payload },
++            });
++            const member = await tx.member.findUnique({
++              where: { id: memberId },
++              select: { membershipStatus: true },
++            });
++            if (!member || member.membershipStatus !== 'active')
++              throw new ForbiddenException('Active membership is required');
++            const account = await tx.memberAccount.findUnique({
++              where: { id: accountId },
++            });
++            if (!account) throw new NotFoundException('Account not found');
++            if (account.memberId !== memberId)
++              throw new ForbiddenException(
++                'You do not have access to this account',
++              );
++            if (
++              account.accountStatus !== 'active' ||
++              !['savings_fsa', 'savings_rsa', 'savings_gsa'].includes(
++                account.accountType,
++              )
++            ) {
++              throw new BadRequestException(
++                'An active savings account is required',
++              );
++            }
++            if (
++              operation === 'withdrawal' &&
++              account.accountType === 'savings_gsa' &&
++              !account.goalReached
++            ) {
++              throw new BadRequestException(
++                'The savings goal must be reached before withdrawal',
++              );
++            }
++            const updated = await tx.memberAccount.updateMany({
++              where: {
++                id: accountId,
++                memberId,
++                accountStatus: 'active',
++                ...(operation === 'withdrawal'
++                  ? { currentBalance: { gte: amount } }
++                  : {}),
++              },
++              data: {
++                currentBalance:
++                  operation === 'deposit'
++                    ? { increment: amount }
++                    : { decrement: amount },
++              },
++            });
++            if (updated.count !== 1)
++              throw new BadRequestException(
++                'Insufficient balance or unavailable account',
++              );
++            const after = await tx.memberAccount.findUniqueOrThrow({
++              where: { id: accountId },
++            });
++            // Preserve the existing once-reached GSA rule, but set it atomically.
++            const reached =
++              after.goalReached ||
++              (after.accountType === 'savings_gsa' &&
++                after.goalTarget !== null &&
++                new Decimal(after.currentBalance.toString()).gte(
++                  after.goalTarget.toString(),
++                ));
++            if (reached !== after.goalReached)
++              await tx.memberAccount.update({
++                where: { id: accountId },
++                data: { goalReached: reached },
++              });
++            const common = {
++              memberId,
++              accountId,
++              amount,
++              status: 'completed' as const,
++              idempotencyKey: key,
++              isSimulation: true,
++              channel: 'simulation',
++              referenceNumber: `${operation === 'deposit' ? 'DEP' : 'WDR'}-${randomUUID()}`,
++            };
++            const transaction =
++              operation === 'deposit'
++                ? await tx.savingsTransaction.create({
++                    data: {
++                      ...common,
++                      transactionType: 'deposit',
++                      metadata: JSON.stringify({
++                        simulation: true,
++                        note: detail ?? null,
++                      }),
++                    },
++                  })
++                : await tx.withdrawalTransaction.create({
++                    data: { ...common, withdrawalReason: detail ?? null },
++                  });
++            const newBalance = new Decimal(
++              after.currentBalance.toString(),
++            ).toFixed(2);
++            // Persist exactly the JSON returned to both the original caller and replays.
++            const response = JSON.parse(
++              JSON.stringify({
++                transaction: { ...transaction, amount },
++                newBalance,
++                simulation: true,
++                settlement: 'not_settled',
++              }),
++            ) as Prisma.JsonObject;
++            const event: SavingsDepositedPayload | undefined =
++              operation === 'deposit'
++                ? {
++                    transactionId: transaction.id,
++                    memberId,
++                    accountId,
++                    accountType: after.accountType,
++                    amount,
++                    newBalance,
++                    goalTarget:
++                      after.goalTarget === null
++                        ? null
++                        : new Decimal(after.goalTarget.toString()).toFixed(2),
++                    goalReached: reached,
++                    simulation: true,
++                  }
++                : undefined;
++            await tx.savingsRequest.update({
++              where: { key },
++              data: {
++                transactionId: transaction.id,
++                response,
++                ...(event ? { event: { ...event } } : {}),
++              },
++            });
++            return { response, event };
++          },
++          { isolationLevel: 'Serializable', maxWait: 5000, timeout: 10000 },
++        ),
+       );
++    } catch (error) {
++      if (databaseCode(error) !== 'P2002') throw error;
++      // A competing claim rolled back this entire attempt. Read only committed state.
++      const existing = await this.prisma.savingsRequest.findUnique({
++        where: { key },
++      });
++      if (!existing) throw error; // An unrelated unique constraint must not be treated as replay.
++      return replay(existing);
+     }
+-
+-    // Step 4 — Check sufficient balance
+-    const withdrawAmount = new Decimal(dto.amount);
+-    const currentBalance = new Decimal(account.currentBalance.toString());
+-
+-    if (withdrawAmount.gt(currentBalance)) {
+-      throw new BadRequestException(
+-        `Insufficient balance. Your current balance is £${currentBalance.toFixed(2)}`,
+-      );
++    if (outcome.event) {
++      try {
++        await this.eventEmitter.emitAsync(
++          SAVINGS_DEPOSITED_EVENT,
++          outcome.event,
++        );
++      } catch (error) {
++        this.logger.error(
++          'Post-commit savings event failed; financial state is committed',
++          {
++            transactionId: outcome.event.transactionId,
++            error: error instanceof Error ? error.message : String(error),
++          },
++        );
++      }
+     }
+-
+-    const newBalance = currentBalance.minus(withdrawAmount);
+-
+-    // Step 5 — Create withdrawal record and update balance atomically
+-    const result = await this.prisma.$transaction(async (tx) => {
+-      const transaction = await tx.withdrawalTransaction.create({
+-        data: {
+-          memberId,
+-          accountId,
+-          amount: withdrawAmount.toNumber(),
+-          withdrawalReason: dto.reason ?? null,
+-          status: 'completed',
+-          idempotencyKey,
+-          referenceNumber: `WDR-${uuidv4().slice(0, 8).toUpperCase()}`,
+-          channel: 'web_portal',
+-        },
+-      });
+-
+-      await tx.memberAccount.update({
+-        where: { id: accountId },
+-        data: { currentBalance: newBalance.toNumber() },
+-      });
+-
+-      return transaction;
+-    });
+-
+-    this.logger.info('Withdrawal completed', {
+-      memberId,
+-      accountId,
+-      amount: withdrawAmount.toString(),
+-      newBalance: newBalance.toString(),
+-    });
+-
+-    return {
+-      transaction: result,
+-      newBalance: newBalance.toNumber(),
+-    };
++    return outcome.response;
+   }
+ 
+   async getTransactions(
+diff --git a/apps/api/test/jest-e2e.json b/apps/api/test/jest-e2e.json
+index e9d912f..8ae8724 100644
+--- a/apps/api/test/jest-e2e.json
++++ b/apps/api/test/jest-e2e.json
+@@ -1,9 +1,24 @@
+ {
+-  "moduleFileExtensions": ["js", "json", "ts"],
++  "moduleFileExtensions": [
++    "js",
++    "json",
++    "ts"
++  ],
+   "rootDir": ".",
+   "testEnvironment": "node",
+   "testRegex": ".e2e-spec.ts$",
+   "transform": {
+-    "^.+\\.(t|j)s$": "ts-jest"
+-  }
++    "^.+\\.(t|j)s$": [
++      "ts-jest",
++      {
++        "tsconfig": {
++          "allowJs": true
++        }
++      }
++    ]
++  },
++  "transformIgnorePatterns": [
++    "node_modules/.pnpm/(?!uuid@)",
++    "node_modules/(?!\\.pnpm|uuid/)"
++  ]
+ }
+diff --git a/packages/prisma/prisma/schema.prisma b/packages/prisma/prisma/schema.prisma
+index d3e9d13..007e603 100644
+--- a/packages/prisma/prisma/schema.prisma
++++ b/packages/prisma/prisma/schema.prisma
+@@ -415,19 +415,21 @@ model MemberAccount {
+ // ─────────────────────────────────────────────
+ 
+ model SavingsTransaction {
+-  id              String            @id @default(cuid()) @map("savings_txn_id")
+-  memberId        String            @map("member_id")
+-  accountId       String            @map("account_id")
+-  transactionDate DateTime          @default(now()) @map("transaction_date")
+-  amount          Decimal           @db.Decimal(12, 2)
+-  transactionType TransactionType   @map("transaction_type")
++  id              String                @id @default(cuid()) @map("savings_txn_id")
++  memberId        String                @map("member_id")
++  accountId       String                @map("account_id")
++  transactionDate DateTime              @default(now()) @map("transaction_date")
++  amount          Decimal               @db.Decimal(12, 2)
++  transactionType TransactionType       @map("transaction_type")
+   channel         String?
+-  referenceNumber String?           @unique @map("reference_number")
+-  recordedBy      String?           @map("recorded_by")
+-  status          TransactionStatus @default(pending)
+-  idempotencyKey  String?           @unique @map("idempotency_key")
++  referenceNumber String?               @unique @map("reference_number")
++  recordedBy      String?               @map("recorded_by")
++  status          TransactionStatus     @default(pending)
++  idempotencyKey  String?               @unique @map("idempotency_key")
++  isSimulation    Boolean?              @map("is_simulation")
++  pointsReceipt   SavingsPointsReceipt?
+   metadata        String?
+-  createdAt       DateTime          @default(now()) @map("created_at")
++  createdAt       DateTime              @default(now()) @map("created_at")
+ 
+   member  Member        @relation(fields: [memberId], references: [id])
+   account MemberAccount @relation(fields: [accountId], references: [id])
+@@ -448,6 +450,7 @@ model WithdrawalTransaction {
+   accountId        String           @map("account_id")
+   transactionDate  DateTime         @default(now()) @map("transaction_date")
+   amount           Decimal          @db.Decimal(12, 2)
++  isSimulation     Boolean?         @map("is_simulation")
+   withdrawalReason String?          @map("withdrawal_reason")
+   approvedBy       String?          @map("approved_by")
+   channel          String?
+@@ -871,3 +874,28 @@ model ComplianceFlag {
+   @@index([createdAt])
+   @@map("compliance_flags")
+ }
++
++// Shared namespace across deposits and withdrawals. Inserted and completed in
++// the same transaction as the financial records; legacy rows remain untouched.
++model SavingsRequest {
++  key           String   @id
++  memberId      String   @map("member_id")
++  accountId     String   @map("account_id")
++  operation     String
++  payload       String
++  transactionId String?  @unique @map("transaction_id")
++  response      Json?
++  event         Json?
++  createdAt     DateTime @default(now()) @map("created_at")
++
++  @@map("savings_requests")
++}
++
++model SavingsPointsReceipt {
++  transactionId String             @id @map("transaction_id")
++  points        Int
++  processedAt   DateTime           @default(now()) @map("processed_at")
++  transaction   SavingsTransaction @relation(fields: [transactionId], references: [id])
++
++  @@map("savings_points_receipts")
++}

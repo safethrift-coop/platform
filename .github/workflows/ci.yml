@@ -95,6 +95,30 @@ jobs:
           JWT_REFRESH_SECRET: test_refresh_secret_minimum_32_chars
           ENCRYPTION_KEY: "0000000000000000000000000000000000000000000000000000000000000000"
 
+      - name: Verify additive migrations preserve legacy savings data
+        run: |
+          createdb --host localhost --username safethrift safethrift_savings_migration_test
+          pnpm --filter @safethrift/api test:migrations
+        env:
+          PGPASSWORD: safethrift_test
+          NODE_ENV: test
+          SAVINGS_TEST_DATABASE_URL: postgresql://safethrift:safethrift_test@localhost:5432/safethrift_savings_migration_test
+
+      - name: API e2e and PostgreSQL savings safety integration
+        run: pnpm --filter @safethrift/api test:e2e --runInBand
+        env:
+          NODE_ENV: test
+          SAVINGS_SIMULATION_ENABLED: "false"
+          SAVINGS_TEST_DATABASE_URL: postgresql://safethrift:safethrift_test@localhost:5432/safethrift_test
+          DATABASE_URL: postgresql://safethrift:safethrift_test@localhost:5432/safethrift_test
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          REDIS_PASSWORD: ""
+          JWT_SECRET: test_jwt_secret_minimum_32_characters
+          JWT_REFRESH_SECRET: test_refresh_secret_minimum_32_chars
+          ENCRYPTION_KEY: "0000000000000000000000000000000000000000000000000000000000000000"
+          RESEND_API_KEY: re_test_not_a_live_key
+
       - name: Security audit
         run: pnpm audit --audit-level=high
         continue-on-error: true

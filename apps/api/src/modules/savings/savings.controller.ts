@@ -23,7 +23,6 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { v4 as uuidv4 } from 'uuid';
 
 @ApiTags('Savings Accounts')
 @Controller('accounts')
@@ -64,8 +63,14 @@ export class SavingsController {
 
   @Post(':id/deposit')
   @ApiBearerAuth('access-token')
-  @ApiOperation({ summary: 'Deposit funds into a savings account' })
-  @ApiResponse({ status: 201, description: 'Funds deposited successfully' })
+  @ApiOperation({
+    summary:
+      'Simulate a savings deposit (development/test only; no funds moved)',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Simulation recorded; no external settlement',
+  })
   @HttpCode(HttpStatus.CREATED)
   async deposit(
     @Param('id') accountId: string,
@@ -73,25 +78,37 @@ export class SavingsController {
     @Body() dto: DepositDto,
     @Headers('idempotency-key') idempotencyKey: string,
   ): Promise<unknown> {
-    // If no idempotency key is provided, generate one
-    // This handles clients that do not send the header
-    const key = idempotencyKey ?? uuidv4();
-    return this.savingsService.deposit(accountId, member.sub, dto, key);
+    return this.savingsService.deposit(
+      accountId,
+      member.sub,
+      dto,
+      idempotencyKey,
+    );
   }
 
   @Post(':id/withdraw')
   @HttpCode(HttpStatus.CREATED)
   @ApiBearerAuth('access-token')
-  @ApiOperation({ summary: 'Withdraw funds from a savings account' })
-  @ApiResponse({ status: 201, description: 'Funds withdrawn successfully' })
+  @ApiOperation({
+    summary:
+      'Simulate a savings withdrawal (development/test only; no funds moved)',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Simulation recorded; no external settlement',
+  })
   async withdraw(
     @Param('id') accountId: string,
     @CurrentMember() member: JwtPayload,
     @Body() dto: WithdrawDto,
     @Headers('idempotency-key') idempotencyKey: string,
   ): Promise<unknown> {
-    const key = idempotencyKey ?? uuidv4();
-    return this.savingsService.withdraw(accountId, member.sub, dto, key);
+    return this.savingsService.withdraw(
+      accountId,
+      member.sub,
+      dto,
+      idempotencyKey,
+    );
   }
 
   @Get(':id/transactions')

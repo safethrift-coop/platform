@@ -47,104 +47,60 @@ export class PointsService {
   private async calculateAndAwardPoints(
     payload: SavingsDepositedPayload,
   ): Promise<void> {
-    const amount = new Decimal(payload.amount);
-    let pointsToAward = 0;
-
-    if (payload.accountType === 'savings_fsa') {
-      // FSA: straightforward — multiply amount by rate
-      pointsToAward = amount.times(POINTS_RATE_FSA).floor().toNumber();
-    } else if (payload.accountType === 'savings_rsa') {
-      // RSA: enhanced rate — 1.5 points per £1
-      pointsToAward = amount.times(POINTS_RATE_RSA).floor().toNumber();
-    } else if (payload.accountType === 'savings_gsa') {
-      // GSA: check if this deposit hit a milestone
-      // If it did, award the bonus rate. Otherwise award normal rate.
-      const isMilestoneDeposit = this.checkGsaMilestone(
-        payload.newBalance,
-        payload.goalTarget,
-        amount.toNumber(),
-      );
-
-      const rate = isMilestoneDeposit
-        ? POINTS_RATE_GSA_MILESTONE
-        : POINTS_RATE_GSA_NORMAL;
-
-      pointsToAward = amount.times(rate).floor().toNumber();
-
-      if (isMilestoneDeposit) {
-        this.logger.info('GSA milestone reached — bonus points awarded', {
-          memberId: payload.memberId,
-          accountId: payload.accountId,
-          newBalance: payload.newBalance,
-          goalTarget: payload.goalTarget,
-          bonusPoints: pointsToAward,
-        });
-      }
-    }
-
-    // If no points to award, stop here
-    if (pointsToAward <= 0) {
-      return;
-    }
-
-    // Update the member's total points in the database
-    // We read the current total first, add the new points, then save
-    const member = await this.prisma.member.findUnique({
-      where: { id: payload.memberId },
-      select: { id: true, savingsPointsTotal: true },
-    });
-
-    if (!member) {
-      this.logger.error('Member not found during points calculation', {
-        memberId: payload.memberId,
+    // Validate against the committed request; do not trust event amounts or replay
+    // historical deposits whose previous processing cannot be established.
+    await this.prisma.$transaction(async (tx) => {
+      const request = await tx.savingsRequest.findUnique({
+        where: { transactionId: payload.transactionId },
       });
-      return;
-    }
-
-    const newTotal = member.savingsPointsTotal + pointsToAward;
-
-    await this.prisma.member.update({
-      where: { id: payload.memberId },
-      data: { savingsPointsTotal: newTotal },
-    });
-
-    this.logger.info('Points awarded', {
-      memberId: payload.memberId,
-      accountType: payload.accountType,
-      depositAmount: payload.amount,
-      pointsAwarded: pointsToAward,
-      newTotal,
-    });
-  }
-
-  // Checks if a deposit crossed a GSA milestone threshold.
-  // Example: goal is £1000, previous balance was £240, new balance is £260.
-  // The 25% milestone (£250) was crossed by this deposit, so it returns true.
-  private checkGsaMilestone(
-    newBalance: number,
-    goalTarget: number | null,
-    depositAmount: number,
-  ): boolean {
-    // If there is no goal target, there can be no milestone
-    if (!goalTarget || goalTarget <= 0) {
-      return false;
-    }
-
-    const previousBalance = newBalance - depositAmount;
-
-    // Check each milestone percentage
-    for (const milestone of GSA_MILESTONES) {
-      const milestoneAmount = goalTarget * milestone;
-
-      // The deposit crossed this milestone if:
-      // - the previous balance was below the milestone amount
-      // - the new balance is at or above the milestone amount
-      if (previousBalance < milestoneAmount && newBalance >= milestoneAmount) {
-        return true;
+      if (!request || request.operation !== 'deposit' || !request.event)
+        throw new Error('No committed simulated deposit event');
+      const event = request.event as unknown as SavingsDepositedPayload;
+      const transaction = await tx.savingsTransaction.findUniqueOrThrow({
+        where: { id: payload.transactionId },
+      });
+      if (
+        !transaction.isSimulation ||
+        transaction.status !== 'completed' ||
+        transaction.memberId !== request.memberId ||
+        transaction.accountId !== request.accountId ||
+        event.transactionId !== transaction.id
+      )
+        throw new Error('Invalid committed deposit');
+      const amount = new Decimal(transaction.amount.toString());
+      let rate = new Decimal(0);
+      if (event.accountType === 'savings_fsa')
+        rate = new Decimal(POINTS_RATE_FSA);
+      if (event.accountType === 'savings_rsa')
+        rate = new Decimal(POINTS_RATE_RSA);
+      if (event.accountType === 'savings_gsa') {
+        const milestone =
+          event.goalTarget !== null &&
+          new Decimal(event.goalTarget).gt(0) &&
+          GSA_MILESTONES.some((fraction) => {
+            const target = new Decimal(event.goalTarget!).times(
+              String(fraction),
+            );
+            return (
+              new Decimal(event.newBalance).minus(amount).lt(target) &&
+              new Decimal(event.newBalance).gte(target)
+            );
+          });
+        rate = new Decimal(
+          milestone ? POINTS_RATE_GSA_MILESTONE : POINTS_RATE_GSA_NORMAL,
+        );
       }
-    }
-
-    return false;
+      const points = amount.times(rate).floor().toNumber(); // Integer points, never monetary arithmetic.
+      const receipt = await tx.savingsPointsReceipt.createMany({
+        data: [{ transactionId: transaction.id, points }],
+        skipDuplicates: true,
+      });
+      if (receipt.count === 1 && points > 0)
+        await tx.member.update({
+          where: { id: transaction.memberId },
+          data: { savingsPointsTotal: { increment: points } },
+        });
+    });
   }
 
   // Returns the member's current points balance and breakdown
@@ -189,17 +145,19 @@ export class PointsService {
 
       // Add up all deposit amounts for this account
       const totalDeposited = deposits.reduce(
-        (sum: number, txn: { amount: { toString: () => string } }) => {
-          return sum + new Decimal(txn.amount.toString()).toNumber();
-        },
-        0,
+        (sum: Decimal, txn: { amount: { toString: () => string } }) =>
+          sum.plus(txn.amount.toString()),
+        new Decimal(0),
       );
       if (account.accountType === 'savings_fsa') {
-        fsaPoints += Math.floor(totalDeposited * POINTS_RATE_FSA);
+        fsaPoints += totalDeposited.times(POINTS_RATE_FSA).floor().toNumber();
       } else if (account.accountType === 'savings_rsa') {
-        rsaPoints += Math.floor(totalDeposited * POINTS_RATE_RSA);
+        rsaPoints += totalDeposited.times(POINTS_RATE_RSA).floor().toNumber();
       } else if (account.accountType === 'savings_gsa') {
-        gsaPoints += Math.floor(totalDeposited * POINTS_RATE_GSA_NORMAL);
+        gsaPoints += totalDeposited
+          .times(POINTS_RATE_GSA_NORMAL)
+          .floor()
+          .toNumber();
       }
     }
 

@@ -1,19 +1,11 @@
-import {
-  IsNumber,
-  IsPositive,
-  IsOptional,
-  IsString,
-  MaxLength,
-  Max,
-} from 'class-validator';
+import { IsString, Matches, IsOptional, MaxLength } from 'class-validator';
 
 export class WithdrawDto {
-  @IsNumber({ maxDecimalPlaces: 2 })
-  @IsPositive()
-  @Max(10000)
-  amount!: number;
+  // Exact decimal input. Numeric JSON amounts are deliberately not accepted.
+  @IsString()
+  @Matches(/^(?:0|[1-9]\d{0,4})(?:\.\d{1,2})?$/)
+  amount!: string;
 
-  // Required for withdrawals — we need to know why
   @IsOptional()
   @IsString()
   @MaxLength(500)

@@ -1,6 +1,7 @@
 import { plainToInstance } from 'class-transformer';
 import {
   IsEnum,
+  IsIn,
   IsInt,
   IsString,
   Min,
@@ -18,6 +19,9 @@ enum Environment {
 class EnvironmentVariables {
   @IsEnum(Environment)
   NODE_ENV: Environment = Environment.Development;
+
+  @IsIn(['true', 'false'])
+  SAVINGS_SIMULATION_ENABLED: string = 'false';
 
   @IsInt()
   @Min(1)

@@ -1,4 +1,12 @@
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import type { Prisma } from '@prisma/client';
+import type { SavingsDepositedPayload } from '../points/points.events';
+import {
+  databaseCode,
+  requireSavingsSimulation,
+  retrySavingsTransaction,
+  validateMutation,
+} from './savings-safety';
 import { SAVINGS_DEPOSITED_EVENT } from '../points/points.events';
 import {
   Injectable,
@@ -15,7 +23,7 @@ import { OpenAccountDto, AccountType } from './dto/open-account.dto';
 import { DepositDto } from './dto/deposit.dto';
 import { WithdrawDto } from './dto/withdraw.dto';
 import Decimal from 'decimal.js';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'node:crypto';
 
 @Injectable()
 export class SavingsService {
@@ -144,210 +152,270 @@ export class SavingsService {
     accountId: string,
     memberId: string,
     dto: DepositDto,
-    idempotencyKey: string,
+    key: string,
   ): Promise<unknown> {
-    // Step 1 — Check for duplicate request using idempotency key
-    const existing = await this.prisma.savingsTransaction.findFirst({
-      where: { idempotencyKey },
-    });
-
-    if (existing) {
-      // Return the original transaction — do not process again
-      this.logger.info('Duplicate deposit request — returning original', {
-        idempotencyKey,
-        transactionId: existing.id,
-      });
-      return existing;
-    }
-
-    // Step 2 — Fetch and validate the account
-    const account = await this.prisma.memberAccount.findUnique({
-      where: { id: accountId },
-    });
-
-    if (!account) {
-      throw new NotFoundException('Account not found');
-    }
-
-    if (account.memberId !== memberId) {
-      throw new ForbiddenException('You do not have access to this account');
-    }
-
-    if (account.accountStatus !== 'active') {
-      throw new BadRequestException(
-        'You can only deposit into an active account',
-      );
-    }
-
-    // Step 3 — Convert amount to Decimal for safe arithmetic
-    const depositAmount = new Decimal(dto.amount);
-    const currentBalance = new Decimal(account.currentBalance.toString());
-    const newBalance = currentBalance.plus(depositAmount);
-
-    // Step 4 — Create the transaction and update balance atomically
-    // Both operations happen together or neither happens
-    const result = await this.prisma.$transaction(async (tx) => {
-      // Create the transaction record first
-      const transaction = await tx.savingsTransaction.create({
-        data: {
-          memberId,
-          accountId,
-          amount: depositAmount.toNumber(),
-          transactionType: 'deposit',
-          status: 'completed',
-          idempotencyKey,
-          referenceNumber: `DEP-${uuidv4().slice(0, 8).toUpperCase()}`,
-          channel: 'web_portal',
-        },
-      });
-
-      // Then update the balance
-      await tx.memberAccount.update({
-        where: { id: accountId },
-        data: {
-          currentBalance: newBalance.toNumber(),
-        },
-      });
-
-      // Fire the event so PointsService can calculate points
-      // This happens after the deposit is committed — it cannot affect the deposit
-      this.eventEmitter.emit(SAVINGS_DEPOSITED_EVENT, {
-        memberId,
-        accountId,
-        accountType: account.accountType,
-        amount: depositAmount.toNumber(),
-        newBalance: newBalance.toNumber(),
-        goalTarget: account.goalTarget
-          ? new Decimal(account.goalTarget.toString()).toNumber()
-          : null,
-        goalReached: account.goalReached,
-      });
-
-      return transaction;
-    });
-
-    // Step 5 — Check if GSA goal has been reached
-    if (account.accountType === 'savings_gsa' && account.goalTarget) {
-      const goalTarget = new Decimal(account.goalTarget.toString());
-
-      if (newBalance.gte(goalTarget) && !account.goalReached) {
-        await this.prisma.memberAccount.update({
-          where: { id: accountId },
-          data: { goalReached: true },
-        });
-
-        this.logger.info('GSA goal reached', {
-          memberId,
-          accountId,
-          goalTarget: goalTarget.toString(),
-          finalBalance: newBalance.toString(),
-        });
-      }
-    }
-
-    this.logger.info('Deposit completed', {
-      memberId,
+    return this.mutate(
+      'deposit',
       accountId,
-      amount: depositAmount.toString(),
-      newBalance: newBalance.toString(),
-      transactionId: result.id,
-    });
-
-    return {
-      transaction: result,
-      newBalance: newBalance.toNumber(),
-    };
+      memberId,
+      dto.amount,
+      dto.note,
+      key,
+    );
   }
 
   async withdraw(
     accountId: string,
     memberId: string,
     dto: WithdrawDto,
-    idempotencyKey: string,
+    key: string,
   ): Promise<unknown> {
-    // Step 1 — Idempotency check
-    const existing = await this.prisma.withdrawalTransaction.findFirst({
-      where: { idempotencyKey },
-    });
-
-    if (existing) {
-      return existing;
-    }
-
-    // Step 2 — Fetch and validate the account
-    const account = await this.prisma.memberAccount.findUnique({
-      where: { id: accountId },
-    });
-
-    if (!account) {
-      throw new NotFoundException('Account not found');
-    }
-
-    if (account.memberId !== memberId) {
-      throw new ForbiddenException('You do not have access to this account');
-    }
-
-    if (account.accountStatus !== 'active') {
-      throw new BadRequestException(
-        'You can only withdraw from an active account',
-      );
-    }
-
-    // Step 3 — GSA withdrawal rules
-    // Members can only withdraw from a GSA when the goal is reached
-    // or after the cooling-off period (we treat this as goal not reached yet)
-    if (account.accountType === 'savings_gsa' && !account.goalReached) {
-      throw new BadRequestException(
-        'You can only withdraw from your goal-based account once your savings goal has been reached',
-      );
-    }
-
-    // Step 4 — Check sufficient balance
-    const withdrawAmount = new Decimal(dto.amount);
-    const currentBalance = new Decimal(account.currentBalance.toString());
-
-    if (withdrawAmount.gt(currentBalance)) {
-      throw new BadRequestException(
-        `Insufficient balance. Your current balance is £${currentBalance.toFixed(2)}`,
-      );
-    }
-
-    const newBalance = currentBalance.minus(withdrawAmount);
-
-    // Step 5 — Create withdrawal record and update balance atomically
-    const result = await this.prisma.$transaction(async (tx) => {
-      const transaction = await tx.withdrawalTransaction.create({
-        data: {
-          memberId,
-          accountId,
-          amount: withdrawAmount.toNumber(),
-          withdrawalReason: dto.reason ?? null,
-          status: 'completed',
-          idempotencyKey,
-          referenceNumber: `WDR-${uuidv4().slice(0, 8).toUpperCase()}`,
-          channel: 'web_portal',
-        },
-      });
-
-      await tx.memberAccount.update({
-        where: { id: accountId },
-        data: { currentBalance: newBalance.toNumber() },
-      });
-
-      return transaction;
-    });
-
-    this.logger.info('Withdrawal completed', {
-      memberId,
+    return this.mutate(
+      'withdrawal',
       accountId,
-      amount: withdrawAmount.toString(),
-      newBalance: newBalance.toString(),
-    });
+      memberId,
+      dto.amount,
+      dto.reason,
+      key,
+    );
+  }
 
-    return {
-      transaction: result,
-      newBalance: newBalance.toNumber(),
+  private async mutate(
+    operation: 'deposit' | 'withdrawal',
+    accountId: string,
+    memberId: string,
+    input: string,
+    detail: string | undefined,
+    key: string,
+  ): Promise<unknown> {
+    requireSavingsSimulation();
+    const amount = validateMutation(input, key);
+    if (
+      detail !== undefined &&
+      (typeof detail !== 'string' ||
+        detail.length > (operation === 'deposit' ? 200 : 500))
+    ) {
+      throw new BadRequestException('Invalid transaction detail');
+    }
+    const payload = JSON.stringify({ amount, detail: detail ?? null });
+    const replay = (request: {
+      memberId: string;
+      accountId: string;
+      operation: string;
+      payload: string;
+      response: Prisma.JsonValue | null;
+    }) => {
+      if (
+        request.memberId !== memberId ||
+        request.accountId !== accountId ||
+        request.operation !== operation ||
+        request.payload !== payload
+      ) {
+        throw new ConflictException(
+          'Idempotency-Key is already bound to a different request',
+        );
+      }
+      if (!request.response)
+        throw new ConflictException(
+          'Request outcome is unavailable; do not create a replacement operation',
+        );
+      return request.response;
     };
+
+    let outcome: {
+      response: Prisma.JsonValue;
+      event?: SavingsDepositedPayload;
+    };
+    try {
+      outcome = await retrySavingsTransaction(() =>
+        this.prisma.$transaction(
+          async (tx) => {
+            const existing = await tx.savingsRequest.findUnique({
+              where: { key },
+            });
+            if (existing) return { response: replay(existing) };
+
+            // Old rows have no saved response or request detail. Never invent either.
+            const [oldDeposit, oldWithdrawal] = await Promise.all([
+              tx.savingsTransaction.findUnique({
+                where: { idempotencyKey: key },
+                select: { id: true },
+              }),
+              tx.withdrawalTransaction.findUnique({
+                where: { idempotencyKey: key },
+                select: { id: true },
+              }),
+            ]);
+            if (oldDeposit || oldWithdrawal)
+              throw new ConflictException(
+                'Legacy Idempotency-Key cannot be safely replayed; manual review required',
+              );
+
+            await tx.savingsRequest.create({
+              data: { key, memberId, accountId, operation, payload },
+            });
+            const member = await tx.member.findUnique({
+              where: { id: memberId },
+              select: { membershipStatus: true },
+            });
+            if (!member || member.membershipStatus !== 'active')
+              throw new ForbiddenException('Active membership is required');
+            const account = await tx.memberAccount.findUnique({
+              where: { id: accountId },
+            });
+            if (!account) throw new NotFoundException('Account not found');
+            if (account.memberId !== memberId)
+              throw new ForbiddenException(
+                'You do not have access to this account',
+              );
+            if (
+              account.accountStatus !== 'active' ||
+              !['savings_fsa', 'savings_rsa', 'savings_gsa'].includes(
+                account.accountType,
+              )
+            ) {
+              throw new BadRequestException(
+                'An active savings account is required',
+              );
+            }
+            if (
+              operation === 'withdrawal' &&
+              account.accountType === 'savings_gsa' &&
+              !account.goalReached
+            ) {
+              throw new BadRequestException(
+                'The savings goal must be reached before withdrawal',
+              );
+            }
+            const updated = await tx.memberAccount.updateMany({
+              where: {
+                id: accountId,
+                memberId,
+                accountStatus: 'active',
+                ...(operation === 'withdrawal'
+                  ? { currentBalance: { gte: amount } }
+                  : {}),
+              },
+              data: {
+                currentBalance:
+                  operation === 'deposit'
+                    ? { increment: amount }
+                    : { decrement: amount },
+              },
+            });
+            if (updated.count !== 1)
+              throw new BadRequestException(
+                'Insufficient balance or unavailable account',
+              );
+            const after = await tx.memberAccount.findUniqueOrThrow({
+              where: { id: accountId },
+            });
+            // Preserve the existing once-reached GSA rule, but set it atomically.
+            const reached =
+              after.goalReached ||
+              (after.accountType === 'savings_gsa' &&
+                after.goalTarget !== null &&
+                new Decimal(after.currentBalance.toString()).gte(
+                  after.goalTarget.toString(),
+                ));
+            if (reached !== after.goalReached)
+              await tx.memberAccount.update({
+                where: { id: accountId },
+                data: { goalReached: reached },
+              });
+            const common = {
+              memberId,
+              accountId,
+              amount,
+              status: 'completed' as const,
+              idempotencyKey: key,
+              isSimulation: true,
+              channel: 'simulation',
+              referenceNumber: `${operation === 'deposit' ? 'DEP' : 'WDR'}-${randomUUID()}`,
+            };
+            const transaction =
+              operation === 'deposit'
+                ? await tx.savingsTransaction.create({
+                    data: {
+                      ...common,
+                      transactionType: 'deposit',
+                      metadata: JSON.stringify({
+                        simulation: true,
+                        note: detail ?? null,
+                      }),
+                    },
+                  })
+                : await tx.withdrawalTransaction.create({
+                    data: { ...common, withdrawalReason: detail ?? null },
+                  });
+            const newBalance = new Decimal(
+              after.currentBalance.toString(),
+            ).toFixed(2);
+            // Persist exactly the JSON returned to both the original caller and replays.
+            const response = JSON.parse(
+              JSON.stringify({
+                transaction: { ...transaction, amount },
+                newBalance,
+                simulation: true,
+                settlement: 'not_settled',
+              }),
+            ) as Prisma.JsonObject;
+            const event: SavingsDepositedPayload | undefined =
+              operation === 'deposit'
+                ? {
+                    transactionId: transaction.id,
+                    memberId,
+                    accountId,
+                    accountType: after.accountType,
+                    amount,
+                    newBalance,
+                    goalTarget:
+                      after.goalTarget === null
+                        ? null
+                        : new Decimal(after.goalTarget.toString()).toFixed(2),
+                    goalReached: reached,
+                    simulation: true,
+                  }
+                : undefined;
+            await tx.savingsRequest.update({
+              where: { key },
+              data: {
+                transactionId: transaction.id,
+                response,
+                ...(event ? { event: { ...event } } : {}),
+              },
+            });
+            return { response, event };
+          },
+          { isolationLevel: 'Serializable', maxWait: 5000, timeout: 10000 },
+        ),
+      );
+    } catch (error) {
+      if (databaseCode(error) !== 'P2002') throw error;
+      // A competing claim rolled back this entire attempt. Read only committed state.
+      const existing = await this.prisma.savingsRequest.findUnique({
+        where: { key },
+      });
+      if (!existing) throw error; // An unrelated unique constraint must not be treated as replay.
+      return replay(existing);
+    }
+    if (outcome.event) {
+      try {
+        await this.eventEmitter.emitAsync(
+          SAVINGS_DEPOSITED_EVENT,
+          outcome.event,
+        );
+      } catch (error) {
+        this.logger.error(
+          'Post-commit savings event failed; financial state is committed',
+          {
+            transactionId: outcome.event.transactionId,
+            error: error instanceof Error ? error.message : String(error),
+          },
+        );
+      }
+    }
+    return outcome.response;
   }
 
   async getTransactions(

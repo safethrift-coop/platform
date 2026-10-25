@@ -415,19 +415,21 @@ model MemberAccount {
 // ─────────────────────────────────────────────
 
 model SavingsTransaction {
-  id              String            @id @default(cuid()) @map("savings_txn_id")
-  memberId        String            @map("member_id")
-  accountId       String            @map("account_id")
-  transactionDate DateTime          @default(now()) @map("transaction_date")
-  amount          Decimal           @db.Decimal(12, 2)
-  transactionType TransactionType   @map("transaction_type")
+  id              String                @id @default(cuid()) @map("savings_txn_id")
+  memberId        String                @map("member_id")
+  accountId       String                @map("account_id")
+  transactionDate DateTime              @default(now()) @map("transaction_date")
+  amount          Decimal               @db.Decimal(12, 2)
+  transactionType TransactionType       @map("transaction_type")
   channel         String?
-  referenceNumber String?           @unique @map("reference_number")
-  recordedBy      String?           @map("recorded_by")
-  status          TransactionStatus @default(pending)
-  idempotencyKey  String?           @unique @map("idempotency_key")
+  referenceNumber String?               @unique @map("reference_number")
+  recordedBy      String?               @map("recorded_by")
+  status          TransactionStatus     @default(pending)
+  idempotencyKey  String?               @unique @map("idempotency_key")
+  isSimulation    Boolean?              @map("is_simulation")
+  pointsReceipt   SavingsPointsReceipt?
   metadata        String?
-  createdAt       DateTime          @default(now()) @map("created_at")
+  createdAt       DateTime              @default(now()) @map("created_at")
 
   member  Member        @relation(fields: [memberId], references: [id])
   account MemberAccount @relation(fields: [accountId], references: [id])
@@ -448,6 +450,7 @@ model WithdrawalTransaction {
   accountId        String           @map("account_id")
   transactionDate  DateTime         @default(now()) @map("transaction_date")
   amount           Decimal          @db.Decimal(12, 2)
+  isSimulation     Boolean?         @map("is_simulation")
   withdrawalReason String?          @map("withdrawal_reason")
   approvedBy       String?          @map("approved_by")
   channel          String?
@@ -870,4 +873,29 @@ model ComplianceFlag {
   @@index([status])
   @@index([createdAt])
   @@map("compliance_flags")
+}
+
+// Shared namespace across deposits and withdrawals. Inserted and completed in
+// the same transaction as the financial records; legacy rows remain untouched.
+model SavingsRequest {
+  key           String   @id
+  memberId      String   @map("member_id")
+  accountId     String   @map("account_id")
+  operation     String
+  payload       String
+  transactionId String?  @unique @map("transaction_id")
+  response      Json?
+  event         Json?
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@map("savings_requests")
+}
+
+model SavingsPointsReceipt {
+  transactionId String             @id @map("transaction_id")
+  points        Int
+  processedAt   DateTime           @default(now()) @map("processed_at")
+  transaction   SavingsTransaction @relation(fields: [transactionId], references: [id])
+
+  @@map("savings_points_receipts")
 }

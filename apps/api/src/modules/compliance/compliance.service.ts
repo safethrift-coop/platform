@@ -45,14 +45,14 @@ export class ComplianceService {
   private async checkLargeDeposit(
     payload: SavingsDepositedPayload,
   ): Promise<void> {
-    if (payload.amount < LARGE_DEPOSIT_THRESHOLD) {
+    if (new Decimal(payload.amount).lt(LARGE_DEPOSIT_THRESHOLD)) {
       return; // Not a large deposit — no flag needed
     }
 
     await this.createFlag(
       payload.memberId,
       'large_single_deposit',
-      `Single deposit of £${payload.amount.toFixed(2)} exceeds the £${LARGE_DEPOSIT_THRESHOLD} threshold`,
+      `Single deposit of £${new Decimal(payload.amount).toFixed(2)} exceeds the £${LARGE_DEPOSIT_THRESHOLD} threshold`,
       { amount: payload.amount, accountId: payload.accountId },
     );
   }
@@ -114,9 +114,9 @@ export class ComplianceService {
     });
 
     const thisMonthTotal = thisMonthDeposits.reduce(
-      (sum: number, d: { amount: { toString: () => string } }) =>
-        sum + new Decimal(d.amount.toString()).toNumber(),
-      0,
+      (sum: Decimal, d: { amount: { toString: () => string } }) =>
+        sum.plus(d.amount.toString()),
+      new Decimal(0),
     );
 
     // Sum all deposits in the previous 6 months to calculate the average
@@ -135,21 +135,21 @@ export class ComplianceService {
     }
 
     const historicalTotal = historicalDeposits.reduce(
-      (sum: number, d: { amount: { toString: () => string } }) =>
-        sum + new Decimal(d.amount.toString()).toNumber(),
-      0,
+      (sum: Decimal, d: { amount: { toString: () => string } }) =>
+        sum.plus(d.amount.toString()),
+      new Decimal(0),
     );
 
     // Average monthly deposit over the historical window
-    const monthlyAverage = historicalTotal / 6;
+    const monthlyAverage = historicalTotal.div(6);
 
     // If no historical average, skip — cannot compare to zero
-    if (monthlyAverage === 0) {
+    if (monthlyAverage.isZero()) {
       return;
     }
 
     // Check if this month's total exceeds the spike threshold
-    if (thisMonthTotal < monthlyAverage * MONTHLY_SPIKE_MULTIPLIER) {
+    if (thisMonthTotal.lt(monthlyAverage.times(MONTHLY_SPIKE_MULTIPLIER))) {
       return; // Normal activity
     }
 
@@ -157,12 +157,12 @@ export class ComplianceService {
       payload.memberId,
       'monthly_spike',
       `This month's deposits total £${thisMonthTotal.toFixed(2)}, ` +
-        `which is ${(thisMonthTotal / monthlyAverage).toFixed(1)}x the ` +
+        `which is ${thisMonthTotal.div(monthlyAverage).toFixed(1)}x the ` +
         `6-month average of £${monthlyAverage.toFixed(2)}`,
       {
-        thisMonthTotal,
-        monthlyAverage,
-        multiplier: thisMonthTotal / monthlyAverage,
+        thisMonthTotal: thisMonthTotal.toString(),
+        monthlyAverage: monthlyAverage.toString(),
+        multiplier: thisMonthTotal.div(monthlyAverage).toString(),
       },
     );
   }
@@ -191,10 +191,10 @@ export class ComplianceService {
     let consecutiveRoundCount = 0;
 
     for (const deposit of recentDeposits) {
-      const amount = new Decimal(deposit.amount.toString()).toNumber();
+      const amount = new Decimal(deposit.amount.toString());
 
       // Check if the amount is a round number (divisible by 100)
-      if (amount % 100 === 0) {
+      if (amount.mod(100).isZero()) {
         consecutiveRoundCount++;
       } else {
         // As soon as we see a non-round amount, the streak is broken

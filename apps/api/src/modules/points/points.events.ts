@@ -1,17 +1,14 @@
-// This file defines the event payloads that travel
-// between the SavingsModule and the PointsModule.
-// When a deposit happens, SavingsService fires a
-// 'savings.deposited' event with this payload.
-// PointsService listens for it and recalculates points.
-
 export const SAVINGS_DEPOSITED_EVENT = 'savings.deposited';
 
+// All amounts are exact decimal strings; no assertion of external settlement.
 export interface SavingsDepositedPayload {
+  transactionId: string;
   memberId: string;
   accountId: string;
   accountType: string;
-  amount: number;
-  newBalance: number;
-  goalTarget: number | null;
+  amount: string;
+  newBalance: string;
+  goalTarget: string | null;
   goalReached: boolean;
+  simulation: true;
 }
