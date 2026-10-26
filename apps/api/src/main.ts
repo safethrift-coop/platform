@@ -1,3 +1,4 @@
+import { configurePaymentWebhookBody } from './modules/payment-webhooks/payment-webhook-body';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 
@@ -19,6 +20,7 @@ async function bootstrap() {
     logger: WinstonModule.createLogger(winstonConfig),
   });
 
+  configurePaymentWebhookBody(app);
   app.enableShutdownHooks();
 
   app.use(

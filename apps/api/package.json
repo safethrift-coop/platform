@@ -22,7 +22,10 @@
     "test:governance-migrations": "node test/verify-governance-migration.mjs",
     "jobs:migrate": "node scripts/migrate-jobs.mjs",
     "test:reminders": "node --test test/reminders.integration.test.mjs",
-    "test:reminder-migrations": "node test/verify-reminder-migration.mjs"
+    "test:reminder-migrations": "node test/verify-reminder-migration.mjs",
+    "payments:jobs:migrate": "node scripts/migrate-payment-jobs.mjs",
+    "test:payment-webhooks": "node --test test/payment-webhooks.integration.test.mjs",
+    "test:payment-migrations": "node test/verify-payment-migration.mjs"
   },
   "dependencies": {
     "@nestjs/bull": "^11.0.4",
@@ -44,6 +47,7 @@
     "cookie-parser": "^1.4.7",
     "decimal.js": "^10.6.0",
     "dotenv": "^17.4.2",
+    "express": "5.2.1",
     "helmet": "^8.1.0",
     "ioredis": "^5.10.1",
     "nest-winston": "^1.10.2",
@@ -55,6 +59,7 @@
     "reflect-metadata": "^0.2.2",
     "resend": "^6.12.3",
     "rxjs": "^7.8.1",
+    "stripe": "23.0.1",
     "swagger-ui-express": "^5.0.1",
     "uuid": "^14.0.0",
     "winston": "^3.19.0"

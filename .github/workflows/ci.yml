@@ -136,12 +136,33 @@ jobs:
           NODE_ENV: test
           T36_TEST_DATABASE_URL: postgresql://safethrift:safethrift_test@localhost:5432/safethrift_test
 
+      - name: Install isolated pinned T38 payment jobs schema
+        run: pnpm --filter @safethrift/api payments:jobs:migrate
+        env:
+          DATABASE_URL: postgresql://safethrift:safethrift_test@localhost:5432/safethrift_test
+
+      - name: Verify T38 historical migration preservation
+        run: |
+          createdb --host localhost --username safethrift safethrift_payment_migration_test
+          pnpm --filter @safethrift/api test:payment-migrations
+        env:
+          PGPASSWORD: safethrift_test
+          NODE_ENV: test
+          T38_MIGRATION_TEST_DATABASE_URL: postgresql://safethrift:safethrift_test@localhost:5432/safethrift_payment_migration_test
+
+      - name: T38 webhook intake and evidence integration
+        run: pnpm --filter @safethrift/api test:payment-webhooks
+        env:
+          NODE_ENV: test
+          T38_TEST_DATABASE_URL: postgresql://safethrift:safethrift_test@localhost:5432/safethrift_test
+
       - name: API e2e, governance, authentication and savings integration
         run: pnpm --filter @safethrift/api test:e2e --runInBand
         env:
           NODE_ENV: test
           GOVERNANCE_TEST_DATABASE_URL: postgresql://safethrift:safethrift_test@localhost:5432/safethrift_test
           AUTH_TEST_REDIS_URL: redis://localhost:6379
+          T38_WEBHOOKS_ENABLED: "false"
           T36_JOBS_ENABLED: "false"
           T36_EMAIL_MODE: disabled
           SAVINGS_SIMULATION_ENABLED: "false"

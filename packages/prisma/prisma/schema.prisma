@@ -956,3 +956,85 @@ model ReminderProviderEvent {
   @@index([externalId, processedAt])
   @@map("reminder_provider_events")
 }
+
+// T38 evidence only: no relations to members, accounts or financial transactions.
+model PaymentWebhookDelivery {
+  id           String   @id @default(uuid())
+  provider     String
+  environment  String
+  accountScope String
+  bodyHash     String
+  outcome      String
+  eventIds     Json
+  receivedAt   DateTime @default(now()) @db.Timestamptz(3)
+
+  @@index([provider, environment, accountScope, receivedAt])
+  @@map("payment_webhook_deliveries")
+}
+
+model PaymentWebhookEvent {
+  id                 String              @id @default(uuid())
+  provider           String
+  environment        String
+  accountScope       String
+  providerEventId    String
+  eventHash          String
+  eventType          String
+  resourceId         String?
+  resourceType       String
+  occurredAt         DateTime            @db.Timestamptz(3)
+  acceptedAt         DateTime            @default(now()) @db.Timestamptz(3)
+  evidence           Json
+  status             String              @default("queued")
+  reason             String?
+  jobId              String?
+  recoveries         Int                 @default(0)
+  processedAt        DateTime?           @db.Timestamptz(3)
+  paymentObservation PaymentObservation?
+  mandateObservation MandateObservation?
+
+  @@unique([provider, environment, accountScope, providerEventId])
+  @@unique([id, provider, environment, accountScope])
+  @@index([status, acceptedAt])
+  @@map("payment_webhook_events")
+}
+
+model PaymentObservation {
+  id             String              @id @default(uuid())
+  eventId        String              @unique
+  provider       String
+  environment    String
+  accountScope   String
+  resourceId     String
+  resourceType   String
+  fact           String
+  amountMinor    Decimal?            @db.Decimal(20, 0)
+  currency       String?
+  occurredAt     DateTime            @db.Timestamptz(3)
+  recordedAt     DateTime            @default(now()) @db.Timestamptz(3)
+  reviewRequired Boolean             @default(true)
+  event          PaymentWebhookEvent @relation(fields: [eventId, provider, environment, accountScope], references: [id, provider, environment, accountScope], onDelete: Restrict)
+
+  @@unique([eventId, provider, environment, accountScope])
+  @@index([provider, environment, accountScope, resourceId])
+  @@map("payment_observations")
+}
+
+model MandateObservation {
+  id             String              @id @default(uuid())
+  eventId        String              @unique
+  provider       String
+  environment    String
+  accountScope   String
+  resourceId     String
+  fact           String
+  replacementId  String?
+  occurredAt     DateTime            @db.Timestamptz(3)
+  recordedAt     DateTime            @default(now()) @db.Timestamptz(3)
+  reviewRequired Boolean             @default(true)
+  event          PaymentWebhookEvent @relation(fields: [eventId, provider, environment, accountScope], references: [id, provider, environment, accountScope], onDelete: Restrict)
+
+  @@unique([eventId, provider, environment, accountScope])
+  @@index([provider, environment, accountScope, resourceId])
+  @@map("mandate_observations")
+}

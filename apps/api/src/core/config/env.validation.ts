@@ -1,3 +1,4 @@
+import { paymentConfig } from '../../modules/payment-webhooks/payment-webhook.config';
 import { plainToInstance } from 'class-transformer';
 import {
   IsEnum,
@@ -61,6 +62,7 @@ class EnvironmentVariables {
 export function validate(
   config: Record<string, unknown>,
 ): EnvironmentVariables {
+  paymentConfig(undefined, config as NodeJS.ProcessEnv);
   const validated = plainToInstance(EnvironmentVariables, config, {
     enableImplicitConversion: true,
   });

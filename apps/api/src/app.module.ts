@@ -1,3 +1,4 @@
+import { PaymentWebhooksModule } from './modules/payment-webhooks/payment-webhooks.module';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
@@ -49,6 +50,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
     NotificationsModule,
     GovernanceModule,
     RemindersModule,
+    PaymentWebhooksModule,
   ],
   controllers: [AppController],
   providers: [
