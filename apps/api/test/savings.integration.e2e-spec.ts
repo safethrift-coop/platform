@@ -191,28 +191,33 @@ describe('Savings safety — real PostgreSQL', () => {
   });
   afterAll(async () => {
     if (!prisma) return;
-    await prisma.$transaction(async (tx) => {
-      await tx.savingsPointsReceipt.deleteMany({
-        where: { transaction: { memberId: { in: memberIds } } },
+    try {
+      await prisma.$transaction(async (tx) => {
+        await tx.savingsPointsReceipt.deleteMany({
+          where: { transaction: { memberId: { in: memberIds } } },
+        });
+        await tx.savingsRequest.deleteMany({
+          where: {
+            OR: [{ memberId: { in: memberIds } }, { key: { in: keys } }],
+          },
+        });
+        await tx.complianceFlag.deleteMany({
+          where: { memberId: { in: memberIds } },
+        });
+        await tx.savingsTransaction.deleteMany({
+          where: { memberId: { in: memberIds } },
+        });
+        await tx.withdrawalTransaction.deleteMany({
+          where: { memberId: { in: memberIds } },
+        });
+        await tx.memberAccount.deleteMany({
+          where: { memberId: { in: memberIds } },
+        });
+        await tx.member.deleteMany({ where: { id: { in: memberIds } } });
       });
-      await tx.savingsRequest.deleteMany({
-        where: { OR: [{ memberId: { in: memberIds } }, { key: { in: keys } }] },
-      });
-      await tx.complianceFlag.deleteMany({
-        where: { memberId: { in: memberIds } },
-      });
-      await tx.savingsTransaction.deleteMany({
-        where: { memberId: { in: memberIds } },
-      });
-      await tx.withdrawalTransaction.deleteMany({
-        where: { memberId: { in: memberIds } },
-      });
-      await tx.memberAccount.deleteMany({
-        where: { memberId: { in: memberIds } },
-      });
-      await tx.member.deleteMany({ where: { id: { in: memberIds } } });
-    });
-    await prisma.onModuleDestroy();
+    } finally {
+      await prisma.onModuleDestroy();
+    }
   });
 
   it('records exact decimal deposits and withdrawals with explicit simulation responses', async () => {
@@ -454,7 +459,12 @@ describe('Savings safety — real PostgreSQL', () => {
   });
   it('atomically increments points from distinct concurrent deposits, including zero-point receipts', async () => {
     listen((event: SavingsDepositedPayload) => points.handleDeposit(event));
-    await Promise.all([deposit('10'), deposit('20')]);
+    synchronize('account');
+    // Drain both operations even on failure, before assertions or fixture cleanup.
+    const outcomes = await Promise.allSettled([deposit('10'), deposit('20')]);
+    for (const outcome of outcomes) {
+      if (outcome.status === 'rejected') throw outcome.reason;
+    }
     await deposit('0.01');
     expect(
       (await prisma.member.findUniqueOrThrow({ where: { id: memberId } }))

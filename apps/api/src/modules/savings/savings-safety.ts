@@ -60,6 +60,12 @@ export async function retrySavingsTransaction<T>(
         throw new ServiceUnavailableException(
           'Concurrent savings operation; retry with the same Idempotency-Key',
         );
+      // Let competing transactions (including post-commit points updates) finish
+      // before taking a new serializable snapshot. Jitter separates contenders.
+      const backoffMs = 25 * 2 ** attempt;
+      await new Promise<void>((resolve) =>
+        setTimeout(resolve, backoffMs + Math.floor(Math.random() * backoffMs)),
+      );
     }
   }
   throw new Error('Unreachable');

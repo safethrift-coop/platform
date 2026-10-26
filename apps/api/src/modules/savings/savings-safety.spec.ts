@@ -68,6 +68,32 @@ describe('savings safety boundaries', () => {
     });
     expect(other).toHaveBeenCalledTimes(1);
   });
+  it('waits between conflicts with bounded exponential backoff and jitter', async () => {
+    jest.useFakeTimers();
+    const random = jest.spyOn(Math, 'random').mockReturnValue(0.5);
+    try {
+      const run = jest
+        .fn()
+        .mockRejectedValueOnce({ code: 'P2034' })
+        .mockRejectedValueOnce({ code: 'P2034' })
+        .mockRejectedValueOnce({ code: 'P2034' })
+        .mockResolvedValue('committed');
+      const result = retrySavingsTransaction(run);
+      await jest.advanceTimersByTimeAsync(0);
+      expect(run).toHaveBeenCalledTimes(1);
+      for (const [index, delay] of [37, 75, 150].entries()) {
+        await jest.advanceTimersByTimeAsync(delay - 1);
+        expect(run).toHaveBeenCalledTimes(index + 1);
+        await jest.advanceTimersByTimeAsync(1);
+        expect(run).toHaveBeenCalledTimes(index + 2);
+      }
+      await expect(result).resolves.toBe('committed');
+      expect(jest.getTimerCount()).toBe(0);
+    } finally {
+      random.mockRestore();
+      jest.useRealTimers();
+    }
+  });
   it('environment flag defaults false and accepts only literal true/false', () => {
     expect(validateSavingsEnvironment({})).toBe('false');
     expect(
