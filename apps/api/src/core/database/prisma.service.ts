@@ -11,6 +11,11 @@ import { PrismaPg } from '@prisma/adapter-pg';
 export class PrismaService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(PrismaService.name);
   private client: any;
+  private readonly disconnectHooks = new Set<() => Promise<void>>();
+
+  beforeDisconnect(hook: () => Promise<void>): void {
+    this.disconnectHooks.add(hook);
+  }
 
   constructor() {
     const { PrismaClient } = require('@prisma/client');
@@ -46,6 +51,12 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   }
   get reminderLog() {
     return this.client.reminderLog;
+  }
+  get reminderAttempt() {
+    return this.client.reminderAttempt;
+  }
+  get reminderProviderEvent() {
+    return this.client.reminderProviderEvent;
   }
   get reminderResponse() {
     return this.client.reminderResponse;
@@ -122,6 +133,7 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   }
 
   async onModuleDestroy(): Promise<void> {
+    for (const hook of this.disconnectHooks) await hook();
     await this.client.$disconnect();
     this.logger.log('Database disconnected');
   }

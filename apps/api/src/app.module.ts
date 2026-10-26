@@ -17,6 +17,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { LoansModule } from './modules/loans/loans.module';
 import { ScoringModule } from './modules/scoring/scoring.module';
 import { ComplianceModule } from './modules/compliance/compliance.module';
+import { RemindersModule } from './modules/reminders/reminders.module';
 import { GovernanceModule } from './modules/governance/governance.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 
@@ -47,6 +48,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
     ScoringModule,
     NotificationsModule,
     GovernanceModule,
+    RemindersModule,
   ],
   controllers: [AppController],
   providers: [

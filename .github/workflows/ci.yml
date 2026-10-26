@@ -113,12 +113,37 @@ jobs:
           NODE_ENV: test
           GOVERNANCE_MIGRATION_TEST_DATABASE_URL: postgresql://safethrift:safethrift_test@localhost:5432/safethrift_governance_migration_test
 
+      - name: Build API for native pg-boss integration tests
+        run: pnpm --filter @safethrift/api build
+
+      - name: Install pinned pg-boss schema in CI test database
+        run: pnpm --filter @safethrift/api jobs:migrate
+        env:
+          DATABASE_URL: postgresql://safethrift:safethrift_test@localhost:5432/safethrift_test
+
+      - name: Verify T36 additive migration preserves historical data and audits
+        run: |
+          createdb --host localhost --username safethrift safethrift_reminder_migration_test
+          pnpm --filter @safethrift/api test:reminder-migrations
+        env:
+          PGPASSWORD: safethrift_test
+          NODE_ENV: test
+          T36_MIGRATION_TEST_DATABASE_URL: postgresql://safethrift:safethrift_test@localhost:5432/safethrift_reminder_migration_test
+
+      - name: T36 PostgreSQL jobs, reminders, webhook and recovery integration
+        run: pnpm --filter @safethrift/api test:reminders
+        env:
+          NODE_ENV: test
+          T36_TEST_DATABASE_URL: postgresql://safethrift:safethrift_test@localhost:5432/safethrift_test
+
       - name: API e2e, governance, authentication and savings integration
         run: pnpm --filter @safethrift/api test:e2e --runInBand
         env:
           NODE_ENV: test
           GOVERNANCE_TEST_DATABASE_URL: postgresql://safethrift:safethrift_test@localhost:5432/safethrift_test
           AUTH_TEST_REDIS_URL: redis://localhost:6379
+          T36_JOBS_ENABLED: "false"
+          T36_EMAIL_MODE: disabled
           SAVINGS_SIMULATION_ENABLED: "false"
           SAVINGS_TEST_DATABASE_URL: postgresql://safethrift:safethrift_test@localhost:5432/safethrift_test
           DATABASE_URL: postgresql://safethrift:safethrift_test@localhost:5432/safethrift_test

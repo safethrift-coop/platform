@@ -17,6 +17,12 @@ enum Environment {
 }
 
 class EnvironmentVariables {
+  @IsIn(['true', 'false'])
+  T36_JOBS_ENABLED: string = 'false';
+
+  @IsIn(['disabled', 'simulate', 'resend'])
+  T36_EMAIL_MODE: string = 'disabled';
+
   @IsEnum(Environment)
   NODE_ENV: Environment = Environment.Development;
 
@@ -71,5 +77,14 @@ export function validate(
     );
   }
 
+  // Production Resend activation requires separate authorization and a reviewed
+  // change to this deployment gate. This implementation cannot enable it.
+  if (
+    ['production', 'staging'].includes(validated.NODE_ENV) &&
+    validated.T36_EMAIL_MODE === 'resend'
+  )
+    throw new Error(
+      'T36 external email is not authorized in production/staging',
+    );
   return validated;
 }

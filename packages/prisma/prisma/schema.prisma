@@ -129,6 +129,11 @@ enum DeliveryStatus {
   delivered
   failed
   bounced
+  attempted
+  provider_accepted
+  uncertain
+  skipped
+  simulated
 }
 
 enum ReminderResponseType {
@@ -502,20 +507,41 @@ model ReminderLog {
   relatedLoanId   String?         @map("related_loan_id")
   reminderType    ReminderType    @map("reminder_type")
   reminderChannel ReminderChannel @map("reminder_channel")
-  sentDate        DateTime        @default(now()) @map("sent_date")
+  sentDate        DateTime?       @map("sent_date")
   dueDate         DateTime?       @map("due_date")
   messageTemplate String?         @map("message_template")
   deliveryStatus  DeliveryStatus  @default(queued) @map("delivery_status")
   externalId      String?         @map("external_id")
   createdAt       DateTime        @default(now()) @map("created_at")
 
+  repaymentScheduleId String?            @map("repayment_schedule_id")
+  scanDate            DateTime?          @map("scan_date") @db.Date
+  queuedAt            DateTime?          @map("queued_at")
+  firstAttemptAt      DateTime?          @map("first_attempt_at")
+  deliveredAt         DateTime?          @map("delivered_at")
+  payload             Json?
+  jobId               String?            @unique @map("job_id")
+  providerKey         String?            @unique @map("provider_key")
+  lastError           String?            @map("last_error")
+  transport           String?            @map("transport")
+  providerEventAt     DateTime?          @map("provider_event_at")
+  providerEventType   String?            @map("provider_event_type")
+  attemptToken        String?            @map("attempt_token")
+  attempts            ReminderAttempt[]
+  schedule            RepaymentSchedule? @relation(fields: [repaymentScheduleId], references: [id], onDelete: Restrict)
+
   member    Member             @relation(fields: [memberId], references: [id])
   loan      Loan?              @relation(fields: [relatedLoanId], references: [id])
   responses ReminderResponse[]
 
+  // No date/window in this key: one initial reminder for the installment,
+  // independently of job retention. NULL preserves unlinked historical rows.
+  @@unique([repaymentScheduleId, reminderType, reminderChannel], map: "reminder_initial_installment_email_key")
   @@index([memberId])
   @@index([relatedLoanId])
   @@index([sentDate])
+  @@index([deliveryStatus, queuedAt])
+  @@index([externalId])
   @@map("reminder_logs")
 }
 
@@ -632,6 +658,7 @@ model RepaymentSchedule {
 
   loan                  Loan                   @relation(fields: [loanId], references: [id])
   repaymentTransactions RepaymentTransaction[]
+  reminderLogs          ReminderLog[]
 
   @@unique([loanId, installmentNumber])
   @@index([loanId])
@@ -899,4 +926,33 @@ model SavingsPointsReceipt {
   transaction   SavingsTransaction @relation(fields: [transactionId], references: [id])
 
   @@map("savings_points_receipts")
+}
+
+model ReminderAttempt {
+  id         String         @id @default(cuid())
+  reminderId String         @map("reminder_id")
+  jobId      String         @map("job_id")
+  retryCount Int            @map("retry_count")
+  startedAt  DateTime       @default(now()) @map("started_at")
+  finishedAt DateTime?      @map("finished_at")
+  outcome    DeliveryStatus @default(queued)
+  externalId String?        @map("external_id")
+  errorCode  String?        @map("error_code")
+  reminder   ReminderLog    @relation(fields: [reminderId], references: [id])
+
+  @@unique([jobId, retryCount])
+  @@index([reminderId])
+  @@map("reminder_attempts")
+}
+
+model ReminderProviderEvent {
+  id          String    @id
+  externalId  String    @map("external_id")
+  eventType   String    @map("event_type")
+  occurredAt  DateTime  @map("occurred_at")
+  receivedAt  DateTime  @default(now()) @map("received_at")
+  processedAt DateTime? @map("processed_at")
+
+  @@index([externalId, processedAt])
+  @@map("reminder_provider_events")
 }

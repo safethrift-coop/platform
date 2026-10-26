@@ -19,6 +19,8 @@ async function bootstrap() {
     logger: WinstonModule.createLogger(winstonConfig),
   });
 
+  app.enableShutdownHooks();
+
   app.use(
     helmet({
       contentSecurityPolicy: {
