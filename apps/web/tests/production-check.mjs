@@ -26,7 +26,13 @@ try {
   if (!ready) throw new Error("Production server did not become ready");
   const tests = spawn(
     process.execPath,
-    ["--test", "tests/public-site.test.mjs", "tests/seo-config.test.mjs"],
+    [
+      "--test",
+      "tests/public-site.test.mjs",
+      "tests/seo-config.test.mjs",
+      "tests/registration.test.mjs",
+      "tests/registration-closed.test.mjs",
+    ],
     { stdio: "inherit", env: { ...process.env, TEST_BASE_URL: origin } },
   );
   process.exitCode = await new Promise((resolve, reject) => {

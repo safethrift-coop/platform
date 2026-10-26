@@ -1,14 +1,13 @@
 import {
   Injectable,
-  ConflictException,
   NotFoundException,
-  BadRequestException,
+  ForbiddenException,
   Inject,
 } from '@nestjs/common';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { PrismaService } from '../../core/database/prisma.service';
-import { ApplyMembershipDto, MembershipTier } from './dto/apply-membership.dto';
+import { MembershipTier } from './dto/apply-membership.dto';
 import { NotificationsService } from '../notifications/notifications.service';
 
 const MEMBERSHIP_FEE: Record<MembershipTier, number> = {
@@ -24,96 +23,6 @@ export class MembershipService {
     @Inject(WINSTON_MODULE_PROVIDER)
     private readonly logger: Logger,
   ) {}
-
-  async apply(
-    memberId: string,
-    dto: ApplyMembershipDto,
-  ): Promise<{ message: string; applicationId: string }> {
-    const member = await this.prisma.member.findUnique({
-      where: { id: memberId },
-      select: {
-        id: true,
-        membershipStatus: true,
-        emailVerified: true,
-      },
-    });
-
-    if (!member) throw new NotFoundException('Member not found');
-
-    if (!member.emailVerified) {
-      throw new BadRequestException(
-        'Please verify your email address before applying for membership',
-      );
-    }
-
-    if (
-      member.membershipStatus === 'active' ||
-      member.membershipStatus === 'pending'
-    ) {
-      throw new ConflictException(
-        'You already have an active or pending membership application',
-      );
-    }
-
-    if (
-      dto.membershipType === MembershipTier.Family &&
-      (!dto.householdMembers || dto.householdMembers.length === 0)
-    ) {
-      throw new BadRequestException(
-        'Household member details are required for family membership',
-      );
-    }
-
-    const fee = MEMBERSHIP_FEE[dto.membershipType];
-
-    const registration = await this.prisma.$transaction(async (tx) => {
-      const reg = await tx.memberRegistration.create({
-        data: {
-          memberId,
-          registrationChannel: 'web_portal',
-          membershipType: dto.membershipType,
-          membershipFeePaid: false,
-          membershipFeeAmount: fee,
-          householdMembersJson: dto.householdMembers
-            ? JSON.stringify(dto.householdMembers)
-            : null,
-          termsAccepted: dto.termsAccepted,
-          termsAcceptedAt: new Date(),
-          consentDataProcessing: dto.consentDataProcessing,
-          consentDataProcessedAt: new Date(),
-          consentCreditAssess: dto.consentCreditAssessment,
-          consentCreditAssessAt: new Date(),
-          referralSource: dto.referralSource,
-          whyJoining: dto.whyJoining,
-          preferredPaymentMethod: dto.preferredPaymentMethod,
-          signatureText: dto.signatureText,
-        },
-      });
-
-      await tx.member.update({
-        where: { id: memberId },
-        data: {
-          membershipStatus: 'pending',
-          occupation: dto.occupation,
-        },
-      });
-
-      return reg;
-    });
-
-    this.logger.info('Membership application submitted', {
-      memberId,
-      membershipType: dto.membershipType,
-      fee,
-      applicationId: registration.id,
-    });
-
-    return {
-      message:
-        'Your membership application has been received. We will review it and send payment instructions to your email.',
-      applicationId: registration.id,
-    };
-  }
 
   async getMyMembership(memberId: string): Promise<Record<string, unknown>> {
     const registration = await this.prisma.memberRegistration.findFirst({
@@ -154,10 +63,19 @@ export class MembershipService {
   ): Promise<{ message: string }> {
     const registration = await this.prisma.memberRegistration.findUnique({
       where: { id: applicationId },
-      select: { id: true, memberId: true, membershipType: true },
+      select: {
+        id: true,
+        memberId: true,
+        membershipType: true,
+        submission: { select: { id: true } },
+      },
     });
 
     if (!registration) throw new NotFoundException('Application not found');
+    if (registration.submission)
+      throw new ForbiddenException(
+        'Development fixture applications cannot be administratively actioned',
+      );
 
     await this.prisma.$transaction(async (tx) => {
       await tx.member.update({
@@ -225,10 +143,18 @@ export class MembershipService {
   ): Promise<{ message: string }> {
     const registration = await this.prisma.memberRegistration.findUnique({
       where: { id: applicationId },
-      select: { id: true, memberId: true },
+      select: {
+        id: true,
+        memberId: true,
+        submission: { select: { id: true } },
+      },
     });
 
     if (!registration) throw new NotFoundException('Application not found');
+    if (registration.submission)
+      throw new ForbiddenException(
+        'Development fixture applications cannot be administratively actioned',
+      );
 
     await this.prisma.$transaction(async (tx) => {
       await tx.member.update({

@@ -25,7 +25,8 @@
     "test:reminder-migrations": "node test/verify-reminder-migration.mjs",
     "payments:jobs:migrate": "node scripts/migrate-payment-jobs.mjs",
     "test:payment-webhooks": "node --test test/payment-webhooks.integration.test.mjs",
-    "test:payment-migrations": "node test/verify-payment-migration.mjs"
+    "test:payment-migrations": "node test/verify-payment-migration.mjs",
+    "test:registration-migrations": "node test/verify-registration-migration.mjs"
   },
   "dependencies": {
     "@nestjs/bull": "^11.0.4",

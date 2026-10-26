@@ -2,8 +2,6 @@ import {
   Controller,
   Post,
   Body,
-  Get,
-  Query,
   UseGuards,
   HttpCode,
   HttpStatus,
@@ -16,6 +14,10 @@ import { AuthGuard } from '@nestjs/passport';
 import type { Response, Request as ExpressRequest } from 'express';
 import { AuthService, MemberProfile } from './auth.service';
 import { RegisterDto } from '../dto/register.dto';
+import { IsUUID } from 'class-validator';
+class VerifyEmailDto {
+  @IsUUID(4) token!: string;
+}
 import { RefreshDto } from '../dto/refresh.dto';
 import {
   ForgotPasswordDto,
@@ -54,9 +56,8 @@ export class AuthController {
   @Throttle({ short: { limit: 3, ttl: 3600000 } })
   async register(
     @Body() dto: RegisterDto,
-    @Req() req: ExpressRequest,
   ): Promise<{ message: string; memberId: string }> {
-    return this.authService.register(dto, req.ip, req.headers['user-agent']);
+    return this.authService.register(dto);
   }
 
   @ApiOperation({ summary: 'Login with email and password' })
@@ -87,11 +88,10 @@ export class AuthController {
     return { accessToken: tokens.accessToken };
   }
 
-  @Get('verify-email')
-  async verifyEmail(
-    @Query('token') token: string,
-  ): Promise<{ message: string }> {
-    return this.authService.verifyEmail(token);
+  @Post('verify-email')
+  @HttpCode(HttpStatus.OK)
+  async verifyEmail(@Body() dto: VerifyEmailDto): Promise<{ message: string }> {
+    return this.authService.verifyEmail(dto.token);
   }
 
   @Post('refresh')

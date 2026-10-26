@@ -1,3 +1,4 @@
+import { configureRegistrationBody } from './modules/membership/registration/registration-body';
 import { configurePaymentWebhookBody } from './modules/payment-webhooks/payment-webhook-body';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
@@ -21,6 +22,7 @@ async function bootstrap() {
   });
 
   configurePaymentWebhookBody(app);
+  configureRegistrationBody(app);
   app.enableShutdownHooks();
 
   app.use(
@@ -47,7 +49,7 @@ async function bootstrap() {
     origin:
       process.env.NODE_ENV === 'production'
         ? ['https://safethrift.coop', 'https://app.safethrift.coop']
-        : ['http://localhost:3001'],
+        : ['http://localhost:3001', 'http://localhost:2025'],
     credentials: true,
     methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Idempotency-Key'],

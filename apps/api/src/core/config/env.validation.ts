@@ -1,3 +1,4 @@
+import { validateRegistrationEnvironment } from '../../modules/membership/registration/registration.config';
 import { paymentConfig } from '../../modules/payment-webhooks/payment-webhook.config';
 import { plainToInstance } from 'class-transformer';
 import {
@@ -63,6 +64,7 @@ export function validate(
   config: Record<string, unknown>,
 ): EnvironmentVariables {
   paymentConfig(undefined, config as NodeJS.ProcessEnv);
+  validateRegistrationEnvironment(config);
   const validated = plainToInstance(EnvironmentVariables, config, {
     enableImplicitConversion: true,
   });

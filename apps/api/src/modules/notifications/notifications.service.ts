@@ -80,10 +80,13 @@ export class NotificationsService {
     firstName: string,
     token: string,
   ): Promise<void> {
-    const verificationUrl = `${this.appUrl}/verify-email?token=${token}`;
+    // T40 fixtures use an injected local test mailbox. Never send or log them.
+    if (process.env.T40_FIXTURE_MODE === 'true') return;
+    const verificationUrl = `${this.appUrl}/verify-email`;
     const { subject, html } = emailVerificationTemplate(
       firstName,
       verificationUrl,
+      token,
     );
     await this.sendEmail(email, subject, html);
   }

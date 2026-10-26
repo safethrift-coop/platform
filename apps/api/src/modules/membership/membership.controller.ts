@@ -1,4 +1,7 @@
+import { ApplicationSubmissionService } from './registration/application-submission.service';
 import {
+  Headers,
+  Header,
   Controller,
   Post,
   Get,
@@ -27,9 +30,19 @@ import {
 @Controller('membership')
 @UseGuards(JwtAuthGuard)
 export class MembershipController {
-  constructor(private readonly membershipService: MembershipService) {}
+  constructor(
+    private readonly membershipService: MembershipService,
+    private readonly submissions: ApplicationSubmissionService,
+  ) {}
+
+  @Get('application')
+  @Header('Cache-Control', 'no-store')
+  context(@CurrentMember() member: JwtPayload) {
+    return this.submissions.context(member.sub);
+  }
 
   @Post('apply')
+  @Header('Cache-Control', 'no-store')
   @HttpCode(HttpStatus.CREATED)
   @ApiBearerAuth('access-token')
   @ApiOperation({ summary: 'Apply for membership' })
@@ -37,8 +50,9 @@ export class MembershipController {
   async apply(
     @CurrentMember() member: JwtPayload,
     @Body() dto: ApplyMembershipDto,
+    @Headers('idempotency-key') key?: string,
   ): Promise<{ message: string; applicationId: string }> {
-    return this.membershipService.apply(member.sub, dto);
+    return this.submissions.submit(member.sub, dto, key);
   }
 
   @Get('me')

@@ -3,10 +3,13 @@ import {
   ConflictException,
   UnauthorizedException,
   BadRequestException,
+  HttpException,
+  ServiceUnavailableException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../../core/database/prisma.service';
 import { RedisService } from '../../core/redis/redis.service';
+import { requireRegistrationFixture } from '../membership/registration/registration.config';
 import { RegisterDto } from '../dto/register.dto';
 import { JwtPayload } from '../../core/decorators/current-member.decorator';
 import { NotificationsService } from '../notifications/notifications.service';
@@ -62,42 +65,41 @@ export class AuthService {
 
   async register(
     dto: RegisterDto,
-    ipAddress?: string,
-    userAgent?: string,
   ): Promise<{ message: string; memberId: string }> {
-    // 1. Check for duplicate email
-    const existing = await this.prisma.member.findUnique({
-      where: { email: dto.email },
-      select: { id: true },
-    });
-    if (existing) {
-      throw new ConflictException(
-        'An account with this email address already exists',
-      );
-    }
+    requireRegistrationFixture(dto.email);
+    try {
+      // 1. Check for duplicate email
+      const existing = await this.prisma.member.findUnique({
+        where: { email: dto.email },
+        select: { id: true },
+      });
+      if (existing) {
+        throw new ConflictException(
+          'An account with this email address already exists',
+        );
+      }
 
-    // 2. Age validation — must be 18+
-    const dob = new Date(dto.dateOfBirth);
-    const age = this.calculateAge(dob);
-    if (age < 18) {
-      throw new BadRequestException(
-        'You must be at least 18 years old to register',
-      );
-    }
-    if (age > 120) {
-      throw new BadRequestException('Please enter a valid date of birth');
-    }
+      // 2. Age validation — must be 18+
+      const dob = new Date(dto.dateOfBirth);
+      const age = this.calculateAge(dob);
+      if (age < 18) {
+        throw new BadRequestException(
+          'You must be at least 18 years old to register',
+        );
+      }
+      if (age > 120) {
+        throw new BadRequestException('Please enter a valid date of birth');
+      }
 
-    // 3. Breached password check via HIBP k-anonymity API
-    await this.checkBreachedPassword(dto.password);
+      // 3. Breached password check via HIBP k-anonymity API
+      await this.checkBreachedPassword(dto.password);
 
-    // 4. Hash password
-    const passwordHash = await bcrypt.hash(dto.password, BCRYPT_ROUNDS);
-    const membershipNumber = await this.generateMembershipNumber();
+      // 4. Hash password
+      const passwordHash = await bcrypt.hash(dto.password, BCRYPT_ROUNDS);
+      const membershipNumber = await this.generateMembershipNumber();
 
-    // 5. Create member + registration record atomically
-    const member = await this.prisma.$transaction(async (tx) => {
-      const newMember = await tx.member.create({
+      // Account creation alone never writes a membership registration or declaration.
+      const member = await this.prisma.member.create({
         data: {
           membershipNumber,
           firstName: dto.firstName,
@@ -110,77 +112,44 @@ export class AuthService {
           city: dto.city,
           postcode: dto.postcode.toUpperCase().trim(),
           country: 'GB',
-          occupation: dto.occupation,
           membershipStatus: 'pending',
           passwordHash,
         },
       });
 
-      await tx.memberRegistration.create({
-        data: {
-          memberId: newMember.id,
-          registrationChannel: 'web_portal',
-          membershipType: dto.membershipType,
-          membershipFeePaid: false,
-          termsAccepted: dto.termsAccepted,
-          termsAcceptedAt: new Date(),
-          consentDataProcessing: dto.consentDataProcessing,
-          consentDataProcessedAt: new Date(),
-          consentCreditAssess: dto.consentCreditAssessment,
-          consentCreditAssessAt: new Date(),
-          referralSource: dto.referralSource,
-          whyJoining: dto.whyJoining,
-          preferredPaymentMethod: dto.preferredPaymentMethod,
-          signatureText: dto.signatureText,
-          ipAddress,
-          userAgent,
-        },
-      });
+      // 7. Generate email verification token and store in Redis
+      const verifyToken = crypto.randomUUID();
+      await this.redis.set(
+        `${EMAIL_VERIFY_PREFIX}${verifyToken}`,
+        member.id,
+        EMAIL_VERIFY_TTL_SECONDS,
+      );
 
-      // 6. AML risk flag for high-risk migration statuses
-      const highRiskStatuses = ['asylum_seeker', 'refugee', 'other'];
+      // New — structured, searchable
+      await this.notifications.sendVerificationEmail(
+        dto.email,
+        dto.firstName,
+        verifyToken,
+      );
+
+      return {
+        message:
+          'Account created. Verify your email before completing a membership application. No application has been submitted.',
+        memberId: member.id,
+      };
+    } catch (error) {
+      if (error instanceof HttpException) throw error;
       if (
-        dto.migrationStatus &&
-        highRiskStatuses.includes(dto.migrationStatus)
-      ) {
-        await tx.kycVerification.create({
-          data: {
-            memberId: newMember.id,
-            documentType: 'passport',
-            verificationStatus: 'pending',
-            riskFlag: true,
-            riskFlagReason: 'Enhanced due diligence required',
-            notes: 'Auto-flagged at registration — compliance review needed',
-          },
-        });
-        this.logger.warn(
-          `AML risk flag set at registration for member ${newMember.id}`,
-        );
-      }
-
-      return newMember;
-    });
-
-    // 7. Generate email verification token and store in Redis
-    const verifyToken = crypto.randomUUID();
-    await this.redis.set(
-      `${EMAIL_VERIFY_PREFIX}${verifyToken}`,
-      member.id,
-      EMAIL_VERIFY_TTL_SECONDS,
-    );
-
-    // New — structured, searchable
-    await this.notifications.sendVerificationEmail(
-      dto.email,
-      dto.firstName,
-      verifyToken,
-    );
-
-    return {
-      message:
-        'Registration successful. Please check your email to verify your account.',
-      memberId: member.id,
-    };
+        error &&
+        typeof error === 'object' &&
+        'code' in error &&
+        error.code === 'P2002'
+      )
+        throw new ConflictException('Account already exists');
+      throw new ServiceUnavailableException(
+        'Account creation unavailable; no membership application has been submitted',
+      );
+    }
   }
 
   // ─────────────────────────────────────────────
@@ -624,8 +593,6 @@ export class AuthService {
   }
 
   private async generateMembershipNumber(): Promise<string> {
-    const count = await this.prisma.member.count();
-    const padded = String(count + 1).padStart(5, '0');
-    return `ST-${padded}`;
+    return Promise.resolve(`ST-${crypto.randomUUID()}`);
   }
 }
