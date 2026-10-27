@@ -1,3 +1,4 @@
+import { AccountReadsService } from '../src/modules/savings/account-reads.service';
 import { Test } from '@nestjs/testing';
 import { ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
@@ -511,7 +512,13 @@ describe('Savings safety — real PostgreSQL', () => {
   it('enforces the HTTP decimal/key contract and returns consistent replay envelopes', async () => {
     const module = await Test.createTestingModule({
       controllers: [SavingsController],
-      providers: [{ provide: SavingsService, useValue: service }],
+      providers: [
+        { provide: SavingsService, useValue: service },
+        {
+          provide: AccountReadsService,
+          useValue: new AccountReadsService(database),
+        },
+      ],
     })
       .overrideGuard(JwtAuthGuard)
       .useValue({

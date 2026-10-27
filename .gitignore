@@ -5,5 +5,8 @@ dist/
 .env.local
 .env.production
 coverage/
+.agents/skills
 *.log
 .DS_Store
+.t25-review.patch
+.t25-review.zip

@@ -1,0 +1,126 @@
+.root {
+  padding-block: 3rem 5rem;
+}
+.heading,
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.heading h1 {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+}
+.root h2 {
+  font-size: 1.55rem;
+  letter-spacing: -0.025em;
+  margin-bottom: 1rem;
+}
+.panel {
+  background: #fff;
+  border: 1px solid #c4d0c6;
+  border-radius: 1rem;
+  padding: clamp(1rem, 3vw, 2rem);
+  margin-block: 1.5rem;
+  min-width: 0;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+.value {
+  display: block;
+  font-size: 1.9rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.notice {
+  border-left: 4px solid #315e45;
+  padding: 1rem;
+  background: #edf3eb;
+}
+.error {
+  border-left: 4px solid #a12a21;
+  padding: 1rem;
+  background: #fff4ef;
+  color: #77251e;
+}
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  max-width: 32rem;
+  min-width: 0;
+}
+.form label {
+  font-weight: 600;
+}
+.form input {
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  border: 1px solid #687e70;
+  border-radius: 0.4rem;
+  padding: 0.6rem;
+  font: inherit;
+  color: #173e32;
+  background: #fff;
+}
+.form input[readonly] {
+  background: #edf1e8;
+}
+.root button {
+  min-height: 48px;
+  padding: 0.65rem 1rem;
+  font: inherit;
+  font-weight: 600;
+  border: 2px solid #214c37;
+  border-radius: 0.4rem;
+  color: #fff;
+  background: #214c37;
+  cursor: pointer;
+}
+.root button:disabled {
+  background: #e1e5df;
+  border-color: #687e70;
+  color: #45534b;
+  cursor: not-allowed;
+}
+.root .secondary {
+  color: #214c37;
+  background: #fff;
+}
+.root fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+.root legend {
+  margin-bottom: 0.75rem;
+}
+.activity,
+.accounts {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.activity li,
+.accounts li {
+  padding: 1.25rem 0;
+  border-bottom: 1px solid #d8dfd4;
+  overflow-wrap: anywhere;
+}
+.activity p {
+  margin: 0.4rem 0;
+}
+@media (max-width: 700px) {
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .root {
+    padding-top: 2rem;
+  }
+}

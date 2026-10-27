@@ -1,3 +1,4 @@
+import { launchChrome } from "./helpers/chrome.mjs";
 import assert from "node:assert/strict";
 import { spawn, fork } from "node:child_process";
 import { mkdtemp, readFile, writeFile, mkdir, rm } from "node:fs/promises";
@@ -67,38 +68,10 @@ if (!ready) {
   fixture.kill("SIGTERM");
   throw new Error("Frontend startup timeout");
 }
-const chrome = spawn(
-  process.env.CHROME_BIN ?? "/usr/bin/google-chrome",
-  [
-    "--headless=new",
-    "--no-sandbox",
-    "--disable-dev-shm-usage",
-    "--no-first-run",
-    "--no-default-browser-check",
-    "--remote-debugging-port=0",
-    `--user-data-dir=${profile}`,
-    "about:blank",
-  ],
-  { stdio: ["ignore", "ignore", "pipe"] },
-);
+const { chrome, ready: chromeReady } = launchChrome(profile);
 let ws;
 try {
-  const endpoint = await new Promise((resolve, reject) => {
-    let log = "";
-    const timeout = setTimeout(
-      () => reject(new Error(`Chrome did not start: ${log}`)),
-      15000,
-    );
-    chrome.once("error", reject);
-    chrome.stderr.on("data", (data) => {
-      log += data;
-      const match = log.match(/DevTools listening on (ws:\/\/[^\s]+)/);
-      if (match) {
-        clearTimeout(timeout);
-        resolve(match[1]);
-      }
-    });
-  });
+  const endpoint = await chromeReady;
   ws = new WebSocket(endpoint);
   await new Promise((resolve, reject) => {
     ws.addEventListener("open", resolve, { once: true });
@@ -182,7 +155,9 @@ try {
     assert.ok(found, "Expected enabled button: " + text);
   }
   async function waitText(text) {
-    await waitFor(`Boolean(document.body && document.body.innerText.includes(${JSON.stringify(text)}))`);
+    await waitFor(
+      `Boolean(document.body && document.body.innerText.includes(${JSON.stringify(text)}))`,
+    );
   }
   async function screen(name) {
     const shot = await cdp("Page.captureScreenshot", {

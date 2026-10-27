@@ -196,6 +196,13 @@ jobs:
           T40_TEST_DATABASE_URL: postgresql://safethrift:safethrift_test@localhost:5432/safethrift_test
           AUTH_TEST_REDIS_URL: redis://localhost:6379
 
+      - name: T41 synthetic dashboard, simulation gates and accessibility
+        run: pnpm --filter @safethrift/web test:dashboard:browser
+        env:
+          NODE_ENV: test
+          T41_TEST_DATABASE_URL: postgresql://safethrift:safethrift_test@localhost:5432/safethrift_test
+          AUTH_TEST_REDIS_URL: redis://localhost:6379
+
       - name: Security audit
         run: pnpm audit --audit-level=high
         continue-on-error: true

@@ -1,4 +1,5 @@
 import {
+  Header,
   Controller,
   Get,
   Patch,
@@ -27,6 +28,7 @@ export class MembersController {
   constructor(private readonly membersService: MembersService) {}
 
   @Get('me')
+  @Header('Cache-Control', 'private, no-store')
   @ApiBearerAuth('access-token')
   @ApiOperation({ summary: 'Get member profile' })
   @ApiResponse({ status: 200, description: 'Returns member profile' })

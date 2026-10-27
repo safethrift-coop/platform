@@ -1,4 +1,6 @@
+import { AccountReadsService, historyLimit } from './account-reads.service';
 import {
+  Header,
   Controller,
   Post,
   Get,
@@ -28,7 +30,10 @@ import {
 @Controller('accounts')
 @UseGuards(JwtAuthGuard)
 export class SavingsController {
-  constructor(private readonly savingsService: SavingsService) {}
+  constructor(
+    private readonly savingsService: SavingsService,
+    private readonly reads: AccountReadsService,
+  ) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -42,6 +47,7 @@ export class SavingsController {
     return this.savingsService.openAccount(member.sub, dto);
   }
 
+  @Header('Cache-Control', 'private, no-store')
   @Get()
   @ApiBearerAuth('access-token')
   @ApiOperation({ summary: 'Get savings account details' })
@@ -50,6 +56,13 @@ export class SavingsController {
     return this.savingsService.getAccounts(member.sub);
   }
 
+  @Header('Cache-Control', 'private, no-store')
+  @Get('overview')
+  overview(@CurrentMember() member: JwtPayload) {
+    return this.reads.overview(member.sub);
+  }
+
+  @Header('Cache-Control', 'private, no-store')
   @Get(':id')
   @ApiBearerAuth('access-token')
   @ApiOperation({ summary: 'Get savings account details' })
@@ -58,7 +71,7 @@ export class SavingsController {
     @Param('id') accountId: string,
     @CurrentMember() member: JwtPayload,
   ): Promise<unknown> {
-    return this.savingsService.getAccount(accountId, member.sub);
+    return this.reads.account(accountId, member.sub);
   }
 
   @Post(':id/deposit')
@@ -111,6 +124,7 @@ export class SavingsController {
     );
   }
 
+  @Header('Cache-Control', 'private, no-store')
   @Get(':id/transactions')
   @ApiBearerAuth('access-token')
   @ApiOperation({ summary: 'Get transaction history for a savings account' })
@@ -121,13 +135,7 @@ export class SavingsController {
     @Query('cursor') cursor?: string,
     @Query('limit') limit?: string,
   ): Promise<unknown> {
-    // Convert limit from string to number — query params are always strings
-    const parsedLimit = limit ? parseInt(limit, 10) : 20;
-    return this.savingsService.getTransactions(
-      accountId,
-      member.sub,
-      cursor,
-      parsedLimit,
-    );
+    const parsedLimit = historyLimit(limit);
+    return this.reads.history(accountId, member.sub, cursor, parsedLimit);
   }
 }
