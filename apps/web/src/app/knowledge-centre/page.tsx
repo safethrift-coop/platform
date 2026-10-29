@@ -1,9 +1,11 @@
 import {
-  ActionLink,
-  PageHero,
-  ResourceCards,
-  Section,
-} from "@/components/marketing";
+  MarketingSite,
+  Label,
+  PublicIntro,
+  PublicSection,
+  ResourceIndex,
+  PublicLink,
+} from "@/components/public-site/editorial";
 import { pageMetadata } from "@/lib/seo";
 export const metadata = pageMetadata(
   "Knowledge Centre",
@@ -12,46 +14,59 @@ export const metadata = pageMetadata(
 );
 export default function KnowledgePage() {
   return (
-    <>
-      <PageHero
-        eyebrow="Knowledge Centre"
-        title="Understanding today. Confidence for tomorrow."
+    <MarketingSite>
+      <PublicIntro
+        label="Knowledge Centre"
+        title="Good information. Better understanding."
+        note="Resources in development. No materials are published yet."
       >
         <p>
           A future home for information, practical guidance and community
-          learning. Our resources are being developed and are not yet available.
+          learning, with space to understand saving and cooperative
+          participation.
         </p>
-      </PageHero>
-      <Section
-        id="materials"
-        eyebrow="Explore All Materials"
-        title="A little knowledge can open new possibilities."
+      </PublicIntro>
+      <section id="materials" className="m-section m-library">
+        <div className="m-wrap m-library-grid">
+          <div>
+            <Label>The planned collection</Label>
+            <h2>Explore All Materials</h2>
+            <p>
+              Four planned resource categories. Materials and links will be
+              added when reviewed and ready to use.
+            </p>
+            <p className="m-small">
+              There are no reports, member stories, downloads or learning
+              materials available yet.
+            </p>
+          </div>
+          <ResourceIndex />
+        </div>
+      </section>
+      <PublicSection
+        label="Our approach to learning"
+        title="Good information takes care."
+        className="m-sage-section"
       >
-        <p className="section-intro">
-          These are our four planned resource categories. Materials and links
-          will be added when reviewed and ready to use.
-        </p>
-        <ResourceCards />
-        <aside className="notice">
-          <h3>Good information takes care</h3>
-          <p>
-            No reports, member stories, downloads or learning materials are
-            published yet. Resource descriptions outline intended content and
-            are not personalised financial advice.
+        <div className="m-reading-grid">
+          <p className="m-statement">
+            Understanding should come before a financial decision.
           </p>
-        </aside>
-      </Section>
-      <Section
-        eyebrow="While we’re getting ready"
-        title="Get to know the thinking behind Safethrift."
-        className="tinted"
-      >
-        <p className="section-intro">
-          Explore the mission and principles that will guide our future
-          resources.
-        </p>
-        <ActionLink href="/about">Read about Safethrift</ActionLink>
-      </Section>
-    </>
+          <div>
+            <p>
+              Our resource descriptions outline intended content and are not
+              personalised financial advice. Nothing in the planned collection
+              is an invitation to open an account or apply for financial
+              support.
+            </p>
+            <p>
+              While resources are being developed, you can explore the mission
+              and principles behind Safethrift.
+            </p>
+            <PublicLink href="/about">Read about Safethrift</PublicLink>
+          </div>
+        </div>
+      </PublicSection>
+    </MarketingSite>
   );
 }

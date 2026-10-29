@@ -1,0 +1,124 @@
+{
+  "checks": [
+    {
+      "route": "/",
+      "overflow": false,
+      "heading": "\"Safethrift Newsreader\", Georgia, serif",
+      "body": "\"Safethrift Source Sans\", Arial, sans-serif",
+      "fontsLoaded": true,
+      "narrowNavigation": true
+    },
+    {
+      "route": "/about",
+      "overflow": false,
+      "heading": "\"Safethrift Newsreader\", Georgia, serif",
+      "body": "\"Safethrift Source Sans\", Arial, sans-serif",
+      "fontsLoaded": true,
+      "narrowNavigation": true
+    },
+    {
+      "route": "/products",
+      "overflow": false,
+      "heading": "\"Safethrift Newsreader\", Georgia, serif",
+      "body": "\"Safethrift Source Sans\", Arial, sans-serif",
+      "fontsLoaded": true,
+      "narrowNavigation": true
+    },
+    {
+      "route": "/membership",
+      "overflow": false,
+      "heading": "\"Safethrift Newsreader\", Georgia, serif",
+      "body": "\"Safethrift Source Sans\", Arial, sans-serif",
+      "fontsLoaded": true,
+      "narrowNavigation": true
+    },
+    {
+      "route": "/knowledge-centre",
+      "overflow": false,
+      "heading": "\"Safethrift Newsreader\", Georgia, serif",
+      "body": "\"Safethrift Source Sans\", Arial, sans-serif",
+      "fontsLoaded": true,
+      "narrowNavigation": true
+    }
+  ],
+  "boundary": {
+    "scoped": false,
+    "bodyFont": "Arial, Helvetica, sans-serif",
+    "headerBackground": "rgb(251, 250, 246)",
+    "footerBackground": "rgba(0, 0, 0, 0)"
+  },
+  "protectedPresentation": [
+    {
+      "route": "/register",
+      "width": 390,
+      "identical": true,
+      "comparedElements": 42
+    },
+    {
+      "route": "/login",
+      "width": 390,
+      "identical": true,
+      "comparedElements": 42
+    },
+    {
+      "route": "/verify-email",
+      "width": 390,
+      "identical": true,
+      "comparedElements": 42
+    },
+    {
+      "route": "/dashboard",
+      "width": 390,
+      "identical": true,
+      "comparedElements": 35
+    },
+    {
+      "route": "/dashboard/loans",
+      "width": 390,
+      "identical": true,
+      "comparedElements": 35
+    },
+    {
+      "route": "/dashboard/loan-review",
+      "width": 390,
+      "identical": true,
+      "comparedElements": 35
+    },
+    {
+      "route": "/register",
+      "width": 1440,
+      "identical": true,
+      "comparedElements": 47
+    },
+    {
+      "route": "/login",
+      "width": 1440,
+      "identical": true,
+      "comparedElements": 47
+    },
+    {
+      "route": "/verify-email",
+      "width": 1440,
+      "identical": true,
+      "comparedElements": 47
+    },
+    {
+      "route": "/dashboard",
+      "width": 1440,
+      "identical": true,
+      "comparedElements": 40
+    },
+    {
+      "route": "/dashboard/loans",
+      "width": 1440,
+      "identical": true,
+      "comparedElements": 40
+    },
+    {
+      "route": "/dashboard/loan-review",
+      "width": 1440,
+      "identical": true,
+      "comparedElements": 40
+    }
+  ]
+}

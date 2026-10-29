@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { randomUUID, createHmac } from 'node:crypto';
 import { setTimeout as delay } from 'node:timers/promises';
 import pg from 'pg';
+import { PgBoss } from 'pg-boss';
 import Stripe from 'stripe';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
@@ -73,14 +74,17 @@ const gcSign = (body) =>
   createHmac('sha256', process.env.T38_GOCARDLESS_TEST_WEBHOOK_SECRET)
     .update(body)
     .digest('hex');
+const ownedProviderEventIds = new Set();
 const receiveStripe = async (event) => {
   const body = bytes(event);
   await service.receive('stripe', body, stripeSign(body));
+  ownedProviderEventIds.add(event.id);
   return eventRow(event.id);
 };
 const receiveGc = async (events) => {
   const body = bytes({ events });
   await service.receive('gocardless', body, gcSign(body));
+  for (const event of events) ownedProviderEventIds.add(event.id);
   return eventRow(events[0].id);
 };
 const tx = (fn) => db.$transaction(fn);
@@ -116,7 +120,7 @@ async function waitFor(fn) {
 }
 describe(
   'T38 isolated real PostgreSQL intake and evidence',
-  { concurrency: false, timeout: 30000 },
+  { concurrency: false, timeout: 180000 },
   () => {
     before(async () => {
       sql = new pg.Client({ connectionString: url });
@@ -532,53 +536,170 @@ describe(
       assert.equal(current.status, 'review');
       assert.equal(current.recoveries, 3);
     });
-    it('persists worker failure, expiration retry and successful recovery using real pg-boss', async () => {
+    it('persists worker failure, expiration retry and successful recovery using real pg-boss', { timeout: 90000 }, async (t) => {
+      assert.match(
+        parsed.pathname,
+        /^\/safethrift_t38_recovery_[a-z0-9_]*test$/,
+        'Recovery requires a dedicated safethrift_t38_recovery_*test database',
+      );
       const row = await receiveStripe(stripe());
-      // Isolate this target from earlier queued fixtures without deleting their identities.
-      const queued = await tx((t) =>
-        t.paymentWebhookEvent.findMany({
-          where: { status: 'queued', id: { not: row.id } },
-        }),
-      );
-      for (const other of queued) await service.process(other.id);
-      for (const job of await jobs.boss.findJobs(PAYMENT_QUEUES.events))
-        if (job.id !== row.jobId && ['created', 'retry'].includes(job.state))
-          await jobs.boss.cancel(PAYMENT_QUEUES.events, job.id);
-      await jobs.boss.update(PAYMENT_QUEUES.events, undefined, {
-        id: row.jobId,
-        expireInSeconds: 1,
-        heartbeatSeconds: null,
-        retryLimit: 2,
-        retryDelay: 0,
-        retryBackoff: false,
+      const monitor = new PgBoss({
+        connectionString: url,
+        schema: jobsModule.PAYMENT_SCHEMA,
+        migrate: false,
+        createSchema: false,
+        supervise: false,
+        schedule: false,
+        monitorIntervalSeconds: 1,
       });
-      const [leased] = await jobs.boss.fetch(PAYMENT_QUEUES.events, {
-        includeMetadata: true,
-      });
-      assert.equal(leased.id, row.jobId);
-      // Abandoned lease is recovered by expiration, as after a worker process dies.
-      await delay(1100);
-      await jobs.boss.supervise(PAYMENT_QUEUES.events);
-      let calls = 0;
-      await jobs.boss.work(
-        PAYMENT_QUEUES.events,
-        { pollingIntervalSeconds: 0.5 },
-        async ([job]) => {
-          if (++calls === 1) throw new Error('fixture transient failure');
-          await service.process(job.data.eventId);
-        },
-      );
-      await waitFor(
-        async () =>
-          (await eventRow(row.providerEventId)).status === 'quarantined',
-      );
-      assert.equal(calls, 2);
-      assert.equal(
-        await tx((t) =>
-          t.paymentObservation.count({ where: { eventId: row.id } }),
-        ),
-        1,
-      );
+      const monitorErrors = [];
+      monitor.on('error', (error) => monitorErrors.push(error));
+      let workerId;
+      let failed = false;
+      const cleanupErrors = [];
+      const bounded = async (label, fn, milliseconds) => {
+        let timer;
+        try {
+          return await Promise.race([
+            Promise.resolve().then(fn),
+            new Promise((_, reject) => {
+              timer = setTimeout(
+                () => reject(new Error(`${label} exceeded ${milliseconds}ms`)),
+                milliseconds,
+              );
+            }),
+          ]);
+        } finally {
+          clearTimeout(timer);
+        }
+      };
+      const cleanup = async (label, fn) => {
+        try {
+          await bounded(label, fn, 5000);
+        } catch (error) {
+          cleanupErrors.push(error);
+          t.diagnostic(`${label}: ${error.stack ?? error}`);
+        }
+      };
+      const deliveries = [];
+      try {
+        // Only IDs received by this suite are eligible for fixture preparation.
+        const owned = await tx((transaction) =>
+          transaction.paymentWebhookEvent.findMany({
+            where: { providerEventId: { in: [...ownedProviderEventIds] } },
+          }),
+        );
+        const ownedJobIds = new Set(owned.map((event) => event.jobId));
+        const pending = (await jobs.boss.findJobs(PAYMENT_QUEUES.events)).filter(
+          (job) => ['created', 'retry', 'active'].includes(job.state),
+        );
+        assert.ok(
+          pending.every((job) => ownedJobIds.has(job.id)),
+          'Refusing recovery with unknown nonterminal jobs; retain them for review',
+        );
+        for (const other of owned)
+          if (other.id !== row.id && other.status === 'queued')
+            await service.process(other.id);
+        for (const job of pending)
+          if (job.id !== row.jobId && ['created', 'retry'].includes(job.state))
+            await jobs.boss.cancel(PAYMENT_QUEUES.events, job.id);
+        await monitor.start();
+        const updated = await jobs.boss.update(PAYMENT_QUEUES.events, undefined, {
+          id: row.jobId,
+          expireInSeconds: 1,
+          heartbeatSeconds: null,
+          retryLimit: 2,
+          retryDelay: 0,
+          retryBackoff: false,
+        });
+        assert.deepEqual(updated, { jobs: [row.jobId], updated: 1 });
+        const [leased] = await jobs.boss.fetch(PAYMENT_QUEUES.events, {
+          includeMetadata: true,
+        });
+        assert.equal(leased.id, row.jobId);
+        assert.equal(leased.retryCount, 0);
+        // Observe expiration recovery rather than assuming a monitor claim is due.
+        await waitFor(async () => {
+          await monitor.supervise(PAYMENT_QUEUES.events);
+          const target = await jobs.boss.getJobById(
+            PAYMENT_QUEUES.events,
+            row.jobId,
+          );
+          return target?.state === 'retry' && target.retryCount === 0;
+        });
+        workerId = await jobs.boss.work(
+          PAYMENT_QUEUES.events,
+          { pollingIntervalSeconds: 0.5, includeMetadata: true },
+          async ([job]) => {
+            deliveries.push({ id: job.id, retryCount: job.retryCount });
+            assert.equal(job.id, row.jobId);
+            assert.equal(job.data.eventId, row.id);
+            if (job.id === row.jobId && job.retryCount === 1)
+              throw new Error('fixture transient failure');
+            await service.process(job.data.eventId);
+          },
+        );
+        await waitFor(async () => {
+          const target = await jobs.boss.getJobById(
+            PAYMENT_QUEUES.events,
+            row.jobId,
+          );
+          return (
+            target?.state === 'completed' &&
+            (await eventRow(row.providerEventId)).status === 'quarantined'
+          );
+        });
+        await bounded(
+          'drain owned worker',
+          () => jobs.boss.offWork(PAYMENT_QUEUES.events, {
+            id: workerId,
+            wait: true,
+          }),
+          5000,
+        );
+
+        assert.deepEqual(deliveries, [
+          { id: row.jobId, retryCount: 1 },
+          { id: row.jobId, retryCount: 2 },
+        ]);
+        assert.equal(
+          (await jobs.boss.getJobById(PAYMENT_QUEUES.events, row.jobId))
+            .retryCount,
+          2,
+        );
+        assert.equal(
+          await tx((t) =>
+            t.paymentObservation.count({ where: { eventId: row.id } }),
+          ),
+          1,
+        );
+        assert.deepEqual(monitorErrors, []);
+      } catch (error) {
+        failed = true;
+        throw error;
+      } finally {
+        // A failed or stalled action must not prevent the remaining attempts.
+        await cleanup('stop owned worker', async () => {
+          if (workerId)
+            await jobs.boss.offWork(PAYMENT_QUEUES.events, {
+              id: workerId,
+              wait: true,
+            });
+        });
+        await cleanup('stop local monitor', () =>
+          monitor.stop({ graceful: true, timeout: 4000 }),
+        );
+        await cleanup('cancel owned nonterminal target', async () => {
+          const target = await jobs.boss.getJobById(
+            PAYMENT_QUEUES.events,
+            row.jobId,
+          );
+          if (target && ['created', 'retry', 'active'].includes(target.state))
+            await jobs.boss.cancel(PAYMENT_QUEUES.events, row.jobId);
+        });
+        if (!failed && cleanupErrors.length)
+          throw new AggregateError(cleanupErrors, 'Recovery cleanup failed');
+      }
     });
     it('retains exhausted processing in review and dead-letter storage without infinite requeues', async () => {
       const row = await receiveStripe(stripe());

@@ -1,0 +1,76 @@
+--- a/apps/api/test/payment-webhooks.integration.test.mjs
++++ b/apps/api/test/payment-webhooks.integration.test.mjs
+@@ -74,17 +74,15 @@
+   createHmac('sha256', process.env.T38_GOCARDLESS_TEST_WEBHOOK_SECRET)
+     .update(body)
+     .digest('hex');
+-const ownedProviderEventIds = new Set();
++const ownedEvents = new Map();
+ const receiveStripe = async (event) => {
+   const body = bytes(event);
+   await service.receive('stripe', body, stripeSign(body));
+-  ownedProviderEventIds.add(event.id);
+   return eventRow(event.id);
+ };
+ const receiveGc = async (events) => {
+   const body = bytes({ events });
+   await service.receive('gocardless', body, gcSign(body));
+-  for (const event of events) ownedProviderEventIds.add(event.id);
+   return eventRow(events[0].id);
+ };
+ const tx = (fn) => db.$transaction(fn);
+@@ -146,6 +144,28 @@
+       jobs = new PaymentJobsService(db);
+       await jobs.start();
+       service = new serviceModule.PaymentWebhooksService(db, jobs);
++      // Cover helper, direct-service and HTTP intake through this same instance.
++      const receive = service.receive.bind(service);
++      service.receive = async (provider, body, signature) => {
++        const result = await receive(provider, body, signature);
++        // Rejected/rolled-back intake never reaches ownership registration.
++        const { environment, accountScope } = configModule.paymentConfig(provider);
++        const payload = JSON.parse(body.toString('utf8'));
++        const events = provider === 'stripe' ? [payload] : payload.events;
++        for (const providerEventId of new Set(events.map((event) => event.id))) {
++          const identity = { provider, environment, accountScope, providerEventId };
++          const persisted = await tx((transaction) =>
++            transaction.paymentWebhookEvent.findUniqueOrThrow({
++              where: {
++                provider_environment_accountScope_providerEventId: identity,
++              },
++              select: { id: true },
++            }),
++          );
++          ownedEvents.set(persisted.id, { id: persisted.id, ...identity });
++        }
++        return result;
++      };
+       const module = await Test.createTestingModule({
+         controllers: [controllerModule.PaymentWebhooksController],
+         providers: [
+@@ -583,18 +603,21 @@
+       };
+       const deliveries = [];
+       try {
+-        // Only IDs received by this suite are eligible for fixture preparation.
++        // Re-resolve exact accepted identities, including current recovery job IDs.
+         const owned = await tx((transaction) =>
+           transaction.paymentWebhookEvent.findMany({
+-            where: { providerEventId: { in: [...ownedProviderEventIds] } },
++            where: { OR: [...ownedEvents.values()] },
+           }),
+         );
+-        const ownedJobIds = new Set(owned.map((event) => event.jobId));
+         const pending = (await jobs.boss.findJobs(PAYMENT_QUEUES.events)).filter(
+           (job) => ['created', 'retry', 'active'].includes(job.state),
+         );
+         assert.ok(
+-          pending.every((job) => ownedJobIds.has(job.id)),
++          pending.every((job) =>
++            owned.some(
++              (event) => event.jobId === job.id && event.id === job.data?.eventId,
++            ),
++          ),
+           'Refusing recovery with unknown nonterminal jobs; retain them for review',
+         );
+         for (const other of owned)

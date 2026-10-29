@@ -1,4 +1,10 @@
-import { FAQ, Journey, PageHero, Section } from "@/components/marketing";
+import {
+  MarketingSite,
+  PublicIntro,
+  PublicSection,
+  PublicNotice,
+  PublicFAQ,
+} from "@/components/public-site/editorial";
 import { pageMetadata } from "@/lib/seo";
 export const metadata = pageMetadata(
   "Membership",
@@ -7,41 +13,48 @@ export const metadata = pageMetadata(
 );
 export default function MembershipPage() {
   return (
-    <>
-      <PageHero
-        eyebrow="Membership · not yet open"
+    <MarketingSite>
+      <PublicIntro
+        label="Membership · not yet open"
         title="A shared purpose. A part to play."
+        note="Online applications remain closed. No membership payments are collected here."
       >
         <p>
           Membership would mean supporting fair finance, participating in
           community life and helping shape a cooperative built around its
           members.
         </p>
-      </PageHero>
-      <Section
-        eyebrow="Why membership matters"
-        title="More than access to finance."
+      </PublicIntro>
+      <PublicSection
+        label="Why membership matters"
+        title="Belonging brings responsibility."
       >
-        <div className="split">
-          <p className="lead">
-            We aim to bring together individuals, households, gig workers,
-            migrants, entrepreneurs and others who share our values.
+        <div className="m-purpose-grid">
+          <p className="m-statement">
+            For individuals, households and small businesses with shared values.
           </p>
-          <p>
-            Membership is intended as a commitment to shared responsibility and
-            long-term financial empowerment. Final eligibility and membership
-            rights will be confirmed in approved terms. Membership would not
-            guarantee access to a loan or any other financial service.
-          </p>
+          <div>
+            <p>
+              We aim to bring together individuals, households, gig workers,
+              migrants, entrepreneurs and others who share our values.
+            </p>
+            <p>
+              Membership is intended as a commitment to shared responsibility
+              and long-term financial empowerment. Final eligibility and
+              membership rights will be confirmed in approved terms. Membership
+              would not guarantee access to a loan or any other financial
+              service.
+            </p>
+          </div>
         </div>
-      </Section>
-      <Section
-        eyebrow="Shared benefits. Shared responsibilities."
+      </PublicSection>
+      <PublicSection
+        label="Shared benefits. Shared responsibilities."
         title="What being a member would mean."
-        className="tinted"
+        className="m-sage-section"
       >
-        <div className="grid two membership-values">
-          <article className="card">
+        <div className="m-membership-pair">
+          <article>
             <h3>A voice and a connection</h3>
             <ul>
               <li>Participation in a community with shared values.</li>
@@ -58,7 +71,7 @@ export default function MembershipPage() {
               </li>
             </ul>
           </article>
-          <article className="card">
+          <article>
             <h3>A commitment to each other</h3>
             <ul>
               <li>Support the cooperative’s aims and values.</li>
@@ -70,57 +83,58 @@ export default function MembershipPage() {
             </ul>
           </article>
         </div>
-      </Section>
-      <Section
-        eyebrow="Before applications open"
+      </PublicSection>
+      <PublicSection
+        label="Before applications open"
         title="Clear terms come first."
       >
-        <article className="card fee-panel">
+        <div className="m-reading-grid">
           <div>
-            <p className="eyebrow">Membership fees</p>
-            <h3>Confirmed before you commit.</h3>
+            <h3>Membership fees</h3>
+            <p>
+              Annual membership fees are proposed, but final amounts and payment
+              terms have not been confirmed for publication. Approved fees will
+              be displayed before applications open. No membership payments are
+              collected here.
+            </p>
           </div>
-          <p>
-            Annual membership fees are proposed, but final amounts and payment
-            terms have not been confirmed for publication. Approved fees will be
-            displayed before applications open. No membership payments are
-            collected here.
-          </p>
-        </article>
-        <div className="membership-journey">
-          <h3>The planned membership journey</h3>
-          <Journey
-            items={[
-              {
-                title: "Get informed",
-                text: "Read the approved membership terms and privacy notice when published.",
-                icon: "library",
-              },
-              {
-                title: "Apply when open",
-                text: "Complete an application once online registration opens.",
-                icon: "insights",
-              },
-              {
-                title: "Hear from Safethrift",
-                text: "Receive an application decision and, if approved, the next steps.",
-                icon: "voice",
-              },
-            ]}
-          />
+          <div>
+            <h3>The planned membership journey</h3>
+            <ol className="m-timeline">
+              {[
+                [
+                  "Get informed",
+                  "Read the approved membership terms and privacy notice when published.",
+                ],
+                [
+                  "Apply when open",
+                  "Complete an application once online registration opens.",
+                ],
+                [
+                  "Hear from Safethrift",
+                  "Receive an application decision and, if approved, the next steps.",
+                ],
+              ].map(([title, text], index) => (
+                <li key={title}>
+                  <span aria-hidden="true">0{index + 1}</span>
+                  <div>
+                    <h3>{title}</h3>
+                    <p>{text}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
         </div>
-        <aside className="notice">
-          <h3>Registration is not open yet</h3>
+        <PublicNotice title="Registration is not open yet">
           <p>
             There is no application form, waiting list or payment facility here.
             Details will be published when the organisation, terms and
             registration process are ready.
           </p>
-        </aside>
-      </Section>
-      <Section eyebrow="Membership questions" title="Know what to expect.">
-        <FAQ />
-      </Section>
-    </>
+        </PublicNotice>
+      </PublicSection>
+      <PublicFAQ title="Know what to expect." />
+    </MarketingSite>
   );
 }

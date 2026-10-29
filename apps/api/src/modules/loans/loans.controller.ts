@@ -6,17 +6,13 @@ import {
   Body,
   Param,
   UseGuards,
-  HttpCode,
-  HttpStatus,
   Headers,
+  Header,
+  Query,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { LoansService } from './loans.service';
+import { LoanReadsService } from './loan-reads.service';
 import { ApplyLoanDto } from './dto/apply-loan.dto';
 import { RepayLoanDto } from './dto/repay-loan.dto';
 import { JwtAuthGuard } from '../../core/guards/jwt-auth.guard';
@@ -24,107 +20,115 @@ import { RolesGuard } from '../../core/guards/roles.guard';
 import { Roles, Role } from '../../core/decorators/roles.decorator';
 import { CurrentMember } from '../../core/decorators/current-member.decorator';
 import type { JwtPayload } from '../../core/decorators/current-member.decorator';
-import { v4 as uuidv4 } from 'uuid';
 
 @ApiTags('loans')
 @ApiBearerAuth('access-token')
 @Controller('loans')
 @UseGuards(JwtAuthGuard)
 export class LoansController {
-  constructor(private readonly loansService: LoansService) {}
-
-  @ApiOperation({ summary: 'Apply for an interest-free loan' })
-  @ApiResponse({
-    status: 201,
-    description: 'Application submitted successfully',
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'Insufficient points or exceeds maximum loan amount',
-  })
-  @ApiResponse({ status: 403, description: 'Membership not active' })
-  @Post('apply')
-  @HttpCode(HttpStatus.CREATED)
-  async apply(
-    @CurrentMember() member: JwtPayload,
-    @Body() dto: ApplyLoanDto,
-  ): Promise<unknown> {
-    return this.loansService.applyForLoan(member.sub, dto);
-  }
-
-  @ApiOperation({ summary: 'Get all my loan applications' })
-  @Get('me')
-  async getMyLoans(@CurrentMember() member: JwtPayload): Promise<unknown[]> {
-    return this.loansService.getMyLoans(member.sub);
-  }
-
-  @ApiOperation({ summary: 'Get a specific loan' })
-  @Get(':id')
-  async getLoan(
-    @Param('id') loanId: string,
-    @CurrentMember() member: JwtPayload,
-  ): Promise<unknown> {
-    return this.loansService.getLoan(loanId, member.sub);
-  }
-
-  @ApiOperation({ summary: 'Get repayment schedule for a loan' })
-  @Get(':id/schedule')
-  async getSchedule(
-    @Param('id') loanId: string,
-    @CurrentMember() member: JwtPayload,
-  ): Promise<unknown[]> {
-    return this.loansService.getSchedule(loanId, member.sub);
-  }
-
-  @ApiOperation({ summary: 'Make a repayment on an active loan' })
-  @ApiResponse({ status: 201, description: 'Repayment recorded successfully' })
-  @Post(':id/repay')
-  @HttpCode(HttpStatus.CREATED)
-  async repay(
-    @Param('id') loanId: string,
-    @CurrentMember() member: JwtPayload,
-    @Body() dto: RepayLoanDto,
-    @Headers('idempotency-key') idempotencyKey: string,
-  ): Promise<unknown> {
-    const key = idempotencyKey ?? uuidv4();
-    return this.loansService.repay(loanId, member.sub, dto, key);
-  }
-
-  @ApiOperation({ summary: 'Admin — get all pending loan applications' })
-  @Get('admin/queue')
-  @UseGuards(RolesGuard)
-  @Roles(Role.Staff, Role.Admin)
-  async getQueue(): Promise<unknown[]> {
-    return this.loansService.getPendingApplications();
-  }
-
-  @ApiOperation({ summary: 'Admin — approve a loan application' })
-  @Patch('admin/:id/approve')
-  @HttpCode(HttpStatus.OK)
-  @UseGuards(RolesGuard)
-  @Roles(Role.Staff, Role.Admin)
-  async approve(
-    @Param('id') applicationId: string,
-    @CurrentMember() reviewer: JwtPayload,
-    @Body('decisionNotes') decisionNotes?: string,
-  ): Promise<unknown> {
-    return this.loansService.approve(
-      applicationId,
-      reviewer.sub,
-      decisionNotes,
+  constructor(
+    private readonly loansService: LoansService,
+    private readonly reads: LoanReadsService,
+  ) {}
+  @Get('eligibility')
+  @Header('Cache-Control', 'private, no-store')
+  eligibility(@CurrentMember() member: JwtPayload) {
+    return this.reads.eligibility(
+      member.sub,
+      member.role === 'staff' || member.role === 'admin',
     );
   }
-
-  @ApiOperation({ summary: 'Admin — reject a loan application' })
-  @Patch('admin/:id/reject')
-  @HttpCode(HttpStatus.OK)
+  @Get('applications')
+  @Header('Cache-Control', 'private, no-store')
+  applications(
+    @CurrentMember() member: JwtPayload,
+    @Query('limit') limit?: string,
+    @Query('cursor') cursor?: string,
+  ) {
+    return this.reads.applications(member.sub, limit, cursor);
+  }
+  @Get('applications/:applicationId')
+  @Header('Cache-Control', 'private, no-store')
+  application(
+    @CurrentMember() member: JwtPayload,
+    @Param('applicationId') id: string,
+  ) {
+    return this.reads.application(member.sub, id);
+  }
+  @Get('mine')
+  @Header('Cache-Control', 'private, no-store')
+  loans(
+    @CurrentMember() member: JwtPayload,
+    @Query('limit') limit?: string,
+    @Query('cursor') cursor?: string,
+  ) {
+    return this.reads.loans(member.sub, limit, cursor);
+  }
+  @Get('me')
+  @Header('Cache-Control', 'private, no-store')
+  async legacyApplications(@CurrentMember() member: JwtPayload) {
+    // Preserve the array shape, redact internal fields and bound the legacy alias.
+    return (await this.reads.applications(member.sub, '50')).items;
+  }
+  @Get('admin/queue')
+  @Header('Cache-Control', 'private, no-store')
   @UseGuards(RolesGuard)
   @Roles(Role.Staff, Role.Admin)
-  async reject(
-    @Param('id') applicationId: string,
-    @CurrentMember() reviewer: JwtPayload,
-    @Body('decisionNotes') decisionNotes: string,
-  ): Promise<unknown> {
-    return this.loansService.reject(applicationId, reviewer.sub, decisionNotes);
+  queue(
+    @CurrentMember() member: JwtPayload,
+    @Query('limit') limit?: string,
+    @Query('cursor') cursor?: string,
+  ) {
+    return this.reads.queue(member.sub, limit, cursor);
+  }
+  @Get(':id')
+  @Header('Cache-Control', 'private, no-store')
+  loan(@CurrentMember() member: JwtPayload, @Param('id') id: string) {
+    return this.reads.loan(member.sub, id);
+  }
+  @Get(':id/schedule')
+  @Header('Cache-Control', 'private, no-store')
+  schedule(
+    @CurrentMember() member: JwtPayload,
+    @Param('id') id: string,
+    @Query('limit') limit?: string,
+    @Query('cursor') cursor?: string,
+  ) {
+    return this.reads.schedule(member.sub, id, limit, cursor);
+  }
+  @Get(':id/repayments')
+  @Header('Cache-Control', 'private, no-store')
+  repayments(
+    @CurrentMember() member: JwtPayload,
+    @Param('id') id: string,
+    @Query('limit') limit?: string,
+    @Query('cursor') cursor?: string,
+  ) {
+    return this.reads.repayments(member.sub, id, limit, cursor);
+  }
+  @Post('apply')
+  apply(@CurrentMember() member: JwtPayload, @Body() dto: ApplyLoanDto) {
+    return this.loansService.applyForLoan(member.sub, dto);
+  }
+  @Post(':id/repay')
+  repay(
+    @CurrentMember() member: JwtPayload,
+    @Param('id') id: string,
+    @Body() dto: RepayLoanDto,
+    @Headers('idempotency-key') key?: string,
+  ) {
+    return this.loansService.repay(id, member.sub, dto, key);
+  }
+  @Patch('admin/:id/approve')
+  @UseGuards(RolesGuard)
+  @Roles(Role.Staff, Role.Admin)
+  approve(@CurrentMember() member: JwtPayload, @Param('id') id: string) {
+    return this.loansService.approve(id, member.sub);
+  }
+  @Patch('admin/:id/reject')
+  @UseGuards(RolesGuard)
+  @Roles(Role.Staff, Role.Admin)
+  reject(@CurrentMember() member: JwtPayload, @Param('id') id: string) {
+    return this.loansService.reject(id, member.sub);
   }
 }

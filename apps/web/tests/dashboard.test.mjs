@@ -223,3 +223,46 @@ test("T41 refresh outage clears private credentials and invalid paths never send
   await assert.rejects(session.request("/accounts/overview"));
   await assert.rejects(session.request("//other.example.invalid"));
 });
+
+test("T42 extends the dashboard session for loan reads while rejecting financial and arbitrary API writes", async () => {
+  const requests = [];
+  const { DashboardSession } = load("dashboard-session", {
+    fetch: async (url, init) => {
+      requests.push({ url, method: init.method ?? "GET" });
+      return response(
+        url.endsWith("/auth/login")
+          ? { accessToken: "token" }
+          : url.endsWith("/members/me")
+            ? { id: "member-A" }
+            : { items: [] },
+      );
+    },
+  });
+  const session = new DashboardSession("https://api.invalid/api/v1");
+  await session.login("a@example.invalid", "password");
+  for (const path of [
+    "/loans/eligibility",
+    "/loans/applications",
+    "/loans/applications/app-1",
+    "/loans/mine",
+    "/loans/loan-1",
+    "/loans/loan-1/schedule",
+    "/loans/loan-1/repayments?limit=20&cursor=abc",
+    "/loans/admin/queue",
+  ])
+    await session.request(path);
+  const before = requests.length;
+  for (const [path, method] of [
+    ["/loans/apply", "POST"],
+    ["/loans/loan-1/repay", "POST"],
+    ["/loans/admin/app-1/approve", "PATCH"],
+    ["/loans/admin/queue", "POST"],
+    ["/scoring/me/compute", "POST"],
+    ["/loans/mine#fragment", "GET"],
+  ])
+    await assert.rejects(
+      () => session.request(path, { method }),
+      /Invalid dashboard API path/,
+    );
+  assert.equal(requests.length, before);
+});

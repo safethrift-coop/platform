@@ -14,7 +14,8 @@
     "test:registration": "node tests/registration.test.mjs",
     "test:registration:browser": "node tests/registration-browser.mjs",
     "test:dashboard": "node --test tests/dashboard.test.mjs",
-    "test:dashboard:browser": "node tests/dashboard-browser.mjs"
+    "test:dashboard:browser": "node tests/dashboard-browser.mjs",
+    "test:loans:browser": "node tests/loans-browser.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "6.0.0",

@@ -1,15 +1,16 @@
-import Link from "next/link";
-import { Icon } from "@/components/icon";
-import {
-  ActionLink,
-  ClosingCTA,
-  FAQ,
-  Journey,
-  ProductCards,
-  Section,
-} from "@/components/marketing";
-import { steps } from "@/lib/content";
 import { pageMetadata } from "@/lib/seo";
+import {
+  MarketingSite,
+  Label,
+  PublicLink,
+  TextLink,
+  CooperativeModel,
+  PublicSection,
+  ProductOverview,
+  ResourceIndex,
+  PublicFAQ,
+  PublicInvitation,
+} from "@/components/public-site/editorial";
 export const metadata = pageMetadata(
   "Community-Owned, Interest-Free Finance for All",
   "Explore a proposed member-owned cooperative built around responsible saving, shared opportunity and interest-free support.",
@@ -17,206 +18,116 @@ export const metadata = pageMetadata(
 );
 export default function HomePage() {
   return (
-    <>
-      <section className="home-hero">
-        <div className="container hero-grid">
-          <div className="hero-copy">
-            <p className="eyebrow">
-              <span className="tiny-dot" /> People first. Progress together.
-            </p>
-            <h1>
-              Small savings.
-              <br />
-              Shared strength.
-              <br />
-              <em>Greater possibility.</em>
-            </h1>
-            <p className="hero-tagline">
-              Community-Owned, Interest-Free Finance for All
-            </p>
-            <p className="lead">
-              We’re building a member-owned financial cooperative that turns
-              responsible saving into opportunity — for people, families and
-              small businesses.
-            </p>
-            <div className="actions">
-              <ActionLink href="/products">Discover our approach</ActionLink>
-              <ActionLink href="/about" secondary>
-                Meet Safethrift
-              </ActionLink>
-            </div>
-            <p className="hero-caption">
-              <span className="status-dot" aria-hidden="true" /> In development.
-              Rooted in community.
-            </p>
+    <MarketingSite>
+      <section className="m-hero m-wrap" id="how-it-works">
+        <div className="m-hero-copy">
+          <Label>A UK cooperative in the making</Label>
+          <h1>
+            Saving, with a <span>shared purpose.</span>
+          </h1>
+          <p className="m-hero-lead">
+            A proposed financial cooperative built around responsible saving,
+            member participation and interest-free support.
+          </p>
+          <div className="actions">
+            <PublicLink href="/products">Explore the proposed model</PublicLink>
+            <PublicLink href="/about" secondary>
+              About Safethrift
+            </PublicLink>
           </div>
-          <div className="hero-art" aria-hidden="true">
-            <div className="art-grid" />
-            <div className="art-orbit orbit-one" />
-            <div className="art-orbit orbit-two" />
-            <div className="art-label label-top">ROOTED IN COMMUNITY</div>
-            <div className="growth">
-              <div className="stem stem-one">
-                <i />
-                <i />
-              </div>
-              <div className="stem stem-two">
-                <i />
-                <i />
-              </div>
-              <div className="stem stem-three">
-                <i />
-                <i />
-              </div>
-              <div className="growth-ground" />
-            </div>
-            <div className="art-label label-bottom">GROWING TOGETHER</div>
-            <span className="art-spark spark-one">✳</span>
-            <span className="art-spark spark-two">+</span>
-            <div className="art-card">
-              <span className="art-card-icon">↗</span>
-              <div>
-                Shared effort.
-                <br />
-                <strong>Lasting opportunity.</strong>
-              </div>
-            </div>
+          <p className="m-availability">
+            <span aria-hidden="true" />
+            In development. Accounts, lending and membership applications are
+            not open.
+          </p>
+          <div className="m-hero-signature">
+            <span>Community-owned in principle.</span>
+            <span>Responsible by design.</span>
           </div>
         </div>
+        <CooperativeModel />
       </section>
-      <div className="principles-strip">
-        <div className="container">
-          <span>Member-owned by design</span>
-          <span>Interest-free in principle</span>
-          <span>Community at heart</span>
-        </div>
-      </div>
-      <Section
-        eyebrow="The idea is simple"
-        title="A different way to move forward."
-        className="intro-section"
+      <PublicSection
+        label="01 / Our purpose"
+        title="Room for different lives."
+        className="m-purpose"
       >
-        <div className="split">
-          <p className="lead">
-            Finance should make room for real life. Irregular incomes. New
-            beginnings. Ambitions that deserve a chance.
+        <div className="m-purpose-grid">
+          <p className="m-statement">
+            Irregular incomes. New beginnings. Plans worth saving for.
           </p>
           <div>
             <p>
-              Traditional financial systems can leave people behind.
-              Safethrift’s mission is to create a fairer path through
-              disciplined saving, shared responsibility and cooperative
-              ownership.
+              Safethrift aims to serve people and small businesses often
+              underserved by traditional finance, including migrants, gig
+              workers and new entrepreneurs.
             </p>
-            <Link className="text-link" href="/about">
-              Why Safethrift exists <Icon name="arrow-back" />
-            </Link>
+            <p>
+              Our proposed savings-first approach brings together personal
+              responsibility and mutual support. Financial education and
+              community participation are part of that purpose.
+            </p>
+            <TextLink href="/about">Why we’re developing Safethrift</TextLink>
           </div>
         </div>
-      </Section>
-      <Section
-        id="how-it-works"
-        eyebrow="How Safethrift would work"
-        title="Save today. Build possibility for tomorrow."
-        className="tinted"
+      </PublicSection>
+      <PublicSection
+        label="02 / Proposed savings accounts"
+        title="Different ways to save. One cooperative idea."
       >
-        <p className="section-intro">
-          Our proposed savings-first model puts participation before borrowing.
-          Services and final terms remain in development.
-        </p>
-        <Journey items={steps} />
-      </Section>
-      <Section
-        eyebrow="Proposed products"
-        title="Different lives. A shared starting point."
-      >
-        <p className="section-intro">
-          Three planned savings accounts, designed around different needs. All
-          are coming soon.
-        </p>
-        <ProductCards />
-      </Section>
-      <Section
-        eyebrow="Why Safethrift"
-        title="More than individual progress."
-        className="values-section"
-      >
-        <div className="grid three value-grid">
-          <article>
-            <span className="value-icon">
-              <Icon name="inclusion" />
-            </span>
-            <h3>Inclusion comes first</h3>
-            <p>
-              Our focus is people often underserved by traditional finance,
-              including migrants, gig workers and new entrepreneurs.
-            </p>
-          </article>
-          <article>
-            <span className="value-icon">
-              <Icon name="voice" />
-            </span>
-            <h3>A voice in the future</h3>
-            <p>
-              Member participation and accountable governance are at the heart
-              of the proposed cooperative model.
-            </p>
-          </article>
-          <article>
-            <span className="value-icon">
-              <Icon name="shared" />
-            </span>
-            <h3>Shared responsibility</h3>
-            <p>
-              We aim to connect positive saving habits with mutual support and
-              long-term community benefit.
-            </p>
-          </article>
+        <div className="m-section-deck">
+          <p>
+            Flexible, regular or goal-based: three proposed approaches to
+            building a savings habit. None are available to open yet.
+          </p>
+          <span className="m-status">Proposed · not yet available</span>
         </div>
-      </Section>
-      <Section eyebrow="Membership" title="Belong to something you believe in.">
-        <div className="split">
-          <p className="lead">
-            Membership would mean sharing in a mission, taking responsibility
-            and helping shape what comes next.
+        <ProductOverview />
+      </PublicSection>
+      <PublicSection
+        label="03 / Ownership & responsibility"
+        title="A voice in the idea. A responsibility to each other."
+        dark
+      >
+        <div className="m-governance-feature">
+          <p className="m-statement">
+            The people a cooperative serves should have a part in shaping it.
           </p>
           <div>
             <p>
-              It would be a commitment to a fairer financial future. Membership
-              would not guarantee access to finance. Online applications are not
-              yet open.
+              Member participation, accountable oversight and clear information
+              are central to the proposed model. Final governance arrangements
+              and membership rights remain subject to approved governing
+              documents.
             </p>
-            <ActionLink href="/membership" secondary>
-              What membership means
-            </ActionLink>
+            <TextLink href="/about#governance">
+              Understand the proposed governance
+            </TextLink>
+            <div className="m-responsibility-note">
+              Membership would not guarantee access to finance.
+            </div>
           </div>
         </div>
-      </Section>
-      <Section
-        eyebrow="Knowledge Centre"
-        title="Confidence starts with understanding."
-        className="tinted"
+      </PublicSection>
+      <PublicSection
+        label="04 / Knowledge Centre"
+        title="Understanding comes first."
+        className="m-learning"
       >
-        <div className="split">
-          <p className="lead">
-            A future home for practical guides, community stories and insights
-            into cooperative finance.
+        <div className="m-section-deck">
+          <p>
+            We’re developing resources about everyday financial decisions,
+            saving and cooperative participation. No materials are published
+            yet.
           </p>
-          <div>
-            <p>
-              Our learning resources are being developed. Browse the planned
-              categories and see what’s coming.
-            </p>
-            <Link href="/knowledge-centre" className="text-link">
-              Explore the Knowledge Centre <Icon name="arrow-back" />
-            </Link>
-          </div>
+          <TextLink href="/knowledge-centre">
+            Explore the planned Knowledge Centre
+          </TextLink>
         </div>
-      </Section>
-      <Section eyebrow="A little clarity" title="Your questions, answered.">
-        <FAQ />
-      </Section>
-      <ClosingCTA />
-    </>
+        <ResourceIndex preview />
+      </PublicSection>
+      <PublicFAQ />
+      <PublicInvitation />
+    </MarketingSite>
   );
 }

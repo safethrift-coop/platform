@@ -5,6 +5,7 @@ import {
   useEffect,
   useRef,
   useState,
+  useSyncExternalStore,
   type FormEvent,
   type ReactNode,
 } from "react";
@@ -17,6 +18,9 @@ type Context = {
   localSimulation: boolean;
   attempts: Map<string, Attempt>;
 };
+const subscribeToHydration = () => () => {};
+const clientReady = () => true;
+const serverReady = () => false;
 const DashboardContext = createContext<Context | null>(null);
 export function useDashboard() {
   const value = useContext(DashboardContext);
@@ -32,6 +36,11 @@ export function DashboardProvider({
   localSimulation: boolean;
   children: ReactNode;
 }) {
+  const interactive = useSyncExternalStore(
+    subscribeToHydration,
+    clientReady,
+    serverReady,
+  );
   const [signedIn, setSignedIn] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -121,7 +130,12 @@ export function DashboardProvider({
               {error}
             </p>
           )}
-          <form onSubmit={login} className={styles.form} aria-busy={busy}>
+          <form
+            method="post"
+            onSubmit={login}
+            className={styles.form}
+            aria-busy={busy}
+          >
             <label htmlFor="dashboard-email">Email</label>
             <input
               id="dashboard-email"
@@ -130,7 +144,7 @@ export function DashboardProvider({
               autoComplete="username"
               required
               maxLength={254}
-              disabled={busy}
+              disabled={busy || !interactive}
             />
             <label htmlFor="dashboard-password">Password</label>
             <input
@@ -140,9 +154,11 @@ export function DashboardProvider({
               autoComplete="current-password"
               required
               maxLength={200}
-              disabled={busy}
+              disabled={busy || !interactive}
             />
-            <button disabled={busy}>{busy ? "Signing in…" : "Sign in"}</button>
+            <button disabled={busy || !interactive}>
+              {busy ? "Signing in…" : "Sign in"}
+            </button>
           </form>
         </section>
       ) : (
@@ -151,6 +167,8 @@ export function DashboardProvider({
         >
           <nav aria-label="Member navigation">
             <Link href="/dashboard">Dashboard overview</Link>
+            {" · "}
+            <Link href="/dashboard/loans">Loans and applications</Link>
           </nav>
           {children}
         </DashboardContext.Provider>

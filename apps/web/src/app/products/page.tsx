@@ -1,10 +1,14 @@
 import {
-  ClosingCTA,
-  PageHero,
-  ProductCards,
-  Section,
-} from "@/components/marketing";
+  MarketingSite,
+  PublicIntro,
+  PublicSection,
+  PublicNotice,
+  TextLink,
+  PublicInvitation,
+} from "@/components/public-site/editorial";
 import { pageMetadata } from "@/lib/seo";
+import { products } from "@/lib/content";
+import { Icon } from "@/components/icon";
 export const metadata = pageMetadata(
   "Products & services",
   "Discover Safethrift’s planned Flexible, Regular and Goal-Based Savings Accounts and proposed future services.",
@@ -12,24 +16,78 @@ export const metadata = pageMetadata(
 );
 export default function ProductsPage() {
   return (
-    <>
-      <PageHero
-        eyebrow="Products & services · coming soon"
+    <MarketingSite>
+      <PublicIntro
+        label="Products & services · coming soon"
         title="A place to start. A purpose to save for."
+        note="Proposed accounts. None are available to open yet."
       >
         <p>
           Our three proposed savings accounts are designed to support different
-          financial journeys and a shared Savings Points model. None are
-          available to open yet.
+          financial journeys and a shared Savings Points model.
         </p>
-      </PageHero>
-      <Section
-        eyebrow="Our core savings accounts"
-        title="Find the idea that fits your life."
+      </PublicIntro>
+      <section
+        className="m-wrap m-product-catalogue"
+        aria-labelledby="accounts-heading"
       >
-        <ProductCards detailed />
-        <aside className="notice">
-          <h3>Clarity before commitment</h3>
+        <h2 id="accounts-heading" className="m-visually-hidden">
+          Our core savings accounts
+        </h2>
+        <nav className="m-product-nav" aria-label="Savings accounts">
+          {products.map((product) => (
+            <a href={`#${product.id}`} key={product.id}>
+              {product.code}
+              <Icon name="arrow-back" />
+            </a>
+          ))}
+        </nav>
+        {products.map((product) => (
+          <article
+            id={product.id}
+            key={product.id}
+            className="m-product-detail"
+          >
+            <span className="m-product-code">{product.code}</span>
+            <div>
+              <h3 id={`${product.id}-details`}>{product.name}</h3>
+              <p>{product.audience}</p>
+              <span className="m-status">
+                Proposed savings account · coming soon
+              </span>
+            </div>
+            <dl>
+              <div>
+                <dt>Purpose</dt>
+                <dd>{product.purpose}</dd>
+              </div>
+              <div>
+                <dt>The proposed approach</dt>
+                <dd>{product.detail}</dd>
+              </div>
+              <div>
+                <dt>Proposed benefit</dt>
+                <dd>{product.benefit}</dd>
+              </div>
+              <div>
+                <dt>Before launch</dt>
+                <dd className="m-product-terms">
+                  Final terms, Savings Points rules, charges and withdrawal
+                  conditions will be published before launch.
+                </dd>
+              </div>
+              <div>
+                <dt className="m-visually-hidden">Product navigation</dt>
+                <dd>
+                  <TextLink href={`/products#${product.id}`}>
+                    Back to {product.code} overview
+                  </TextLink>
+                </dd>
+              </div>
+            </dl>
+          </article>
+        ))}
+        <PublicNotice title="Clarity before commitment">
           <p>
             These descriptions explain the proposed product purposes. Account
             opening, deposits, withdrawals and loan applications are
@@ -37,36 +95,42 @@ export default function ProductsPage() {
             withdrawal conditions and Savings Points rules require approval
             before launch. No returns or access to finance are guaranteed.
           </p>
-        </aside>
-      </Section>
-      <Section
-        eyebrow="The proposed Savings Points model"
+        </PublicNotice>
+      </section>
+      <PublicSection
+        label="The proposed Savings Points model"
         title="Recognising participation over time."
-        className="tinted"
+        className="m-sage-section"
       >
-        <div className="split">
-          <p className="lead">
-            The intention is to recognise consistent saving and participation,
-            helping members build a pathway towards responsible, interest-free
-            support.
+        <div className="m-purpose-grid">
+          <p className="m-statement">
+            Consistent saving. Participation that counts.
           </p>
-          <p>
-            Points would form part of future eligibility assessment. They are
-            not a promise of a loan or a published entitlement. Product-specific
-            rates, limits and conditions have not been announced.
-          </p>
+          <div>
+            <p>
+              The intention is to recognise consistent saving and participation,
+              helping members build a pathway towards responsible, interest-free
+              support.
+            </p>
+            <p>
+              Points would form part of future eligibility assessment. They are
+              not a promise of a loan or a published entitlement.
+              Product-specific rates, limits and conditions have not been
+              announced.
+            </p>
+          </div>
         </div>
-      </Section>
-      <Section
-        eyebrow="Looking further ahead"
-        title="Ideas for a growing community."
+      </PublicSection>
+      <PublicSection
+        label="Looking further ahead"
+        title="Ideas under consideration."
       >
-        <p className="section-intro">
+        <p className="m-reading-width">
           The business roadmap explores the following future concepts. All
           remain planned, subject to feasibility, approval and any required
           regulatory permissions. No launch dates are confirmed.
         </p>
-        <div className="grid two">
+        <div className="m-future-list">
           {[
             [
               "Goal-Based Savings & Micro Support",
@@ -85,15 +149,15 @@ export default function ProductsPage() {
               "A Safethrift Financial Wellbeing App and Ethical Insurance-Like Protection Products are exploratory concepts, requiring further assessment and approval.",
             ],
           ].map(([title, text]) => (
-            <article className="card" key={title}>
-              <span className="status">Planned concept</span>
+            <article key={title}>
               <h3>{title}</h3>
               <p>{text}</p>
+              <span className="m-small">Planned concept</span>
             </article>
           ))}
         </div>
-      </Section>
-      <ClosingCTA />
-    </>
+      </PublicSection>
+      <PublicInvitation />
+    </MarketingSite>
   );
 }

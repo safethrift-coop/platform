@@ -130,7 +130,7 @@ app.useGlobalPipes(
     transform: true,
   }),
 );
-app.enableCors({ origin: 'http://localhost:2025', credentials: true });
+app.enableCors({ origin: 'http://localhost:2041', credentials: true });
 await app.listen(3040, '127.0.0.1');
 process.send?.({
   type: 'ready',

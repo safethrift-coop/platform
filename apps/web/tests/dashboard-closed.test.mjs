@@ -1,7 +1,15 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 const origin = process.env.TEST_BASE_URL ?? "http://localhost:2025";
-for (const path of ["/dashboard", "/dashboard/accounts/test-account"])
+for (const path of [
+  "/dashboard",
+  "/dashboard/accounts/test-account",
+  "/dashboard/loans",
+  "/dashboard/loans/apply",
+  "/dashboard/loans/test-loan",
+  "/dashboard/loans/applications/test-application",
+  "/dashboard/loan-review",
+])
   test(
     "T41 private route " + path + " never serves authenticated data in HTML",
     async () => {

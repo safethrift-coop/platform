@@ -1,3 +1,4 @@
+import { isolatedWeb } from "./helpers/isolated-web.mjs";
 import { launchChrome } from "./helpers/chrome.mjs";
 import assert from "node:assert/strict";
 import { spawn, fork } from "node:child_process";
@@ -31,18 +32,20 @@ const fixtureData = await new Promise((resolve, reject) => {
   });
   fixture.once("exit", () => reject(new Error("Fixture API exited")));
 });
+const preview = await isolatedWeb();
 const web = spawn(
   process.execPath,
   [
     require.resolve("next/dist/bin/next"),
     "dev",
+    "--webpack",
     "--hostname",
     "localhost",
     "--port",
-    "2025",
+    "2041",
   ],
   {
-    cwd: new URL("..", import.meta.url),
+    cwd: preview.directory,
     env: {
       ...process.env,
       NODE_ENV: "development",
@@ -55,7 +58,7 @@ const web = spawn(
 let ready = false;
 for (let attempt = 0; attempt < 150; attempt++) {
   try {
-    if ((await fetch("http://localhost:2025/dashboard")).ok) {
+    if ((await fetch("http://localhost:2041/dashboard")).ok) {
       ready = true;
       break;
     }
@@ -199,6 +202,9 @@ try {
   }
   async function signIn(email = fixtureData.email) {
     await waitText("Sign in to your dashboard");
+    await waitFor(
+      "Boolean(document.getElementById('dashboard-email') && !document.getElementById('dashboard-email').disabled)",
+    );
     await fill("dashboard-email", email);
     await fill("dashboard-password", fixtureData.password);
     await click("Sign in");
@@ -206,8 +212,11 @@ try {
   async function navigate(href) {
     await evaluate(`document.querySelector('a[href="${href}"]').click()`);
   }
-  await cdp("Page.navigate", { url: "http://localhost:2025/dashboard" });
+  await cdp("Page.navigate", { url: "http://localhost:2041/dashboard" });
   await waitText("Sign in to your dashboard");
+  await waitFor(
+    "Boolean(document.getElementById('dashboard-email') && !document.getElementById('dashboard-email').disabled)",
+  );
   await accessibility("sign in");
   await evaluate("document.getElementById('dashboard-email').focus()");
   await cdp("Input.dispatchKeyEvent", {
@@ -347,7 +356,7 @@ try {
   await click("Sign out");
   await waitText("Sign in to your dashboard");
   await cdp("Page.navigate", {
-    url: "http://localhost:2025/dashboard/accounts/" + fixtureData.accountId,
+    url: "http://localhost:2041/dashboard/accounts/" + fixtureData.accountId,
   });
   await waitText("Sign in to your dashboard");
   assert.equal(await evaluate("localStorage.length+sessionStorage.length"), 0);
@@ -412,6 +421,7 @@ try {
         }),
     ),
   );
+  await preview.close();
   await rm(profile, {
     recursive: true,
     force: true,

@@ -91,7 +91,12 @@ export class DashboardSession {
     return pending;
   }
   async request<T>(path: string, init: RequestInit = {}): Promise<T> {
+    const loanRead =
+      /^\/loans\/(?:eligibility|applications(?:\/[A-Za-z0-9_-]+)?|mine|admin\/queue|[A-Za-z0-9_-]+(?:\/(?:schedule|repayments))?)(?:\?[^#]*)?$/.test(
+        path,
+      ) && (init.method ?? "GET").toUpperCase() === "GET";
     if (
+      !loanRead &&
       !/^\/(?:members\/me|accounts(?:\/[^?#]*)?(?:\?[^#]*)?|auth\/logout)$/.test(
         path,
       )

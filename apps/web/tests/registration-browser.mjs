@@ -1,3 +1,4 @@
+import { isolatedWeb } from "./helpers/isolated-web.mjs";
 import { launchChrome } from "./helpers/chrome.mjs";
 import assert from "node:assert/strict";
 import { spawn, fork } from "node:child_process";
@@ -31,18 +32,20 @@ await new Promise((resolve, reject) => {
   });
   fixture.once("exit", () => reject(new Error("Fixture API exited")));
 });
+const preview = await isolatedWeb();
 const web = spawn(
   process.execPath,
   [
     require.resolve("next/dist/bin/next"),
     "dev",
+    "--webpack",
     "--hostname",
     "localhost",
     "--port",
-    "2025",
+    "2040",
   ],
   {
-    cwd: new URL("..", import.meta.url),
+    cwd: preview.directory,
     env: {
       ...process.env,
       NODE_ENV: "development",
@@ -56,7 +59,7 @@ const web = spawn(
 let ready = false;
 for (let attempt = 0; attempt < 150; attempt++) {
   try {
-    if ((await fetch("http://localhost:2025/register")).ok) {
+    if ((await fetch("http://localhost:2040/register")).ok) {
       ready = true;
       break;
     }
@@ -200,8 +203,11 @@ try {
     });
   }
   async function accountAndLogin(email) {
-    await cdp("Page.navigate", { url: "http://localhost:2025/register" });
+    await cdp("Page.navigate", { url: "http://localhost:2040/register" });
     await waitText("Create your test account");
+    await waitFor(
+      "Array.from(document.forms).some(form => Object.keys(form).some(key => key.startsWith('__reactProps$') && typeof form[key].onSubmit === 'function'))",
+    );
     await accessibility("account");
     await click("Create account");
     await waitText("Enter a value");
@@ -418,6 +424,7 @@ try {
         }),
     ),
   );
+  await preview.close();
   await rm(profile, {
     recursive: true,
     force: true,
