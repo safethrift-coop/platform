@@ -1,4 +1,4 @@
-import { describe, it, before, after, afterEach } from 'node:test';
+import { describe, it, before, after, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID, createHmac } from 'node:crypto';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -35,6 +35,7 @@ Object.assign(process.env, {
 });
 const { PAYMENT_QUEUES, PaymentJobsService } = jobsModule;
 let db, jobs, service, sql, app, initial;
+let fixtureCleanupBlocked = false;
 const fixtureId = randomUUID();
 const stripe = (extra = {}) => ({
   id: 'evt_' + randomUUID(),
@@ -74,17 +75,15 @@ const gcSign = (body) =>
   createHmac('sha256', process.env.T38_GOCARDLESS_TEST_WEBHOOK_SECRET)
     .update(body)
     .digest('hex');
-const ownedProviderEventIds = new Set();
+const ownedEvents = new Map();
 const receiveStripe = async (event) => {
   const body = bytes(event);
   await service.receive('stripe', body, stripeSign(body));
-  ownedProviderEventIds.add(event.id);
   return eventRow(event.id);
 };
 const receiveGc = async (events) => {
   const body = bytes({ events });
   await service.receive('gocardless', body, gcSign(body));
-  for (const event of events) ownedProviderEventIds.add(event.id);
   return eventRow(events[0].id);
 };
 const tx = (fn) => db.$transaction(fn);
@@ -92,6 +91,52 @@ const eventRow = (id) =>
   tx((t) =>
     t.paymentWebhookEvent.findFirstOrThrow({ where: { providerEventId: id } }),
   );
+async function ownedPendingFixtures() {
+  const owned = await tx((transaction) =>
+    transaction.paymentWebhookEvent.findMany({
+      where: { OR: [...ownedEvents.values()] },
+    }),
+  );
+  const pending = (await jobs.boss.findJobs(PAYMENT_QUEUES.events)).filter(
+    (job) => ['created', 'retry', 'active'].includes(job.state),
+  );
+  const diagnostic = JSON.stringify(
+    pending.map((job) => ({
+      id: job.id,
+      eventId: job.data?.eventId,
+      state: job.state,
+      retryCount: job.retryCount,
+    })),
+  );
+  assert.ok(
+    pending.every((job) =>
+      owned.some(
+        (event) => event.jobId === job.id && event.id === job.data?.eventId,
+      ),
+    ),
+    `Refusing recovery with unknown nonterminal jobs; retain them for review: ${diagnostic}`,
+  );
+  assert.ok(
+    pending.every((job) => job.state !== 'active'),
+    `Refusing fixture preparation with active leases; retain them for review: ${diagnostic}`,
+  );
+  return { owned, pending };
+}
+async function prepareOwnedFixtures(target) {
+  const { owned, pending } = await ownedPendingFixtures();
+  for (const other of owned)
+    if (other.id !== target.id && other.status === 'queued')
+      await service.process(other.id);
+  for (const job of pending)
+    if (job.id !== target.jobId && ['created', 'retry'].includes(job.state)) {
+      await jobs.boss.cancel(PAYMENT_QUEUES.events, job.id);
+      assert.equal(
+        (await jobs.boss.getJobById(PAYMENT_QUEUES.events, job.id))?.state,
+        'cancelled',
+        `Owned fixture preparation did not cancel job ${job.id}`,
+      );
+    }
+}
 async function snapshot() {
   const { rows } = await sql.query(
     "SELECT tablename FROM pg_tables WHERE schemaname='public' AND tablename NOT IN ('payment_webhook_events','payment_webhook_deliveries','payment_observations','mandate_observations') ORDER BY tablename",
@@ -146,6 +191,30 @@ describe(
       jobs = new PaymentJobsService(db);
       await jobs.start();
       service = new serviceModule.PaymentWebhooksService(db, jobs);
+      // Cover helper, direct-service and HTTP intake through this same instance.
+      const receive = service.receive.bind(service);
+      service.receive = async (provider, body, signature) => {
+        const result = await receive(provider, body, signature);
+        // Rejected/rolled-back intake never reaches ownership registration.
+        // Successful intake persists supported AND ignored events; only supported
+        // events receive jobs. Missing persisted identities must still fail.
+        const { environment, accountScope } = configModule.paymentConfig(provider);
+        const payload = JSON.parse(body.toString('utf8'));
+        const events = provider === 'stripe' ? [payload] : payload.events;
+        for (const providerEventId of new Set(events.map((event) => event.id))) {
+          const identity = { provider, environment, accountScope, providerEventId };
+          const persisted = await tx((transaction) =>
+            transaction.paymentWebhookEvent.findUniqueOrThrow({
+              where: {
+                provider_environment_accountScope_providerEventId: identity,
+              },
+              select: { id: true },
+            }),
+          );
+          ownedEvents.set(persisted.id, { id: persisted.id, ...identity });
+        }
+        return result;
+      };
       const module = await Test.createTestingModule({
         controllers: [controllerModule.PaymentWebhooksController],
         providers: [
@@ -158,8 +227,30 @@ describe(
       await app.init();
       initial = await snapshot();
     });
-    afterEach(async () => {
-      await jobs.boss.offWork(PAYMENT_QUEUES.events);
+    beforeEach(() => {
+      assert.equal(fixtureCleanupBlocked, false,
+        'Prior fixture cleanup failed; stop verification and preserve evidence');
+    });
+    afterEach(async (t) => {
+      try {
+        await jobs.boss.offWork(PAYMENT_QUEUES.events, { wait: true });
+        assert.equal(fixtureCleanupBlocked, false,
+          'Recovery cleanup failed; refuse further fixture mutation');
+        // Validate the whole pending set before cancelling any exact owned ID.
+        const { pending } = await ownedPendingFixtures();
+        for (const job of pending) {
+          t.diagnostic(`Cancelling owned fixture job ${job.id} from ${job.state}`);
+          await jobs.boss.cancel(PAYMENT_QUEUES.events, job.id);
+          assert.equal(
+            (await jobs.boss.getJobById(PAYMENT_QUEUES.events, job.id))?.state,
+            'cancelled',
+            `Owned fixture cleanup did not cancel job ${job.id}`,
+          );
+        }
+      } catch (error) {
+        fixtureCleanupBlocked = true;
+        throw error;
+      }
     });
     after(async () => {
       if (sql && initial)
@@ -195,7 +286,6 @@ describe(
         .set('Stripe-Signature', stripeSign(body))
         .send(body.toString())
         .expect(200);
-      ownedProviderEventIds.add(event.id);
       await request(app.getHttpServer())
         .post('/api/v1/webhooks/stripe')
         .set('Content-Type', 'application/json')
@@ -259,7 +349,6 @@ describe(
         service.receive('stripe', body, stripeSign(body)),
         service.receive('stripe', body, stripeSign(body)),
       ]);
-      ownedProviderEventIds.add(event.id);
       let row = await eventRow(event.id);
       await Promise.all([service.process(row.id), service.process(row.id)]);
       assert.equal(
@@ -299,7 +388,10 @@ describe(
       await receiveGc([first, mandate, first, unknown]);
       for (const event of [first, mandate])
         await service.process((await eventRow(event.id)).id);
-      assert.equal((await eventRow(unknown.id)).status, 'ignored');
+      const ignored = await eventRow(unknown.id);
+      assert.equal(ignored.status, 'ignored');
+      assert.equal(ignored.reason, 'unsupported_event');
+      assert.equal(ignored.jobId, null);
       const row = await eventRow(mandate.id);
       assert.equal(
         (
@@ -586,26 +678,7 @@ describe(
       };
       const deliveries = [];
       try {
-        // Only IDs received by this suite are eligible for fixture preparation.
-        const owned = await tx((transaction) =>
-          transaction.paymentWebhookEvent.findMany({
-            where: { providerEventId: { in: [...ownedProviderEventIds] } },
-          }),
-        );
-        const ownedJobIds = new Set(owned.map((event) => event.jobId));
-        const pending = (await jobs.boss.findJobs(PAYMENT_QUEUES.events)).filter(
-          (job) => ['created', 'retry', 'active'].includes(job.state),
-        );
-        assert.ok(
-          pending.every((job) => ownedJobIds.has(job.id)),
-          'Refusing recovery with unknown nonterminal jobs; retain them for review',
-        );
-        for (const other of owned)
-          if (other.id !== row.id && other.status === 'queued')
-            await service.process(other.id);
-        for (const job of pending)
-          if (job.id !== row.jobId && ['created', 'retry'].includes(job.state))
-            await jobs.boss.cancel(PAYMENT_QUEUES.events, job.id);
+        await prepareOwnedFixtures(row);
         await monitor.start();
         const updated = await jobs.boss.update(PAYMENT_QUEUES.events, undefined, {
           id: row.jobId,
@@ -692,29 +765,45 @@ describe(
         await cleanup('stop local monitor', () =>
           monitor.stop({ graceful: true, timeout: 4000 }),
         );
-        await cleanup('cancel owned nonterminal target', async () => {
+        await cleanup('verify monitor errors after shutdown', async () => {
+          assert.deepEqual(monitorErrors, []);
+        });
+        // Inspection only: never cancel a recovery lease to make teardown pass.
+        await cleanup('inspect owned recovery target', async () => {
+          const identity = ownedEvents.get(row.id);
+          assert.ok(identity, 'Recovery target is not registered as owned');
+          const persisted = await tx((transaction) =>
+            transaction.paymentWebhookEvent.findFirstOrThrow({
+              where: identity,
+            }),
+          );
           const target = await jobs.boss.getJobById(
             PAYMENT_QUEUES.events,
             row.jobId,
           );
-          if (target && ['created', 'retry', 'active'].includes(target.state))
-            await jobs.boss.cancel(PAYMENT_QUEUES.events, row.jobId);
+          t.diagnostic(`Recovery target: ${JSON.stringify({
+            jobId: row.jobId,
+            eventId: row.id,
+            state: target?.state ?? 'missing',
+            retryCount: target?.retryCount ?? null,
+          })}`);
+          assert.ok(target, 'Recovery target broker evidence is missing');
+          assert.equal(persisted.jobId, target.id);
+          assert.equal(target.data?.eventId, persisted.id);
+          assert.notEqual(target.state, 'active',
+            'Recovery target retains an active lease; preserve evidence and stop');
+          if (!failed) assert.equal(target.state, 'completed');
         });
+        // A timed-out cleanup operation may still be running. Block subsequent
+        // fixture mutation even when the original test failure is rethrown.
+        if (cleanupErrors.length) fixtureCleanupBlocked = true;
         if (!failed && cleanupErrors.length)
           throw new AggregateError(cleanupErrors, 'Recovery cleanup failed');
       }
     });
     it('retains exhausted processing in review and dead-letter storage without infinite requeues', async () => {
       const row = await receiveStripe(stripe());
-      const queued = await tx((t) =>
-        t.paymentWebhookEvent.findMany({
-          where: { status: 'queued', id: { not: row.id } },
-        }),
-      );
-      for (const other of queued) await service.process(other.id);
-      for (const job of await jobs.boss.findJobs(PAYMENT_QUEUES.events))
-        if (job.id !== row.jobId && ['created', 'retry'].includes(job.state))
-          await jobs.boss.cancel(PAYMENT_QUEUES.events, job.id);
+      await prepareOwnedFixtures(row);
       await jobs.boss.update(PAYMENT_QUEUES.events, undefined, {
         id: row.jobId,
         retryLimit: 0,
