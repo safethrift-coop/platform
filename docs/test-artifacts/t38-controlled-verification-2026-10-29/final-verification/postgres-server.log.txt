@@ -1,0 +1,33 @@
+2026-10-29 19:09:23.684 WAT [5] LOG:  starting PostgreSQL 16.15 (Ubuntu 16.15-0ubuntu0.24.04.1) on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0, 64-bit
+2026-10-29 19:09:23.684 WAT [5] LOG:  could not create IPv4 socket for address "127.0.0.1": Operation not permitted
+2026-10-29 19:09:23.684 WAT [5] WARNING:  could not create listen socket for "127.0.0.1"
+2026-10-29 19:09:23.685 WAT [5] FATAL:  could not create any TCP/IP sockets
+2026-10-29 19:09:23.688 WAT [5] LOG:  database system is shut down
+2026-10-29 19:09:45.976 WAT [16218] LOG:  starting PostgreSQL 16.15 (Ubuntu 16.15-0ubuntu0.24.04.1) on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0, 64-bit
+2026-10-29 19:09:45.977 WAT [16218] LOG:  listening on IPv4 address "127.0.0.1", port 55439
+2026-10-29 19:09:47.458 WAT [16218] LOG:  listening on Unix socket "/tmp/.s.PGSQL.55439"
+2026-10-29 19:09:47.480 WAT [16223] LOG:  database system was shut down at 2026-10-29 19:09:19 WAT
+2026-10-29 19:09:47.492 WAT [16218] LOG:  database system is ready to accept connections
+2026-10-29 19:14:47.580 WAT [16221] LOG:  checkpoint starting: time
+2026-10-29 19:16:51.413 WAT [16221] LOG:  checkpoint complete: wrote 1224 buffers (7.5%); 0 WAL file(s) added, 0 removed, 0 recycled; write=123.308 s, sync=0.464 s, total=123.834 s; sync files=653, longest=0.013 s, average=0.001 s; distance=6987 kB, estimate=6987 kB; lsn=0/1BCAA98, redo lsn=0/1BC6518
+2026-10-29 19:24:34.956 WAT [16218] LOG:  received fast shutdown request
+2026-10-29 19:24:34.962 WAT [16218] LOG:  aborting any active transactions
+2026-10-29 19:24:34.969 WAT [16218] LOG:  background worker "logical replication launcher" (PID 16226) exited with exit code 1
+2026-10-29 19:24:34.971 WAT [16221] LOG:  shutting down
+2026-10-29 19:24:34.982 WAT [16221] LOG:  checkpoint starting: shutdown immediate
+2026-10-29 19:24:35.045 WAT [16221] LOG:  checkpoint complete: wrote 3 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.019 s, sync=0.006 s, total=0.075 s; sync files=3, longest=0.004 s, average=0.002 s; distance=17 kB, estimate=6290 kB; lsn=0/1BCAB48, redo lsn=0/1BCAB48
+2026-10-29 19:24:35.069 WAT [16218] LOG:  database system is shut down
+2026-10-29 19:33:53.702 WAT [51041] LOG:  starting PostgreSQL 16.15 (Ubuntu 16.15-0ubuntu0.24.04.1) on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0, 64-bit
+2026-10-29 19:33:53.703 WAT [51041] LOG:  listening on IPv4 address "127.0.0.1", port 55439
+2026-10-29 19:33:53.734 WAT [51041] LOG:  listening on Unix socket "/tmp/.s.PGSQL.55439"
+2026-10-29 19:33:53.770 WAT [51045] LOG:  database system was shut down at 2026-10-29 19:24:35 WAT
+2026-10-29 19:33:53.800 WAT [51041] LOG:  database system is ready to accept connections
+2026-10-29 19:38:53.862 WAT [51043] LOG:  checkpoint starting: time
+2026-10-29 19:40:45.858 WAT [51041] LOG:  received fast shutdown request
+2026-10-29 19:40:45.872 WAT [51041] LOG:  aborting any active transactions
+2026-10-29 19:40:45.879 WAT [51041] LOG:  background worker "logical replication launcher" (PID 51056) exited with exit code 1
+2026-10-29 19:40:46.494 WAT [51043] LOG:  checkpoint complete: wrote 1236 buffers (7.5%); 0 WAL file(s) added, 0 removed, 1 recycled; write=112.006 s, sync=0.584 s, total=112.633 s; sync files=1279, longest=0.013 s, average=0.001 s; distance=6585 kB, estimate=6585 kB; lsn=0/28A4C38, redo lsn=0/2238F60
+2026-10-29 19:40:46.499 WAT [51043] LOG:  shutting down
+2026-10-29 19:40:46.506 WAT [51043] LOG:  checkpoint starting: shutdown immediate
+2026-10-29 19:40:46.724 WAT [51043] LOG:  checkpoint complete: wrote 1182 buffers (7.2%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.089 s, sync=0.110 s, total=0.225 s; sync files=304, longest=0.014 s, average=0.001 s; distance=6575 kB, estimate=6584 kB; lsn=0/28A4CB0, redo lsn=0/28A4CB0
+2026-10-29 19:40:46.762 WAT [51041] LOG:  database system is shut down

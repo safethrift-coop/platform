@@ -1,0 +1,10 @@
+{
+  "command": [
+    "pnpm",
+    "--filter",
+    "@safethrift/prisma",
+    "migrate:deploy"
+  ],
+  "exit_code": 0,
+  "seconds": 13.466065529999923
+}

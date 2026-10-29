@@ -1,0 +1,132 @@
+TAP version 13
+# [Nest] 59523  - 10/29/2026, 7:39:18 PM     LOG [PrismaService] Database connected
+# Subtest: T38 isolated real PostgreSQL intake and evidence
+    # Subtest: persists worker failure, expiration retry and successful recovery using real pg-boss
+    not ok 1 - persists worker failure, expiration retry and successful recovery using real pg-boss
+      ---
+      duration_ms: 445.021107
+      type: 'test'
+      location: '/tmp/t38-final-fetch-diagnostic-orggsj2z/test/fetch-diagnostic.mjs:634:5'
+      failureType: 'testCodeFailure'
+      error: 'DELIBERATE_AFTER_MANUAL_FETCH_FAILURE'
+      code: 'ERR_TEST_FAILURE'
+      stack: |-
+        TestContext.<anonymous> (file:///tmp/t38-final-fetch-diagnostic-orggsj2z/test/fetch-diagnostic.mjs:700:15)
+        process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Promise.all (index 10)
+        async Suite.run (node:internal/test_runner/test:1442:7)
+        async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+      ...
+    # Unrelated diagnostic job: 3ca2ff0e-dea2-4385-be8c-11b4c01d6482
+    # Injected fetch target: {"jobId":"1c64e042-4a01-41e6-a328-0e759d118805","eventId":"a660bf04-1303-4bd7-ade9-a315422039ae","state":"active","retryCount":0}
+    # DIAGNOSTIC_CLEANUP_ATTEMPT: stop owned worker
+    # DIAGNOSTIC_CLEANUP_SUCCESS: stop owned worker
+    # DIAGNOSTIC_CLEANUP_ATTEMPT: stop local monitor
+    # DIAGNOSTIC_CLEANUP_SUCCESS: stop local monitor
+    # DIAGNOSTIC_CLEANUP_ATTEMPT: verify monitor errors after shutdown
+    # DIAGNOSTIC_CLEANUP_SUCCESS: verify monitor errors after shutdown
+    # DIAGNOSTIC_CLEANUP_ATTEMPT: inspect owned recovery target
+    # Recovery target: {"jobId":"1c64e042-4a01-41e6-a328-0e759d118805","eventId":"a660bf04-1303-4bd7-ade9-a315422039ae","state":"active","retryCount":0}
+    # inspect owned recovery target: AssertionError [ERR_ASSERTION]: Recovery target retains an active lease; preserve evidence and stop\\n    at file:///tmp/t38-final-fetch-diagnostic-orggsj2z/test/fetch-diagnostic.mjs:799:18\\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\\n    at async bounded (file:///tmp/t38-final-fetch-diagnostic-orggsj2z/test/fetch-diagnostic.mjs:658:18)\\n    at async cleanup (file:///tmp/t38-final-fetch-diagnostic-orggsj2z/test/fetch-diagnostic.mjs:674:11)\\n    at async TestContext.<anonymous> (file:///tmp/t38-final-fetch-diagnostic-orggsj2z/test/fetch-diagnostic.mjs:778:9)\\n    at async Test.run (node:internal/test_runner/test:1054:7)\\n    at async Promise.all (index 10)\\n    at async Suite.run (node:internal/test_runner/test:1442:7)\\n    at async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+    # Subtest: retains exhausted processing in review and dead-letter storage without infinite requeues
+    not ok 2 - retains exhausted processing in review and dead-letter storage without infinite requeues
+      ---
+      duration_ms: 4.157989
+      type: 'test'
+      location: '/tmp/t38-final-fetch-diagnostic-orggsj2z/test/fetch-diagnostic.mjs:810:5'
+      failureType: 'hookFailed'
+      error: |-
+        Prior fixture cleanup failed; stop verification and preserve evidence
+        
+        true !== false
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: false
+      actual: true
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (file:///tmp/t38-final-fetch-diagnostic-orggsj2z/test/fetch-diagnostic.mjs:231:14)
+        TestHook.runInAsyncScope (node:async_hooks:214:14)
+        TestHook.run (node:internal/test_runner/test:1047:25)
+        TestHook.run (node:internal/test_runner/test:1354:18)
+        Suite.runHook (node:internal/test_runner/test:965:20)
+        Test.run (node:internal/test_runner/test:1022:27)
+        process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+        async Suite.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: preserves identity collisions for review and prevents conflicting reprocessing
+    not ok 3 - preserves identity collisions for review and prevents conflicting reprocessing
+      ---
+      duration_ms: 2.722117
+      type: 'test'
+      location: '/tmp/t38-final-fetch-diagnostic-orggsj2z/test/fetch-diagnostic.mjs:833:5'
+      failureType: 'hookFailed'
+      error: |-
+        Prior fixture cleanup failed; stop verification and preserve evidence
+        
+        true !== false
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: false
+      actual: true
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (file:///tmp/t38-final-fetch-diagnostic-orggsj2z/test/fetch-diagnostic.mjs:231:14)
+        TestHook.runInAsyncScope (node:async_hooks:214:14)
+        TestHook.run (node:internal/test_runner/test:1047:25)
+        TestHook.run (node:internal/test_runner/test:1354:18)
+        Suite.runHook (node:internal/test_runner/test:965:20)
+        Test.run (node:internal/test_runner/test:1022:27)
+        process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+        async Suite.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: rejects cross-scope evidence at the database boundary and preserves all non-T38 rows
+    not ok 4 - rejects cross-scope evidence at the database boundary and preserves all non-T38 rows
+      ---
+      duration_ms: 1.942241
+      type: 'test'
+      location: '/tmp/t38-final-fetch-diagnostic-orggsj2z/test/fetch-diagnostic.mjs:850:5'
+      failureType: 'hookFailed'
+      error: |-
+        Prior fixture cleanup failed; stop verification and preserve evidence
+        
+        true !== false
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: false
+      actual: true
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (file:///tmp/t38-final-fetch-diagnostic-orggsj2z/test/fetch-diagnostic.mjs:231:14)
+        TestHook.runInAsyncScope (node:async_hooks:214:14)
+        TestHook.run (node:internal/test_runner/test:1047:25)
+        TestHook.run (node:internal/test_runner/test:1354:18)
+        Suite.runHook (node:internal/test_runner/test:965:20)
+        Test.run (node:internal/test_runner/test:1022:27)
+        process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+        async Suite.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+# DIAGNOSTIC_JOBS_STOPPED
+    1..4
+not ok 1 - T38 isolated real PostgreSQL intake and evidence
+  ---
+  duration_ms: 1510.633758
+  type: 'suite'
+  location: '/tmp/t38-final-fetch-diagnostic-orggsj2z/test/fetch-diagnostic.mjs:166:1'
+  failureType: 'subtestsFailed'
+  error: '4 subtests failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+1..1
+# tests 4
+# suites 1
+# pass 0
+# fail 4
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4277.824501

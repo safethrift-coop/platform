@@ -1,0 +1,13 @@
+{
+  "command": [
+    "psql",
+    "postgresql://princewill@127.0.0.1:55439/safethrift_preservation_continuation_20261029_test",
+    "-XAt",
+    "-v",
+    "ON_ERROR_STOP=1",
+    "-c",
+    "SELECT json_build_object('database',current_database(),'t36_version',(SELECT version FROM t36_jobs.version),'t38_version',(SELECT version FROM t38_jobs.version),'payment_jobs',(SELECT count(*) FROM t38_jobs.job))"
+  ],
+  "exit_code": 0,
+  "seconds": 0.14765624000006028
+}

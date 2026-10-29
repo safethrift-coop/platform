@@ -1,0 +1,10 @@
+
+> @safethrift/api@0.0.1 test /home/princewill/Projects/safethrift-coop/platform/apps/api
+> jest --runInBand
+
+
+Test Suites: 8 passed, 8 total
+Tests:       46 passed, 46 total
+Snapshots:   0 total
+Time:        20.49 s
+Ran all test suites.

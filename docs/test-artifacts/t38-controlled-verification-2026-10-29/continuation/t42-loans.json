@@ -1,0 +1,13 @@
+{
+  "command": [
+    "pnpm",
+    "--filter",
+    "@safethrift/api",
+    "test:e2e",
+    "--runInBand",
+    "--runTestsByPath",
+    "test/loans.integration.e2e-spec.ts"
+  ],
+  "exit_code": 0,
+  "seconds": 16.42715349499997
+}

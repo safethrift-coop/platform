@@ -1,0 +1,10 @@
+{
+  "command": [
+    "pnpm",
+    "--filter",
+    "@safethrift/api",
+    "jobs:migrate"
+  ],
+  "exit_code": 0,
+  "seconds": 3.1025596000004043
+}

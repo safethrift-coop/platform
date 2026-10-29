@@ -1,0 +1,24 @@
+{
+  "immediate": {
+    "sessions": [],
+    "t36_jobs": 0,
+    "t38_jobs": 0,
+    "members": 0,
+    "loans": 0,
+    "repayments": 0
+  },
+  "delayed": {
+    "sessions": [],
+    "t36_jobs": 0,
+    "t38_jobs": 0,
+    "members": 0,
+    "loans": 0,
+    "repayments": 0
+  },
+  "verification_window_seconds": 3,
+  "postgres_stopped": true,
+  "redis_stopped": true,
+  "data_directory": "/tmp/safethrift-t38-continuation-pg",
+  "database": "postgresql://princewill@127.0.0.1:55439/safethrift_preservation_continuation_20261029_test",
+  "diagnostic_database": "NOT CREATED: stopped at T40 browser setup failure"
+}

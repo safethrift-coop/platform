@@ -1,0 +1,92 @@
+[
+  {
+    "name": "t36-install",
+    "exit_code": 0,
+    "duration_seconds": 2.6707324950002658,
+    "command": [
+      "pnpm",
+      "--filter",
+      "@safethrift/api",
+      "jobs:migrate"
+    ]
+  },
+  {
+    "name": "t36-reminders",
+    "exit_code": 0,
+    "duration_seconds": 23.18003399600002,
+    "command": [
+      "pnpm",
+      "--filter",
+      "@safethrift/api",
+      "test:reminders"
+    ]
+  },
+  {
+    "name": "api-unit",
+    "exit_code": 0,
+    "duration_seconds": 26.376893224000014,
+    "command": [
+      "pnpm",
+      "--filter",
+      "@safethrift/api",
+      "test",
+      "--runInBand"
+    ]
+  },
+  {
+    "name": "t37-auth",
+    "exit_code": 0,
+    "duration_seconds": 33.86970019,
+    "command": [
+      "pnpm",
+      "--filter",
+      "@safethrift/api",
+      "test:e2e",
+      "--runInBand",
+      "--runTestsByPath",
+      "test/auth-security.integration.e2e-spec.ts"
+    ]
+  },
+  {
+    "name": "t40-registration",
+    "exit_code": 0,
+    "duration_seconds": 33.554466786000376,
+    "command": [
+      "pnpm",
+      "--filter",
+      "@safethrift/api",
+      "test:e2e",
+      "--runInBand",
+      "--runTestsByPath",
+      "test/registration.integration.e2e-spec.ts"
+    ]
+  },
+  {
+    "name": "t41-dashboard",
+    "exit_code": 0,
+    "duration_seconds": 15.087679396000567,
+    "command": [
+      "pnpm",
+      "--filter",
+      "@safethrift/api",
+      "test:e2e",
+      "--runInBand",
+      "--runTestsByPath",
+      "test/dashboard.integration.e2e-spec.ts"
+    ]
+  },
+  {
+    "name": "t42-loans",
+    "exit_code": 1,
+    "duration_seconds": 15.22660537199954,
+    "command": [
+      "pnpm",
+      "--filter",
+      "@safethrift/api",
+      "test:e2e",
+      "--runInBand",
+      "--runTestsByPath",
+      "test/loans.integration.e2e-spec.ts"
+    ]
+  }
+]

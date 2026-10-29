@@ -1,0 +1,18 @@
+{
+  "checks": {
+    "no_sessions": true,
+    "stable_window": true,
+    "no_verification_processes": true,
+    "no_browser_ports": true,
+    "normal_databases_no_nonterminal_jobs": true
+  },
+  "window_seconds": 3,
+  "databases": [
+    "safethrift_preservation_continuation_20261029_test",
+    "safethrift_browser_final_20261029_test",
+    "safethrift_t38_recovery_final_fetch_20261029_test"
+  ],
+  "postgres_stopped": true,
+  "redis_stopped": true,
+  "retained_data_directory": "/tmp/safethrift-t38-continuation-pg"
+}

@@ -1,0 +1,13 @@
+{
+  "client_sessions_before_shutdown": [],
+  "postgres_data_directory": "/tmp/safethrift-t38-approved-verification-pg",
+  "postgres_port": 55439,
+  "postgres_stopped": true,
+  "redis_container": "safethrift-t38-preservation-redis",
+  "redis_stopped": true,
+  "regression_schema": {
+    "reminder_jobs": "t36_jobs.job",
+    "payment_jobs": null
+  },
+  "deliberate_fetch_diagnostic": "NOT RUN: stopped at first preservation blocker"
+}

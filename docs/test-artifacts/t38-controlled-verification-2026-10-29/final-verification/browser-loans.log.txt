@@ -1,0 +1,23 @@
+
+> @safethrift/web@0.1.0 test:loans:browser /home/princewill/Projects/safethrift-coop/platform/apps/web
+> node tests/loans-browser.mjs
+
+[Nest] 56176  - 10/29/2026, 7:37:19 PM     LOG [PrismaService] Database connected
+▲ Next.js 16.2.4 (webpack)
+- Local:         http://localhost:2042
+- Network:       http://localhost:2042
+✓ Ready in 1298ms
+
+○ Compiling /dashboard ...
+ GET /dashboard 200 in 20.3s (next.js: 18.4s, application-code: 1876ms)
+○ Compiling /dashboard/loans/[loanId] ...
+ GET /dashboard/loans/cmvtvy3ij0003cgsuasf21xlu 200 in 8.0s (next.js: 7.4s, application-code: 573ms)
+ GET /dashboard/loans 200 in 1424ms (next.js: 1316ms, application-code: 108ms)
+ GET /dashboard/loans/applications/cmvtvy3cy0000cgsu7vfdk0pj 200 in 7.8s (next.js: 7.6s, application-code: 177ms)
+ GET /dashboard/loans 200 in 112ms (next.js: 33ms, application-code: 79ms)
+ GET /dashboard/loans/apply 200 in 2.2s (next.js: 2.0s, application-code: 164ms)
+ GET /dashboard/loans 200 in 115ms (next.js: 27ms, application-code: 89ms)
+ GET /dashboard/loan-review 200 in 2.4s (next.js: 2.2s, application-code: 170ms)
+PASS: T42 owned loan pages, disabled forms, history pagination, reviewer snapshots, member denial, mobile and axe.
+[?25h
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior

@@ -1,0 +1,54 @@
+{
+  "case": "unknown",
+  "exit_code": 1,
+  "expected_rejection": "unknown nonterminal jobs",
+  "diagnostic_job_id": "aed4f89d-65ef-4031-a78f-41dde7643dec",
+  "before": {
+    "id": "aed4f89d-65ef-4031-a78f-41dde7643dec",
+    "name": "t38-evidence",
+    "data": {
+      "eventId": "cf6c08cc-10d7-4f15-be39-8ef8144306f5"
+    },
+    "retryCount": 0,
+    "expireInSeconds": 120,
+    "heartbeatSeconds": 30,
+    "groupId": null,
+    "groupTier": null,
+    "policy": "standard",
+    "state": "created",
+    "priority": 0,
+    "retryLimit": 5,
+    "retryDelay": 30,
+    "retryBackoff": true,
+    "retryDelayMax": 1800,
+    "startAfter": "2026-10-29T10:51:10.741Z",
+    "startedOn": null,
+    "singletonKey": null,
+    "singletonOn": null,
+    "deleteAfterSeconds": 604800,
+    "heartbeatOn": null,
+    "createdOn": "2026-10-29T10:51:10.741Z",
+    "completedOn": null,
+    "keepUntil": "2026-10-30T10:51:10.741Z",
+    "deadLetter": "t38-dead",
+    "blocked": false,
+    "blocking": false,
+    "pendingDependencies": 0,
+    "output": null,
+    "sourceName": null,
+    "sourceId": null,
+    "sourceCreatedOn": null,
+    "sourceRetryCount": null,
+    "sourceOutput": null,
+    "sourceRootId": null
+  },
+  "after": {
+    "id": "aed4f89d-65ef-4031-a78f-41dde7643dec",
+    "state": "created",
+    "data": {
+      "eventId": "cf6c08cc-10d7-4f15-be39-8ef8144306f5"
+    },
+    "retry_count": 0
+  },
+  "other_sessions": 0
+}

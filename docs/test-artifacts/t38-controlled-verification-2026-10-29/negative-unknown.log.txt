@@ -1,0 +1,47 @@
+TAP version 13
+# [Nest] 132689  - 10/29/2026, 11:51:09 AM     LOG [PrismaService] Database connected
+# Subtest: T38 isolated real PostgreSQL intake and evidence
+    # Subtest: persists worker failure, expiration retry and successful recovery using real pg-boss
+    not ok 1 - persists worker failure, expiration retry and successful recovery using real pg-boss
+      ---
+      duration_ms: 584.08314
+      type: 'test'
+      location: '/tmp/t38-negative-fixtures-k_jaaaoe/test/negative-unknown.mjs:634:5'
+      failureType: 'testCodeFailure'
+      error: 'Refusing recovery with unknown nonterminal jobs; retain them for review: [{"id":"e6c7c986-52a2-4ed9-9560-17749664a917","eventId":"1de5288a-effc-4d42-b947-5ab8b328a6c2","state":"created","retryCount":0},{"id":"aed4f89d-65ef-4031-a78f-41dde7643dec","eventId":"cf6c08cc-10d7-4f15-be39-8ef8144306f5","state":"created","retryCount":0}]'
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: true
+      actual: false
+      operator: '=='
+      stack: |-
+        ownedPendingFixtures (file:///tmp/t38-negative-fixtures-k_jaaaoe/test/negative-unknown.mjs:111:10)
+        process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+        async prepareOwnedFixtures (file:///tmp/t38-negative-fixtures-k_jaaaoe/test/negative-unknown.mjs:126:30)
+        async TestContext.<anonymous> (file:///tmp/t38-negative-fixtures-k_jaaaoe/test/negative-unknown.mjs:684:9)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Promise.all (index 10)
+        async Suite.run (node:internal/test_runner/test:1442:7)
+        async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+      ...
+    # Diagnostic seeded: {"id":"aed4f89d-65ef-4031-a78f-41dde7643dec","name":"t38-evidence","data":{"eventId":"cf6c08cc-10d7-4f15-be39-8ef8144306f5"},"retryCount":0,"expireInSeconds":120,"heartbeatSeconds":30,"groupId":null,"groupTier":null,"policy":"standard","state":"created","priority":0,"retryLimit":5,"retryDelay":30,"retryBackoff":true,"retryDelayMax":1800,"startAfter":"2026-10-29T10:51:10.741Z","startedOn":null,"singletonKey":null,"singletonOn":null,"deleteAfterSeconds":604800,"heartbeatOn":null,"createdOn":"2026-10-29T10:51:10.741Z","completedOn":null,"keepUntil":"2026-10-30T10:51:10.741Z","deadLetter":"t38-dead","blocked":false,"blocking":false,"pendingDependencies":0,"output":null,"sourceName":null,"sourceId":null,"sourceCreatedOn":null,"sourceRetryCount":null,"sourceOutput":null,"sourceRootId":null}
+    # Recovery target: {"jobId":"e6c7c986-52a2-4ed9-9560-17749664a917","eventId":"1de5288a-effc-4d42-b947-5ab8b328a6c2","state":"created","retryCount":0}
+    1..1
+not ok 1 - T38 isolated real PostgreSQL intake and evidence
+  ---
+  duration_ms: 2368.320469
+  type: 'suite'
+  location: '/tmp/t38-negative-fixtures-k_jaaaoe/test/negative-unknown.mjs:166:1'
+  failureType: 'subtestsFailed'
+  error: '1 subtest failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+1..1
+# tests 1
+# suites 1
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5120.562648

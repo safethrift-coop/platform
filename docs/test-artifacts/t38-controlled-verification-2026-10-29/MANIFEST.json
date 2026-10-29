@@ -1,0 +1,357 @@
+[
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/RESULTS.md",
+    "bytes": 7484,
+    "sha256": "716c338e1a6e35b70bd4307bd00f1544ccf783e5ad0d9b61671baa67db3999f5"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/WORKING-TREE.txt",
+    "bytes": 4310,
+    "sha256": "a17e50a03935b1d8d9660fdd508f821ae3660538eb17799c5fffff16d1454099"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/controlled-verification.py",
+    "bytes": 2942,
+    "sha256": "4eb868f599378ac46dbc2ab158b7b611055271a7d1979cccd68a24230ecc4b71"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-resource-state.json",
+    "bytes": 433,
+    "sha256": "917f360621ebc89d7c3e2044baf32ba991cf12992d319a359792b4cdd43a1e05"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-active-jobs.log",
+    "bytes": 215,
+    "sha256": "76c9a278330040e7a582bbcd4169e6ae8e6a5e75118bd667fde0874546feedb2"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-active-jobs.log.txt",
+    "bytes": 215,
+    "sha256": "76c9a278330040e7a582bbcd4169e6ae8e6a5e75118bd667fde0874546feedb2"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-active-migrations.log",
+    "bytes": 1453,
+    "sha256": "e0638239a731df84c524536ad9728614fdf5ff5da1f4ca948b28e1673da86272"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-active-migrations.log.txt",
+    "bytes": 1453,
+    "sha256": "e0638239a731df84c524536ad9728614fdf5ff5da1f4ca948b28e1673da86272"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-active.json",
+    "bytes": 1434,
+    "sha256": "002a9ed436ac4d78cac0a8f6aca9d2b74cab3eac781de2e122d2d667c6edcb99"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-active.log",
+    "bytes": 3853,
+    "sha256": "487e5dbe79e3c7e256d6fe477f3f48728c870cead138d8bf4fef292806765df9"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-active.log.txt",
+    "bytes": 3853,
+    "sha256": "487e5dbe79e3c7e256d6fe477f3f48728c870cead138d8bf4fef292806765df9"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-checks.py",
+    "bytes": 3655,
+    "sha256": "5fab9746d919ebdf0caa10a7b6b08942a1a3fc275d31312499e3e0b3ec6f5e85"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-payload-jobs.log",
+    "bytes": 215,
+    "sha256": "76c9a278330040e7a582bbcd4169e6ae8e6a5e75118bd667fde0874546feedb2"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-payload-jobs.log.txt",
+    "bytes": 215,
+    "sha256": "76c9a278330040e7a582bbcd4169e6ae8e6a5e75118bd667fde0874546feedb2"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-payload-migrations.log",
+    "bytes": 1454,
+    "sha256": "980a0b4a78fc60d51b5ca9970a4cf7e4416cc236ef8d39858cf0bfc8e55f8c68"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-payload-migrations.log.txt",
+    "bytes": 1454,
+    "sha256": "980a0b4a78fc60d51b5ca9970a4cf7e4416cc236ef8d39858cf0bfc8e55f8c68"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-payload.json",
+    "bytes": 1404,
+    "sha256": "bbcab788a4a2389a175fc61feae07c30e071071462c5c7548a3315040d42586f"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-payload.log",
+    "bytes": 3904,
+    "sha256": "cc16804d2bb557547793eaa4bddf2099e540ab106ef4a56859ca37dc2ab01558"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-payload.log.txt",
+    "bytes": 3904,
+    "sha256": "cc16804d2bb557547793eaa4bddf2099e540ab106ef4a56859ca37dc2ab01558"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-scope-jobs.log",
+    "bytes": 215,
+    "sha256": "76c9a278330040e7a582bbcd4169e6ae8e6a5e75118bd667fde0874546feedb2"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-scope-jobs.log.txt",
+    "bytes": 215,
+    "sha256": "76c9a278330040e7a582bbcd4169e6ae8e6a5e75118bd667fde0874546feedb2"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-scope-migrations.log",
+    "bytes": 1452,
+    "sha256": "36c308fb79962b9dc39587999da8a07d9305c5f77ade41d4a29620aabee573fe"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-scope-migrations.log.txt",
+    "bytes": 1452,
+    "sha256": "36c308fb79962b9dc39587999da8a07d9305c5f77ade41d4a29620aabee573fe"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-scope.json",
+    "bytes": 1402,
+    "sha256": "36d6f6abe6658061183a0c0b2d351f70f82c97bb9740fcce0cb07420f1cf8939"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-scope.log",
+    "bytes": 4929,
+    "sha256": "12a529193fac4f89c3863f105d541be830a7da8cb7024c850b3d81ddca9188bc"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-scope.log.txt",
+    "bytes": 4929,
+    "sha256": "12a529193fac4f89c3863f105d541be830a7da8cb7024c850b3d81ddca9188bc"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-unknown-jobs.log",
+    "bytes": 215,
+    "sha256": "76c9a278330040e7a582bbcd4169e6ae8e6a5e75118bd667fde0874546feedb2"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-unknown-jobs.log.txt",
+    "bytes": 215,
+    "sha256": "76c9a278330040e7a582bbcd4169e6ae8e6a5e75118bd667fde0874546feedb2"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-unknown-migrations.log",
+    "bytes": 1454,
+    "sha256": "2fa4a6f0d7a8db7f5e7d5001d51e7ad48540cdd0607b0a0cb756fc68f6357c96"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-unknown-migrations.log.txt",
+    "bytes": 1454,
+    "sha256": "2fa4a6f0d7a8db7f5e7d5001d51e7ad48540cdd0607b0a0cb756fc68f6357c96"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-unknown.json",
+    "bytes": 1404,
+    "sha256": "63e7f092a67e644f3675cc3c111dac143be2eb60244d3ac74cb7b76f1c195775"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-unknown.log",
+    "bytes": 3072,
+    "sha256": "4532dee0e0582c6a9d7c3bef65da696112205595ae283fe094d737cadae589aa"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-unknown.log.txt",
+    "bytes": 3072,
+    "sha256": "4532dee0e0582c6a9d7c3bef65da696112205595ae283fe094d737cadae589aa"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/postgres-server.log.txt",
+    "bytes": 25405,
+    "sha256": "6daba388dd13a16f7a299197e9e4149ccda9c443bed16d178e02a6f60ddcd18b"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/preflight-database.json",
+    "bytes": 73,
+    "sha256": "3df8baeb6a14bc56c15ef6a7074e2761fc68d8e7f26927c8417f2e397e533e0e"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/preservation-regressions.py",
+    "bytes": 2384,
+    "sha256": "ea3e26da6f17717dd2fbfc73c55e253be1619cbf178327e53d0daeea5ffd6273"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/regression-api-unit.log",
+    "bytes": 238,
+    "sha256": "f12d6d301222a4ef0323ca5915f1d3828891679b6b480225d353166be79942a2"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/regression-api-unit.log.txt",
+    "bytes": 238,
+    "sha256": "f12d6d301222a4ef0323ca5915f1d3828891679b6b480225d353166be79942a2"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/regression-t36-install.log",
+    "bytes": 198,
+    "sha256": "53819814031a52de642b4cc0749f194ca68dbbecc6f82743cf3ad359956c250f"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/regression-t36-install.log.txt",
+    "bytes": 198,
+    "sha256": "53819814031a52de642b4cc0749f194ca68dbbecc6f82743cf3ad359956c250f"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/regression-t36-reminders.log",
+    "bytes": 5564,
+    "sha256": "2f228ca6f21c1b960275d51f17a530c807497772d413466b66cd36a64a14a1f0"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/regression-t36-reminders.log.txt",
+    "bytes": 5564,
+    "sha256": "2f228ca6f21c1b960275d51f17a530c807497772d413466b66cd36a64a14a1f0"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/regression-t37-auth.log",
+    "bytes": 474,
+    "sha256": "a767de5c968f6b65b3e49756ffedacbbdc64e7a4ca17a5788b41dbe24a95ab9a"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/regression-t37-auth.log.txt",
+    "bytes": 474,
+    "sha256": "a767de5c968f6b65b3e49756ffedacbbdc64e7a4ca17a5788b41dbe24a95ab9a"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/regression-t40-registration.log",
+    "bytes": 472,
+    "sha256": "1877a829bce213c7c12f1d7ca37c9b752069daccafaddd33d3574db9bcee65ac"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/regression-t40-registration.log.txt",
+    "bytes": 472,
+    "sha256": "1877a829bce213c7c12f1d7ca37c9b752069daccafaddd33d3574db9bcee65ac"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/regression-t41-dashboard.log",
+    "bytes": 464,
+    "sha256": "9e7a10c0b672e461e1ac8894b741c1b379bdba59330365bbf90bdfd3cf8afee7"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/regression-t41-dashboard.log.txt",
+    "bytes": 464,
+    "sha256": "9e7a10c0b672e461e1ac8894b741c1b379bdba59330365bbf90bdfd3cf8afee7"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/regression-t42-loans.log",
+    "bytes": 2921,
+    "sha256": "ee7bdd0c335c374c99e5e856b16e364e97db47dc1b266c35e7054d02a7d5aab5"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/regression-t42-loans.log.txt",
+    "bytes": 2921,
+    "sha256": "ee7bdd0c335c374c99e5e856b16e364e97db47dc1b266c35e7054d02a7d5aab5"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/regressions.json",
+    "bytes": 1783,
+    "sha256": "5165c0b5dfa93353b72e8e9e6f50b0ae767938a1636b298c5e31360d8f313523"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/run-1-delayed-state.json",
+    "bytes": 419,
+    "sha256": "5375ba1cdbe45019f5927d99ece5500f450e5bcf30a07372ef8d6bccdbc73408"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/run-1.json",
+    "bytes": 1026,
+    "sha256": "42c723bc828c88d791da115a4a2e66b13dd2b788a5a90a414c23281431cd96b3"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/run-1.log",
+    "bytes": 6010,
+    "sha256": "350c5abf862beb9f141ccefd580534361a8eccf8f22a9ff94566f2017e46cdd4"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/run-1.log.txt",
+    "bytes": 6010,
+    "sha256": "350c5abf862beb9f141ccefd580534361a8eccf8f22a9ff94566f2017e46cdd4"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/run-2-delayed-state.json",
+    "bytes": 419,
+    "sha256": "674593c319870566677f643e036813a02af4807163e522cfaafa5cbf387a2060"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/run-2.json",
+    "bytes": 1025,
+    "sha256": "d87a257afee3dc3914dbcd30e9b6e2d3a754d0614e7510aac221b12cf5b3648b"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/run-2.log",
+    "bytes": 6006,
+    "sha256": "2621105a30e1f0e92b94625d31b038dee350a5392ad8e1ffabd5a3defee050b8"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/run-2.log.txt",
+    "bytes": 6006,
+    "sha256": "2621105a30e1f0e92b94625d31b038dee350a5392ad8e1ffabd5a3defee050b8"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/run-3-delayed-state.json",
+    "bytes": 419,
+    "sha256": "4b5930374d016197eea83b97a23d377838f6b7fdbcb1984f06edb1ee56e1e08e"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/run-3.json",
+    "bytes": 1025,
+    "sha256": "7c2e01751b4435bb522697daae066328abd1f2d13191284e35e9e08c9f068334"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/run-3.log",
+    "bytes": 6006,
+    "sha256": "acbd6385405ada7586f7c77dd142bac3c28f821235b4ed7693c532a71e519ff7"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/run-3.log.txt",
+    "bytes": 6006,
+    "sha256": "acbd6385405ada7586f7c77dd142bac3c28f821235b4ed7693c532a71e519ff7"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/run-4-delayed-state.json",
+    "bytes": 419,
+    "sha256": "16d06d14920ce530a7bcfcb56cc00f3ae7efb7d4b1ee4bccb6258399d2cbe49b"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/run-4.json",
+    "bytes": 1026,
+    "sha256": "78feb2d0ca60eb7d33f07400bb5e7e0b71b94d88543e861c0045d18638489b1f"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/run-4.log",
+    "bytes": 6010,
+    "sha256": "0b0266b921e8b9e4c48d233a288a05d7feee68a24b90c551d5c9433bc29c8aea"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/run-4.log.txt",
+    "bytes": 6010,
+    "sha256": "0b0266b921e8b9e4c48d233a288a05d7feee68a24b90c551d5c9433bc29c8aea"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/run-5-delayed-state.json",
+    "bytes": 419,
+    "sha256": "5b73d59ac1a354ecccf6c2c844f500f08527945fb90dd2786700465b64e8220c"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/run-5.json",
+    "bytes": 1026,
+    "sha256": "3f2c273800272951f9bad00887f163ffa0c90edf916e209bf3b4df550b01f1a9"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/run-5.log",
+    "bytes": 6012,
+    "sha256": "9a0543380db719544f63e6330f72fb619858f2ddcd7c24d5721003a87927f410"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/run-5.log.txt",
+    "bytes": 6012,
+    "sha256": "9a0543380db719544f63e6330f72fb619858f2ddcd7c24d5721003a87927f410"
+  }
+]

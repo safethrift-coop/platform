@@ -1,0 +1,27 @@
+{
+  "sessions": [],
+  "queues": [
+    {
+      "name": "t38-dead",
+      "state": "created",
+      "count": 5
+    },
+    {
+      "name": "t38-evidence",
+      "state": "completed",
+      "count": 5
+    },
+    {
+      "name": "t38-evidence",
+      "state": "cancelled",
+      "count": 65
+    },
+    {
+      "name": "t38-evidence",
+      "state": "failed",
+      "count": 5
+    }
+  ],
+  "nonterminal": [],
+  "schema": 46
+}

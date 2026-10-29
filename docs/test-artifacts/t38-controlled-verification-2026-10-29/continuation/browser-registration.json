@@ -1,0 +1,10 @@
+{
+  "command": [
+    "pnpm",
+    "--filter",
+    "@safethrift/web",
+    "test:registration:browser"
+  ],
+  "exit_code": 1,
+  "seconds": 7.232820155000127
+}

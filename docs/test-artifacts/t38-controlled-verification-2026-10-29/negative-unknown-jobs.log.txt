@@ -1,0 +1,5 @@
+
+> @safethrift/api@0.0.1 payments:jobs:migrate /home/princewill/Projects/safethrift-coop/platform/apps/api
+> node scripts/migrate-payment-jobs.mjs
+
+Verified pg-boss 12.38.0 schema version 46; no automatic upgrades.

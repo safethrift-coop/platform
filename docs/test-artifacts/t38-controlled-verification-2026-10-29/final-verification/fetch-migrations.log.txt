@@ -1,0 +1,41 @@
+
+> @safethrift/prisma@0.0.1 migrate:deploy /home/princewill/Projects/safethrift-coop/platform/packages/prisma
+> pnpm exec prisma migrate deploy
+
+Datasource "db": PostgreSQL database "safethrift_t38_recovery_final_fetch_20261029_test", schema "public" at "127.0.0.1:55439"
+
+8 migrations found in prisma/migrations
+
+Applying migration `20260421015703_init_all_21_tables`
+Applying migration `20260424024727_add_password_hash_to_members`
+Applying migration `20261024010000_restore_compliance_flags`
+Applying migration `20261024010100_savings_transaction_safety`
+Applying migration `20261025010000_member_admin_authority`
+Applying migration `20261025020000_reminder_delivery`
+Applying migration `20261026010000_payment_webhook_evidence`
+Applying migration `20261027010000_membership_application_submission`
+
+The following migration(s) have been applied:
+
+migrations/
+  └─ 20260421015703_init_all_21_tables/
+    └─ migration.sql
+  └─ 20260424024727_add_password_hash_to_members/
+    └─ migration.sql
+  └─ 20261024010000_restore_compliance_flags/
+    └─ migration.sql
+  └─ 20261024010100_savings_transaction_safety/
+    └─ migration.sql
+  └─ 20261025010000_member_admin_authority/
+    └─ migration.sql
+  └─ 20261025020000_reminder_delivery/
+    └─ migration.sql
+  └─ 20261026010000_payment_webhook_evidence/
+    └─ migration.sql
+  └─ 20261027010000_membership_application_submission/
+    └─ migration.sql
+
+All migrations have been successfully applied.
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma/schema.prisma.

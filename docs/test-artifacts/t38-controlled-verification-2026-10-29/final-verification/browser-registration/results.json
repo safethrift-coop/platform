@@ -1,0 +1,11 @@
+{
+  "individual": true,
+  "family": true,
+  "conditionalHouseholdCleared": true,
+  "receiptRecovery": true,
+  "keyboard": true,
+  "axeViolations": 0,
+  "mobileOverflow": false,
+  "browserStorageEntries": 0,
+  "sensitiveDataInUrls": false
+}

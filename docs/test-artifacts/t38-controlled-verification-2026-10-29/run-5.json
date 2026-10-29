@@ -1,0 +1,45 @@
+{
+  "run": 5,
+  "exit_code": 0,
+  "duration_seconds": 14.236600750000434,
+  "target_diagnostics": [
+    "{\"jobId\":\"e3c4ab9b-d261-4018-aecd-ebe8348b2b4b\",\"eventId\":\"3e8c0bda-34ef-474e-9eb0-26569bc73fd4\",\"state\":\"completed\",\"retryCount\":2}"
+  ],
+  "recovery_evidence": [
+    {
+      "event_id": "3e8c0bda-34ef-474e-9eb0-26569bc73fd4",
+      "job_id": "e3c4ab9b-d261-4018-aecd-ebe8348b2b4b",
+      "business_status": "quarantined",
+      "broker_state": "completed",
+      "retry_count": 2,
+      "observations": 1
+    }
+  ],
+  "post_state": {
+    "sessions": [],
+    "queues": [
+      {
+        "name": "t38-dead",
+        "state": "created",
+        "count": 5
+      },
+      {
+        "name": "t38-evidence",
+        "state": "completed",
+        "count": 5
+      },
+      {
+        "name": "t38-evidence",
+        "state": "cancelled",
+        "count": 65
+      },
+      {
+        "name": "t38-evidence",
+        "state": "failed",
+        "count": 5
+      }
+    ],
+    "nonterminal": [],
+    "schema": 46
+  }
+}

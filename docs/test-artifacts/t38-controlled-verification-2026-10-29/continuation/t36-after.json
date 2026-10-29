@@ -1,0 +1,13 @@
+{
+  "command": [
+    "psql",
+    "postgresql://princewill@127.0.0.1:55439/safethrift_preservation_continuation_20261029_test",
+    "-XAt",
+    "-v",
+    "ON_ERROR_STOP=1",
+    "-c",
+    "SELECT json_build_object('version',(SELECT version FROM t36_jobs.version),'jobs',(SELECT count(*) FROM t36_jobs.job),'relations',(SELECT array_agg(relname ORDER BY relname) FROM pg_class WHERE relnamespace='t36_jobs'::regnamespace))"
+  ],
+  "exit_code": 0,
+  "seconds": 0.13073762999999872
+}

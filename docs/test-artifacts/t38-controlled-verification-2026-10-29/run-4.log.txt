@@ -1,0 +1,132 @@
+
+> @safethrift/api@0.0.1 test:payment-webhooks /home/princewill/Projects/safethrift-coop/platform/apps/api
+> node --test test/payment-webhooks.integration.test.mjs
+
+TAP version 13
+# [Nest] 129856  - 10/29/2026, 11:49:22 AM     LOG [PrismaService] Database connected
+# Subtest: T38 isolated real PostgreSQL intake and evidence
+    # Subtest: verifies actual HTTP raw bytes, rejects tampering, unsigned and oversized bodies
+    ok 1 - verifies actual HTTP raw bytes, rejects tampering, unsigned and oversized bodies
+      ---
+      duration_ms: 511.662702
+      type: 'test'
+      ...
+    # Cancelling owned fixture job 49a83556-8afb-4e5c-8c8b-cfa66561d6ec from created
+    # Subtest: rejects replay outside Stripe tolerance, live mode, wrong account, wrong organisation and wrong secret
+    ok 2 - rejects replay outside Stripe tolerance, live mode, wrong account, wrong organisation and wrong secret
+      ---
+      duration_ms: 163.476197
+      type: 'test'
+      ...
+    # Subtest: deduplicates concurrent deliveries, repeated processing and queue deletion replays
+    ok 3 - deduplicates concurrent deliveries, repeated processing and queue deletion replays
+      ---
+      duration_ms: 269.850381
+      type: 'test'
+      ...
+    # Subtest: stores a multi-event GoCardless batch atomically, including duplicate and unknown events
+    ok 4 - stores a multi-event GoCardless batch atomically, including duplicate and unknown events
+      ---
+      duration_ms: 222.175947
+      type: 'test'
+      ...
+    # Cancelling owned fixture job 2c6a74f8-e00a-48bb-a188-93070882ec01 from created
+    # Cancelling owned fixture job be726a4f-04ed-45f2-88c8-5199687a16b1 from created
+    # Subtest: quarantines contradictory/out-of-order collection, payout and failure facts without overwriting history
+    ok 5 - quarantines contradictory/out-of-order collection, payout and failure facts without overwriting history
+      ---
+      duration_ms: 260.168281
+      type: 'test'
+      ...
+    # Cancelling owned fixture job 47621d49-c4ae-4c1c-82cc-77cd915ccd89 from created
+    # Cancelling owned fixture job 897e5c05-e3e8-4a68-8f75-35b8da6d4688 from created
+    # Cancelling owned fixture job 6f3df048-0003-4501-be7f-9d8dc16c2c18 from created
+    # Subtest: preserves completion/refund/dispute observations separately and never infers settlement
+    ok 6 - preserves completion/refund/dispute observations separately and never infers settlement
+      ---
+      duration_ms: 227.316157
+      type: 'test'
+      ...
+    # Cancelling owned fixture job 6cdf8ffc-46b2-4649-b68d-8a641154bf09 from created
+    # Cancelling owned fixture job 262103c8-c45c-4038-a47e-012f2b69395e from created
+    # Cancelling owned fixture job 95a9da74-9a77-4f21-93e8-fc58a9b5ed55 from created
+    # Subtest: rolls back all batch events, delivery and queued work on enqueue failure
+    ok 7 - rolls back all batch events, delivery and queued work on enqueue failure
+      ---
+      duration_ms: 75.300106
+      type: 'test'
+      ...
+    # Subtest: returns HTTP 503 and rolls back events/jobs when the final receipt cannot commit
+    ok 8 - returns HTTP 503 and rolls back events/jobs when the final receipt cannot commit
+      ---
+      duration_ms: 86.088722
+      type: 'test'
+      ...
+    # Subtest: rolls back observation insertion when final event update fails
+    ok 9 - rolls back observation insertion when final event update fails
+      ---
+      duration_ms: 123.89329
+      type: 'test'
+      ...
+    # Cancelling owned fixture job 6760e94e-bb6a-4532-bf50-4fc00dd40949 from created
+    # Subtest: recovers missing jobs once under concurrent recovery and bounds recovery generations
+    ok 10 - recovers missing jobs once under concurrent recovery and bounds recovery generations
+      ---
+      duration_ms: 275.866488
+      type: 'test'
+      ...
+    # Subtest: persists worker failure, expiration retry and successful recovery using real pg-boss
+    ok 11 - persists worker failure, expiration retry and successful recovery using real pg-boss
+      ---
+      duration_ms: 2054.358829
+      type: 'test'
+      ...
+    # Recovery target: {"jobId":"f1e5a5f4-731b-4c61-9a17-b4d8cb822396","eventId":"db8af901-0e56-46e9-8ee8-902624639c5c","state":"completed","retryCount":2}
+    # Subtest: retains exhausted processing in review and dead-letter storage without infinite requeues
+    ok 12 - retains exhausted processing in review and dead-letter storage without infinite requeues
+      ---
+      duration_ms: 205.636713
+      type: 'test'
+      ...
+    # Subtest: preserves identity collisions for review and prevents conflicting reprocessing
+    ok 13 - preserves identity collisions for review and prevents conflicting reprocessing
+      ---
+      duration_ms: 190.229066
+      type: 'test'
+      ...
+    # Cancelling owned fixture job b6639be8-edd5-4ccb-b10d-341535155ffb from created
+    # Subtest: rejects cross-scope evidence at the database boundary and preserves all non-T38 rows
+    ok 14 - rejects cross-scope evidence at the database boundary and preserves all non-T38 rows
+      ---
+      duration_ms: 129.722135
+      type: 'test'
+      ...
+    # Cancelling owned fixture job c772832d-d74c-4296-9f68-cb49cbc683ce from created
+    # Subtest: fails closed when disabled or scope changes while work is queued
+    ok 15 - fails closed when disabled or scope changes while work is queued
+      ---
+      duration_ms: 103.813044
+      type: 'test'
+      ...
+    # Cancelling owned fixture job 9d4e9340-6ae5-4728-aff4-acc0e5a00e22 from created
+    # Subtest: starts only T38 schedules and drains a real Nest worker context before disconnect
+    ok 16 - starts only T38 schedules and drains a real Nest worker context before disconnect
+      ---
+      duration_ms: 374.009196
+      type: 'test'
+      ...
+    1..16
+ok 1 - T38 isolated real PostgreSQL intake and evidence
+  ---
+  duration_ms: 6399.955017
+  type: 'suite'
+  ...
+1..1
+# tests 16
+# suites 1
+# pass 16
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 8924.545375

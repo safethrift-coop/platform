@@ -1,0 +1,39 @@
+
+> @safethrift/api@0.0.1 test:e2e /home/princewill/Projects/safethrift-coop/platform/apps/api
+> jest --config ./test/jest-e2e.json --runInBand --runTestsByPath test/loans.integration.e2e-spec.ts
+
+[Nest] 138136  - 10/29/2026, 11:54:50 AM     LOG [PrismaService] Database connected
+/home/princewill/Projects/safethrift-coop/platform/apps/api:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @safethrift/api@0.0.1 test:e2e: `jest --config ./test/jest-e2e.json --runInBand --runTestsByPath test/loans.integration.e2e-spec.ts`
+Exit status 1
+FAIL test/loans.integration.e2e-spec.ts (11.244 s)
+  ● T42 loan foundation — real PostgreSQL, JWT and Redis › preserves every fixture financial/approval row and pg-boss job during direct HTTP denial
+
+    PrismaClientKnownRequestError: 
+    Invalid `prisma.$queryRaw()` invocation:
+
+
+    Raw query failed. Code: `42P01`. Message: `relation "t38_jobs.job" does not exist`
+
+      550 |               await tx.$queryRaw`SELECT to_jsonb(j) AS row FROM t36_jobs.job j ORDER BY id`,
+      551 |             paymentJobs:
+    > 552 |               await tx.$queryRaw`SELECT to_jsonb(j) AS row FROM t38_jobs.job j ORDER BY id`,
+          |               ^
+      553 |           }),
+      554 |           { isolationLevel: 'RepeatableRead' },
+      555 |         ),
+
+      at Gr.handleRequestError (../../../node_modules/.pnpm/@prisma+client@7.7.0_prisma@7.8.0_@types+react-dom@19.2.3_@types+react@19.2.14__@types+_5ee24cfb20651cf35b892075790aa693/node_modules/@prisma/client/src/runtime/RequestHandler.ts:237:13)
+      at Gr.handleAndLogRequestError (../../../node_modules/.pnpm/@prisma+client@7.7.0_prisma@7.8.0_@types+react-dom@19.2.3_@types+react@19.2.14__@types+_5ee24cfb20651cf35b892075790aa693/node_modules/@prisma/client/src/runtime/RequestHandler.ts:183:12)
+      at Gr.request (../../../node_modules/.pnpm/@prisma+client@7.7.0_prisma@7.8.0_@types+react-dom@19.2.3_@types+react@19.2.14__@types+_5ee24cfb20651cf35b892075790aa693/node_modules/@prisma/client/src/runtime/RequestHandler.ts:152:12)
+      at a (../../../node_modules/.pnpm/@prisma+client@7.7.0_prisma@7.8.0_@types+react-dom@19.2.3_@types+react@19.2.14__@types+_5ee24cfb20651cf35b892075790aa693/node_modules/@prisma/client/src/runtime/getPrismaClient.ts:938:24)
+      at JSON.stringify.database.$transaction.isolationLevel (loans.integration.e2e-spec.ts:552:15)
+      at Proxy._transactionWithCallback (../../../node_modules/.pnpm/@prisma+client@7.7.0_prisma@7.8.0_@types+react-dom@19.2.3_@types+react@19.2.14__@types+_5ee24cfb20651cf35b892075790aa693/node_modules/@prisma/client/src/runtime/getPrismaClient.ts:785:18)
+      at snapshot (loans.integration.e2e-spec.ts:501:9)
+      at Object.<anonymous> (loans.integration.e2e-spec.ts:558:22)
+
+Test Suites: 1 failed, 1 total
+Tests:       1 failed, 5 passed, 6 total
+Snapshots:   0 total
+Time:        12.171 s
+Ran all test suites within paths "test/loans.integration.e2e-spec.ts".

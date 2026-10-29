@@ -1,0 +1,12 @@
+{
+  "command": [
+    "pnpm",
+    "--filter",
+    "@safethrift/api",
+    "exec",
+    "eslint",
+    "test/loans.integration.e2e-spec.ts"
+  ],
+  "exit_code": 0,
+  "seconds": 32.93441381999992
+}

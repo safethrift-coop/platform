@@ -1,0 +1,10 @@
+{
+  "command": [
+    "pnpm",
+    "--filter",
+    "@safethrift/web",
+    "test:loans:browser"
+  ],
+  "exit_code": 0,
+  "seconds": 75.15055797600007
+}

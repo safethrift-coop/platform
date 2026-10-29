@@ -1,0 +1,18 @@
+{
+  "branch": "main",
+  "index_empty": true,
+  "approved_patch_hash_unchanged": true,
+  "tracked_diff_scope": [
+    "apps/api/test/payment-webhooks.integration.test.mjs",
+    "docs/T38-payment-webhook-evidence.md",
+    "docs/T38-worker-recovery-investigation.md",
+    "docs/T42-loan-implementation.md"
+  ],
+  "intentional_prior_report_updates": [
+    "docs/test-artifacts/t38-controlled-verification-2026-10-29/RESULTS.md",
+    "docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/RESULTS.md"
+  ],
+  "unexpected_prior_evidence_changes": [],
+  "production_or_migration_changes": [],
+  "restrictions_preserved": true
+}

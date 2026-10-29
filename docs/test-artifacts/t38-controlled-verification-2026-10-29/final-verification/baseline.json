@@ -1,0 +1,13 @@
+{
+  "branch": "main",
+  "index": [],
+  "tracked": {
+    "apps/api/test/payment-webhooks.integration.test.mjs": "9bfdf891ef525abdef046c48c22f659d17f356a4c08f3055069cf0ea8586696a",
+    "docs/T38-payment-webhook-evidence.md": "1a32cbd8b339633ea101abcd65ec47134cfe4a08f6388390ce7007a8f62ad7a7",
+    "docs/T38-worker-recovery-investigation.md": "15f65af4a900abc664ef17c0f2996dd67b4060e3b2524c3b1573747518300b46",
+    "docs/T42-loan-implementation.md": "6408add463b0381f64e72ced2495e443b43fc709a792d81d8103773823b57e33"
+  },
+  "previous_manifest_entries_checked": 116,
+  "mismatches": [],
+  "t42_tests_passed": 6
+}

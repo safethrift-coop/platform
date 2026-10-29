@@ -1,0 +1,30 @@
+{
+  "command": [
+    "node",
+    "--test",
+    "--test-name-pattern=persists worker failure|retains exhausted|preserves identity collisions|rejects cross-scope",
+    "/tmp/t38-final-fetch-diagnostic-orggsj2z/test/fetch-diagnostic.mjs"
+  ],
+  "database": "safethrift_t38_recovery_final_fetch_20261029_test",
+  "source_copy": "/tmp/t38-final-fetch-diagnostic-orggsj2z/test/fetch-diagnostic.mjs",
+  "exit_code": 1,
+  "window_seconds": 3,
+  "checks": {
+    "expected_nonzero": true,
+    "original_failure": true,
+    "active_diagnosed": true,
+    "latch_blocks": true,
+    "no_subsequent_bodies": true,
+    "worker_stop_attempt": true,
+    "monitor_stop_attempt": true,
+    "worker_cleanup_success": true,
+    "monitor_stopped": true,
+    "jobs_stopped": true,
+    "no_cancellation": true,
+    "active_retained": true,
+    "unrelated_retained": true,
+    "no_sessions": true,
+    "stable_window": true,
+    "no_observations": true
+  }
+}

@@ -503,3 +503,91 @@ minimal ownership correction before any additional application; do not weaken th
 guard or reuse historical candidate passes as current verification. T42 remains
 restricted technical foundation implemented; financial execution disabled; durable
 successful repayment replay pending; full functional completion pending.
+
+
+## 2026-10-29 controlled-verification continuation
+
+The approved ownership/recovery test remains exactly SHA-256
+`9bfdf891ef525abdef046c48c22f659d17f356a4c08f3055069cf0ea8586696a` on main.
+The five complete T38 suites and independent SQL evidence are retained. No test
+assertion, production code or migration changed in this continuation.
+
+The original temporary cluster was unavailable; a fresh dedicated preservation
+database received the eight existing application migrations and both pinned job
+installers (pg-boss 12.38.0/schema 46). T36 inventory/version/job count survived T38
+installation unchanged. Complete T42 integration now passes 6/6, including unchanged
+financial and full broker-row snapshots, ownership/role boundaries and denied
+financial execution. API build/TypeScript/relevant test lint and web TypeScript/
+ESLint/production build pass.
+
+Stopped at the first remaining blocker: T40 browser fixture rejected missing
+T40_TEST_DATABASE_URL in the continuation harness before browser assertions. No
+retry occurred. T41/T42 browser regressions and the deliberate after-manual-fetch
+failure diagnostic remain NOT RUN. Earlier active-preparation diagnostics do not
+prove the after-fetch latch acceptance conditions. Full technical acceptance remains
+incomplete; T42 has passing restricted-foundation preservation evidence without
+financial execution approval.
+
+Final database snapshots three seconds apart matched, with zero other sessions and
+zero jobs/member/loan/repayment rows. Temporary PostgreSQL/Redis stopped; fresh data
+directory retained. No new diagnostic database or active diagnostic lease was
+created. No commit/push/deployment. See
+[test evidence and exact limitations](test-artifacts/t38-controlled-verification-2026-10-29/continuation/RESULTS.md).
+This update supersedes older current-status recommendations only to the extent
+supported by the new evidence; historical attempts remain recorded above.
+
+
+## 2026-10-29 final T38/T42 local verification
+
+The approved T38 test remains SHA-256
+`9bfdf891ef525abdef046c48c22f659d17f356a4c08f3055069cf0ea8586696a` on main;
+index empty. Five prior T38 passing suites/SQL evidence, T42 preservation 6/6 and
+API/web checks remain retained. No production/migration/checked-in test changes.
+
+The corrected local harness supplied the actual T40/T41/T42 fixture database
+variables and AUTH_TEST_REDIS_URL to dedicated local services. T40 registration,
+T41 dashboard and T42 loan browser scripts each passed sequentially, with mobile,
+accessibility, memory-only storage, authorization and disabled-operation checks.
+Every post-suite database/process/port check was clean. Public registration and
+financial execution remain disabled; T41 exercised approved simulation only.
+
+A separate temporary-source after-fetch diagnostic exited 1 as expected, preserving
+DELIBERATE_AFTER_MANUAL_FETCH_FAILURE as the original error. Active recovery job
+1c64e042-4a01-41e6-a328-0e759d118805 (event
+a660bf04-1303-4bd7-ade9-a315422039ae) remains active/retry_count 0 in isolated
+safethrift_t38_recovery_final_fetch_20261029_test. All three later bodies were
+blocked by beforeEach cleanup latch; an unrelated same-queue job remained created.
+Worker cleanup and monitor stop were attempted independently; monitor/jobs stopped.
+No recovery callback worker had yet been registered. No lease cancellation, expiry
+or forced recovery occurred; no normal suite used the contaminated database.
+
+Final snapshots matched over a bounded window, with zero sessions/processes and no
+normal-database broker jobs. Temporary PostgreSQL/Redis stopped; retained cluster
+data and diagnostic source are identified in the final report. All 16 diagnostic
+checks passed. Recommend accepting the requested local T38 technical verification
+and restricted T42 foundation preservation, with no financial-execution or release
+authorization. Historical CI database-guard integration remains outside this task.
+See [final controlled-verification evidence](test-artifacts/t38-controlled-verification-2026-10-29/final-verification/RESULTS.md).
+This update supersedes older incomplete-status recommendations for these acceptance
+checks; historical evidence and limitations remain recorded above.
+
+
+## Git preservation clarification — 2026-10-29
+
+This clarification supersedes the earlier statement that dedicated T38 CI database
+setup remains unresolved. The existing checked-in `.github/workflows/ci.yml`
+already provisions `safethrift_t38_recovery_ci_test`, applies the existing
+application migrations, installs the pinned payment-job schema, and supplies that
+dedicated database to the T38 suite. No CI change is part of this preservation.
+Hosted CI execution has not been independently established by this local work.
+
+Earlier manifests are historical snapshots. Subsequent documented report/handoff
+append operations changed some hashes; historical manifests remain unmodified.
+The original replacement review's "NOT APPLIED" statement describes its
+preparation-time status. The replacement patch was subsequently applied and
+verified at the accepted T38 target hash.
+
+The 24 ignored raw `.log` files have byte-identical retained `.log.txt`
+counterparts. Those raw duplicate logs are intentionally excluded from the curated
+Git package. Historical manifests may reference those omitted raw paths and older
+report hashes; use the refreshed final manifest to validate the curated package.

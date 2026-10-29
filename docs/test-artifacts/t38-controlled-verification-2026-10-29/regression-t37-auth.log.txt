@@ -1,0 +1,10 @@
+
+> @safethrift/api@0.0.1 test:e2e /home/princewill/Projects/safethrift-coop/platform/apps/api
+> jest --config ./test/jest-e2e.json --runInBand --runTestsByPath test/auth-security.integration.e2e-spec.ts
+
+[Nest] 136168  - 10/29/2026, 11:53:30 AM     LOG [PrismaService] Database connected
+Test Suites: 1 passed, 1 total
+Tests:       10 passed, 10 total
+Snapshots:   0 total
+Time:        30.663 s
+Ran all test suites within paths "test/auth-security.integration.e2e-spec.ts".

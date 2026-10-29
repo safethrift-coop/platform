@@ -1,0 +1,12 @@
+{
+  "command": [
+    "createdb",
+    "-h",
+    "127.0.0.1",
+    "-p",
+    "55439",
+    "safethrift_browser_final_20261029_test"
+  ],
+  "exit_code": 0,
+  "seconds": 0.8807942119997278
+}

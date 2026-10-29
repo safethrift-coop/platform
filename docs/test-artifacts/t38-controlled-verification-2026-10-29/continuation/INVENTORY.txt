@@ -1,0 +1,113 @@
+git status --short
+ M apps/api/test/payment-webhooks.integration.test.mjs
+ M docs/T38-payment-webhook-evidence.md
+ M docs/T38-worker-recovery-investigation.md
+ M docs/T42-loan-implementation.md
+?? docs/test-artifacts/t38-controlled-verification-2026-10-29/
+?? docs/test-artifacts/t38-ownership-recovery-replacement-2026-10-29/
+
+
+git diff --name-only
+apps/api/test/payment-webhooks.integration.test.mjs
+docs/T38-payment-webhook-evidence.md
+docs/T38-worker-recovery-investigation.md
+docs/T42-loan-implementation.md
+
+
+git diff --cached --name-only
+
+
+git ls-files --others --exclude-standard
+docs/test-artifacts/t38-controlled-verification-2026-10-29/MANIFEST.json
+docs/test-artifacts/t38-controlled-verification-2026-10-29/RESULTS.md
+docs/test-artifacts/t38-controlled-verification-2026-10-29/WORKING-TREE.txt
+docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/INVENTORY.txt
+docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/MANIFEST.json
+docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/RESULTS.md
+docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/api-build.json
+docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/api-build.log.txt
+docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/api-lint.json
+docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/api-lint.log.txt
+docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/api-types.json
+docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/api-types.log.txt
+docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/browser-registration.json
+docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/browser-registration.log.txt
+docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/final-resource-state.json
+docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/final-resources.py
+docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/identity.json
+docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/identity.log.txt
+docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/postgres-server.log.txt
+docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/postgres-stop.log.txt
+docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/prior-evidence-integrity.json
+docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/process-inventory.log.txt
+docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/provisioned.json
+docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/provisioned.log.txt
+docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/redis-final.log.txt
+docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/redis-stop.log.txt
+docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/relevant-processes.log.txt
+docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/resource-delayed.log.txt
+docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/resource-immediate.log.txt
+docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/t36-after.json
+docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/t36-after.log.txt
+docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/t36-before.json
+docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/t36-before.log.txt
+docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/t36-install.json
+docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/t36-install.log.txt
+docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/t38-install.json
+docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/t38-install.log.txt
+docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/t42-loans.json
+docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/t42-loans.log.txt
+docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/verify.py
+docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/web-build.json
+docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/web-build.log.txt
+docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/web-eslint.json
+docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/web-eslint.log.txt
+docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/web-types.json
+docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/web-types.log.txt
+docs/test-artifacts/t38-controlled-verification-2026-10-29/controlled-verification.py
+docs/test-artifacts/t38-controlled-verification-2026-10-29/final-resource-state.json
+docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-active-jobs.log.txt
+docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-active-migrations.log.txt
+docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-active.json
+docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-active.log.txt
+docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-checks.py
+docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-payload-jobs.log.txt
+docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-payload-migrations.log.txt
+docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-payload.json
+docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-payload.log.txt
+docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-scope-jobs.log.txt
+docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-scope-migrations.log.txt
+docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-scope.json
+docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-scope.log.txt
+docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-unknown-jobs.log.txt
+docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-unknown-migrations.log.txt
+docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-unknown.json
+docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-unknown.log.txt
+docs/test-artifacts/t38-controlled-verification-2026-10-29/postgres-server.log.txt
+docs/test-artifacts/t38-controlled-verification-2026-10-29/preflight-database.json
+docs/test-artifacts/t38-controlled-verification-2026-10-29/preservation-regressions.py
+docs/test-artifacts/t38-controlled-verification-2026-10-29/regression-api-unit.log.txt
+docs/test-artifacts/t38-controlled-verification-2026-10-29/regression-t36-install.log.txt
+docs/test-artifacts/t38-controlled-verification-2026-10-29/regression-t36-reminders.log.txt
+docs/test-artifacts/t38-controlled-verification-2026-10-29/regression-t37-auth.log.txt
+docs/test-artifacts/t38-controlled-verification-2026-10-29/regression-t40-registration.log.txt
+docs/test-artifacts/t38-controlled-verification-2026-10-29/regression-t41-dashboard.log.txt
+docs/test-artifacts/t38-controlled-verification-2026-10-29/regression-t42-loans.log.txt
+docs/test-artifacts/t38-controlled-verification-2026-10-29/regressions.json
+docs/test-artifacts/t38-controlled-verification-2026-10-29/run-1-delayed-state.json
+docs/test-artifacts/t38-controlled-verification-2026-10-29/run-1.json
+docs/test-artifacts/t38-controlled-verification-2026-10-29/run-1.log.txt
+docs/test-artifacts/t38-controlled-verification-2026-10-29/run-2-delayed-state.json
+docs/test-artifacts/t38-controlled-verification-2026-10-29/run-2.json
+docs/test-artifacts/t38-controlled-verification-2026-10-29/run-2.log.txt
+docs/test-artifacts/t38-controlled-verification-2026-10-29/run-3-delayed-state.json
+docs/test-artifacts/t38-controlled-verification-2026-10-29/run-3.json
+docs/test-artifacts/t38-controlled-verification-2026-10-29/run-3.log.txt
+docs/test-artifacts/t38-controlled-verification-2026-10-29/run-4-delayed-state.json
+docs/test-artifacts/t38-controlled-verification-2026-10-29/run-4.json
+docs/test-artifacts/t38-controlled-verification-2026-10-29/run-4.log.txt
+docs/test-artifacts/t38-controlled-verification-2026-10-29/run-5-delayed-state.json
+docs/test-artifacts/t38-controlled-verification-2026-10-29/run-5.json
+docs/test-artifacts/t38-controlled-verification-2026-10-29/run-5.log.txt
+docs/test-artifacts/t38-ownership-recovery-replacement-2026-10-29/REVIEW.md
+docs/test-artifacts/t38-ownership-recovery-replacement-2026-10-29/candidate.patch

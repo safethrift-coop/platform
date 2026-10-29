@@ -1,0 +1,772 @@
+[
+  {
+    "path": "docs/T38-payment-webhook-evidence.md",
+    "bytes": 22956,
+    "sha256": "3de4a9694459e6a37be2e60419de50c28cedd3051c644255f286d94b23a245ee"
+  },
+  {
+    "path": "docs/T38-worker-recovery-investigation.md",
+    "bytes": 29080,
+    "sha256": "91ce955a6329f9316d89c5d0db546c67a8d58c9b89c9be72b7668fb282674d69"
+  },
+  {
+    "path": "docs/T42-loan-implementation.md",
+    "bytes": 40506,
+    "sha256": "7d0e27c0136f5aad0590f9bce199022fa3651486129cc458f824fd84081964f5"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/MANIFEST.json",
+    "bytes": 14619,
+    "sha256": "be9944cab7c287fa576f765cb27d80c2f1b1a85293d8d14806d3d21c4f0ae5b2"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/RESULTS.md",
+    "bytes": 8868,
+    "sha256": "9633fc553cf064135d5d5befbc07af6a5a11a9327f386eb17fc3343a96dbb327"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/WORKING-TREE.txt",
+    "bytes": 4310,
+    "sha256": "a17e50a03935b1d8d9660fdd508f821ae3660538eb17799c5fffff16d1454099"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/INVENTORY.txt",
+    "bytes": 8599,
+    "sha256": "dc5a14c21dcc97109819bb5870750738c9b84e49b771199aaa06eb50b3601c64"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/MANIFEST.json",
+    "bytes": 9665,
+    "sha256": "884f23e3c64c9da825b71aa8d999e73ed0291e650ec60f397b97d4240ac745e4"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/RESULTS.md",
+    "bytes": 7212,
+    "sha256": "8cca45880575d747d66997229f38a363ef660e0cf3b22ae98eda432997e1213c"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/api-build.json",
+    "bytes": 135,
+    "sha256": "65001c2e8be528beb4e52cc93add37381b5677a3442318cf7f24e79a4b5fce91"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/api-build.log.txt",
+    "bytes": 105,
+    "sha256": "fca51c2f7b710b8f9798d789e87818bace2eb81a744a9ac4defdb84f5f3424dc"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/api-lint.json",
+    "bytes": 190,
+    "sha256": "77bfd83c5210d2e8944ce0125db36e89af55c566d68f8278b929161ce41fa5ed"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/api-lint.log.txt",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/api-types.json",
+    "bytes": 161,
+    "sha256": "28a69ad7dc124dec19d19f521f972ee4b961db9931a0e974e7f063515f34b257"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/api-types.log.txt",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/browser-registration.json",
+    "bytes": 155,
+    "sha256": "ca425801ef4feb31f3608fefd71b5c815847ae678b946cf19cd1d64de43f9d3e"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/browser-registration.log.txt",
+    "bytes": 1588,
+    "sha256": "7cccc14587130b25784428ac3da17f7c90698d39da305eb999e9c8e7391c0186"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/final-resource-state.json",
+    "bytes": 602,
+    "sha256": "af03bee03bc2febeb3215afa0fb3750aea40d570b97df03b125faa5274c37664"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/final-resources.py",
+    "bytes": 2275,
+    "sha256": "5214e4c747ce2a892e78141b5718fd8ae41bb0940b8788e28d82cf45cb51187c"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/identity.json",
+    "bytes": 449,
+    "sha256": "938dad1064951aa191360d9085a03d561f632042b7229dd0c4f4395dff604ec7"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/identity.log.txt",
+    "bytes": 130,
+    "sha256": "3550057bcf17f85b7bce978319b6f2c265f5a7c5377d949e399154aa6f4d0c76"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/postgres-server.log.txt",
+    "bytes": 2234,
+    "sha256": "febfb0184454f5a31bf3b59ef748eb2328b03e37f7889eac0c27943138553556"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/postgres-stop.log.txt",
+    "bytes": 56,
+    "sha256": "ca19178a35ab4153b75b494963b66ce8243e1b94c173107c87b44d09db23652d"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/prior-evidence-integrity.json",
+    "bytes": 45,
+    "sha256": "b68645bfb81a7b34dd74097ba0ab850bb98324f70896a5abf56d706aa74d38ad"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/process-inventory.log.txt",
+    "bytes": 117,
+    "sha256": "a4672ced4d0a86d66ba13701f1254f67b1e058efaff64d5eb9db8d519cb6a49a"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/provisioned.json",
+    "bytes": 458,
+    "sha256": "740461043141e94027de82abe0eaa81dfa2d9cf24c362c880f9ce581fc56c39c"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/provisioned.log.txt",
+    "bytes": 128,
+    "sha256": "20123664966d2149fc3954b36dc460ab71f951f24c9041d6d339a4d81643d387"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/redis-final.log.txt",
+    "bytes": 7,
+    "sha256": "d374aa273f75171a52ae59f3bf51e1712d44908fa35891cca3471d2244dae75b"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/redis-stop.log.txt",
+    "bytes": 34,
+    "sha256": "c3c728fc99cc2034e20d367f36a8363172fdac09a5e4c5dd4ad209d304e5795b"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/relevant-processes.log.txt",
+    "bytes": 136,
+    "sha256": "10f55ead37d3540041e24b7fd2ad87dc900ce0124a45e1172be6e87abe47cd05"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/resource-delayed.log.txt",
+    "bytes": 96,
+    "sha256": "123cb27b9407955ba8872b9dcea01ddb6ecfab744dd31374b7b7fddc4367db2c"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/resource-immediate.log.txt",
+    "bytes": 96,
+    "sha256": "123cb27b9407955ba8872b9dcea01ddb6ecfab744dd31374b7b7fddc4367db2c"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/t36-after.json",
+    "bytes": 478,
+    "sha256": "946da6c367707edf9337ed73407c9571ca49670160dd0ed28981381e34f0930e"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/t36-after.log.txt",
+    "bytes": 892,
+    "sha256": "642b84cd54628fb10faaff972a7b502b334a3464e78921c8a7e7c253e7c781a1"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/t36-before.json",
+    "bytes": 477,
+    "sha256": "d00d9ccd610a3f54ab6aaade183e68b6e2ee27464efb2a1a9fc277d3a3ad811f"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/t36-before.log.txt",
+    "bytes": 892,
+    "sha256": "642b84cd54628fb10faaff972a7b502b334a3464e78921c8a7e7c253e7c781a1"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/t36-install.json",
+    "bytes": 142,
+    "sha256": "d3750c96ed2491c7a1e5e506c6f0e6156605745d513186eeb974edafbcd73620"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/t36-install.log.txt",
+    "bytes": 198,
+    "sha256": "53819814031a52de642b4cc0749f194ca68dbbecc6f82743cf3ad359956c250f"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/t38-install.json",
+    "bytes": 152,
+    "sha256": "57e5370320bddd9e0d964329c2400efac26e5b4d0bca26fec643d835244d2721"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/t38-install.log.txt",
+    "bytes": 215,
+    "sha256": "76c9a278330040e7a582bbcd4169e6ae8e6a5e75118bd667fde0874546feedb2"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/t42-loans.json",
+    "bytes": 223,
+    "sha256": "bcabed8c3f49f395d205da845461430bfee7ea00cd0e58c4864e6783b24b2e62"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/t42-loans.log.txt",
+    "bytes": 469,
+    "sha256": "b9c0fc7e75ef2d77fbc00ba5f6dd8abe15dce4642ae7d7c15e5c8894d7fbba71"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/verify.py",
+    "bytes": 3044,
+    "sha256": "b0c3929ec491d9dc31d75363dccef4036b4ee51de30251a83a3c93b0e537c60c"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/web-build.json",
+    "bytes": 135,
+    "sha256": "e58536d868129b181f47b57dbe1e615a1349ddc1d8f155b798d73380cd21f456"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/web-build.log.txt",
+    "bytes": 1194,
+    "sha256": "6657e01499785aabeeb288ebe86b74fed5fcd1c8bad5ec7f3f8b80bf87577b6e"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/web-eslint.json",
+    "bytes": 134,
+    "sha256": "de531686e7b6752433d0122addd777dfbb1a9dffbbdf3c2b4b8280f1c6a39dcf"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/web-eslint.log.txt",
+    "bytes": 100,
+    "sha256": "ea55e5ec7ae1022ac6dbbc2b7be6befc6400caa8d6f571dfb2a75abfdd1e7485"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/web-types.json",
+    "bytes": 139,
+    "sha256": "d382eb154c8b3408e52608589f01844d970e87f92ec3c278dc28918cc5a2ca7a"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/continuation/web-types.log.txt",
+    "bytes": 111,
+    "sha256": "ded72bb313e7ee74652a13e84c981550aecc4906886bb8bc20486ee77b6edbfd"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/controlled-verification.py",
+    "bytes": 2942,
+    "sha256": "4eb868f599378ac46dbc2ab158b7b611055271a7d1979cccd68a24230ecc4b71"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-resource-state.json",
+    "bytes": 433,
+    "sha256": "917f360621ebc89d7c3e2044baf32ba991cf12992d319a359792b4cdd43a1e05"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/INVENTORY.txt",
+    "bytes": 21085,
+    "sha256": "e5c1cc9137b96cdf20366b08a2f2ece5afd2eaf40343b67655170a06902beeba"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/RESULTS.md",
+    "bytes": 14567,
+    "sha256": "3a69f10d50151da3ce6912d6e0c9cbabee8ec7bad4c13483702954fbacab6aec"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/baseline-evidence-hashes.json",
+    "bytes": 22261,
+    "sha256": "276feb509f53d035caa20072cb4d5c3e90a1e88657b164b554bcee0e68709a41"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/baseline.json",
+    "bytes": 608,
+    "sha256": "666fe871d9d8d000e9ecc50529a665ff0c90ade127a8b4b5cddd3983273b0b53"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/browser-createdb.json",
+    "bytes": 184,
+    "sha256": "367d09156a1fcf4079e4795221aacbd666caefa62289e1e5121d7bffe5656f3e"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/browser-createdb.log.txt",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/browser-dashboard-post.json",
+    "bytes": 466,
+    "sha256": "7364f37861f5acb7d7d3b3bf932c62435ef02365408935b37aaba4ebf28f046f"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/browser-dashboard.json",
+    "bytes": 152,
+    "sha256": "0f890e726eddf2c7b3022f692b7cbba9a8dc06ef0a576e36d8904b6207f3ddaf"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/browser-dashboard.log.txt",
+    "bytes": 1663,
+    "sha256": "c243fee932e304a120a5727c1d428f125f89ea15fe97a32cf6f2dba73fd2b982"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/browser-dashboard/results.json",
+    "bytes": 457,
+    "sha256": "adb6b8b569f1b456cb131ecceb139adeff163966131a82099a99802ac97aedf3"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/browser-dashboard/t41-account-mobile.png",
+    "bytes": 520017,
+    "sha256": "f491aa527839fd9f2fe5d901b1eb924c582923eb663b5a3630362e122ac387af"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/browser-dashboard/t41-disabled-account.png",
+    "bytes": 505972,
+    "sha256": "11d1810e122e62f04c2fd5a984c76316740d16e55ee5956243d225a527086877"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/browser-dashboard/t41-overview.png",
+    "bytes": 244761,
+    "sha256": "eab2cd41d54c8b5892a8c4e37b76c9637b2b84a321a74207c96989f9d3dfee89"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/browser-dashboard/t41-pending-mobile.png",
+    "bytes": 139841,
+    "sha256": "b845b8a8277953ab32106ae3be871e4331859b2134f30789088b880bcba1968a"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/browser-loans-post.json",
+    "bytes": 466,
+    "sha256": "7364f37861f5acb7d7d3b3bf932c62435ef02365408935b37aaba4ebf28f046f"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/browser-loans.json",
+    "bytes": 148,
+    "sha256": "0659cb550193842264a865ed6d9a7680e8aaa7c1a5a700edd697cfa71c4fd5b3"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/browser-loans.log.txt",
+    "bytes": 1477,
+    "sha256": "4da2344ecda446b753c55289097ab4ad912ae314a15e597d1f7380b5f98b3360"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/browser-loans/application-mobile.png",
+    "bytes": 148536,
+    "sha256": "4ff58fd2cfbbbc2e1b135aba6df8fa57d247009b9f3f26fd0d3425f17c89f66d"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/browser-loans/loan-detail.png",
+    "bytes": 580543,
+    "sha256": "e94d19334b9eee3e61621d0e3aed6df460d4518d8f7db1cb45e66a5e216f02e6"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/browser-loans/loan-mobile.png",
+    "bytes": 507800,
+    "sha256": "bbb9fe3c5ae3a8b5126c7720775e8bfec1e50c44c139a777f3c8fae90bea9d8b"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/browser-loans/results.json",
+    "bytes": 316,
+    "sha256": "d4163b542570d80e5a551278903a2a1cb601a2180b73c1ff3b5c43fdde255d77"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/browser-loans/review-mobile.png",
+    "bytes": 187174,
+    "sha256": "060af54ad4ba0c5c7cb95394ce3f9f4ea3f6d72daca57535359b88dca54ee0e6"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/browser-migrations.json",
+    "bytes": 148,
+    "sha256": "f9577b0795fa6187a21cc13e358a58b54953a7af99a6e65b8abc561b6c8a3c24"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/browser-migrations.log.txt",
+    "bytes": 2460,
+    "sha256": "f2e96290e037d4e5b790086b95bfe6409d3221282217350fa41e1447f15afab6"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/browser-preflight.json",
+    "bytes": 233,
+    "sha256": "93fc5952395a38c57d51cb79abb37b6719f5636d4ec179cc900e814b61879a8b"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/browser-registration-post.json",
+    "bytes": 466,
+    "sha256": "7364f37861f5acb7d7d3b3bf932c62435ef02365408935b37aaba4ebf28f046f"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/browser-registration.json",
+    "bytes": 155,
+    "sha256": "3d1403e999057b76287a794d538b246c54d8000ec08117d53523fe275c91ee74"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/browser-registration.log.txt",
+    "bytes": 760,
+    "sha256": "7ab56ef13b225abcc53cbd7bc58c2531f76fada754ed2088c2654d80e3693c81"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/browser-registration/results.json",
+    "bytes": 239,
+    "sha256": "cb56b567bb9688ee4af7c6020c942380d41a4343b97f01876f93cfcb17f7cb44"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/browser-registration/t40-confirmation.png",
+    "bytes": 181106,
+    "sha256": "54a1cb66f8cca96208d3b3ff98e6f82c977e43c810ca0d41ce468e35407c4eb1"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/browser-registration/t40-family-mobile.png",
+    "bytes": 208879,
+    "sha256": "1ab6db1404861f1f8899a869feb0118b9f0ab4d22370c88e1e3e67f92356db5d"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/browser-registration/t40-individual-payment.png",
+    "bytes": 206726,
+    "sha256": "ab3cedb8b1095ab2044fbd3e2d835c63a35e66b2cd67947dd174288a814b1ad0"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/browser-t36-install.json",
+    "bytes": 143,
+    "sha256": "66f6b901eda5006609cb7d9501334220d539af63e397dc7aa7767fc700d8d342"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/browser-t36-install.log.txt",
+    "bytes": 198,
+    "sha256": "53819814031a52de642b4cc0749f194ca68dbbecc6f82743cf3ad359956c250f"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/browser-t38-install.json",
+    "bytes": 152,
+    "sha256": "6b2c99aa5443a2972e658d76fa6c96e7cceded88b8af7d182a3b96acdb2388d8"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/browser-t38-install.log.txt",
+    "bytes": 215,
+    "sha256": "76c9a278330040e7a582bbcd4169e6ae8e6a5e75118bd667fde0874546feedb2"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/browser-verification.py",
+    "bytes": 4081,
+    "sha256": "7b1cc6cc645a20a29de3b0e48bd077029522a6a663e53e9e0ac488f3bc4f8588"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/fetch-createdb.log.txt",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/fetch-diagnostic-source.mjs.txt",
+    "bytes": 34176,
+    "sha256": "7785deaddb538ff1f1068d3f3d7ebf23ed04306cc75762b5abbf8925b5bb38a2"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/fetch-diagnostic.json",
+    "bytes": 932,
+    "sha256": "5baccaaac81e99438fbb2b7bf066fe80e2c032ed4842806f707d57286e04442a"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/fetch-diagnostic.log.txt",
+    "bytes": 6980,
+    "sha256": "5e9c1c710f39531f52dd037ded2dd10b8340cf93d100d70a1da7b13e1c09dcd3"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/fetch-diagnostic.py",
+    "bytes": 6062,
+    "sha256": "02ce189041aeb75bc6f650138793429053cb8ed2b9024255c03485580fca1038"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/fetch-migrations.log.txt",
+    "bytes": 1603,
+    "sha256": "5305251ac4fef449b62fc83fb91151fe53dc22ba21a866c5cc64eb15753ea397"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/fetch-state-delayed.json",
+    "bytes": 656,
+    "sha256": "3d8f58d88a41c1c42df6104b872ec93722cf08d12aafd4f899e9829de57482ca"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/fetch-state-immediate.json",
+    "bytes": 656,
+    "sha256": "3d8f58d88a41c1c42df6104b872ec93722cf08d12aafd4f899e9829de57482ca"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/fetch-t36-install.log.txt",
+    "bytes": 198,
+    "sha256": "53819814031a52de642b4cc0749f194ca68dbbecc6f82743cf3ad359956c250f"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/fetch-t38-install.log.txt",
+    "bytes": 215,
+    "sha256": "76c9a278330040e7a582bbcd4169e6ae8e6a5e75118bd667fde0874546feedb2"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/final-audit.json",
+    "bytes": 636,
+    "sha256": "5694c91573944b69d326a17cef5f1bc2e49a181f9c2affc5302c0f645f9304c7"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/final-resource-state.json",
+    "bytes": 517,
+    "sha256": "28d2e10a711f90989d6980f126b65e9dad4381b0d483fefc559f42545dc1368a"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/final-resources.py",
+    "bytes": 3204,
+    "sha256": "b704fcd16aae12b95e0c1b2f201409f6e57e240771983d15795338ac61c911b5"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/postgres-server.log.txt",
+    "bytes": 3944,
+    "sha256": "66ea612814d7e82cbf359372427bb3ec688d6cdaa01efcde578f72650524ff53"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/postgres-stop.log.txt",
+    "bytes": 56,
+    "sha256": "ca19178a35ab4153b75b494963b66ce8243e1b94c173107c87b44d09db23652d"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/preserved-evidence-integrity.json",
+    "bytes": 166,
+    "sha256": "48b801762f817b490fb2f5dcc03fe1a608a80a5f64d3b1c3032fb46d33a5db97"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/redis-final.log.txt",
+    "bytes": 7,
+    "sha256": "d374aa273f75171a52ae59f3bf51e1712d44908fa35891cca3471d2244dae75b"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/redis-stop.log.txt",
+    "bytes": 34,
+    "sha256": "c3c728fc99cc2034e20d367f36a8363172fdac09a5e4c5dd4ad209d304e5795b"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/resource-delayed.json",
+    "bytes": 759,
+    "sha256": "18c7cae19051da7f05ce2d0566f60146c41597a0c9dede788b403c05ac9d1d56"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/resource-immediate.json",
+    "bytes": 759,
+    "sha256": "18c7cae19051da7f05ce2d0566f60146c41597a0c9dede788b403c05ac9d1d56"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/final-verification/verification-processes.json",
+    "bytes": 133,
+    "sha256": "5c976ff935452ec9f67f914fae7d243c8bd3365563cac432a3f48af92346a94b"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-active-jobs.log.txt",
+    "bytes": 215,
+    "sha256": "76c9a278330040e7a582bbcd4169e6ae8e6a5e75118bd667fde0874546feedb2"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-active-migrations.log.txt",
+    "bytes": 1453,
+    "sha256": "e0638239a731df84c524536ad9728614fdf5ff5da1f4ca948b28e1673da86272"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-active.json",
+    "bytes": 1434,
+    "sha256": "002a9ed436ac4d78cac0a8f6aca9d2b74cab3eac781de2e122d2d667c6edcb99"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-active.log.txt",
+    "bytes": 3853,
+    "sha256": "487e5dbe79e3c7e256d6fe477f3f48728c870cead138d8bf4fef292806765df9"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-checks.py",
+    "bytes": 3655,
+    "sha256": "5fab9746d919ebdf0caa10a7b6b08942a1a3fc275d31312499e3e0b3ec6f5e85"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-payload-jobs.log.txt",
+    "bytes": 215,
+    "sha256": "76c9a278330040e7a582bbcd4169e6ae8e6a5e75118bd667fde0874546feedb2"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-payload-migrations.log.txt",
+    "bytes": 1454,
+    "sha256": "980a0b4a78fc60d51b5ca9970a4cf7e4416cc236ef8d39858cf0bfc8e55f8c68"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-payload.json",
+    "bytes": 1404,
+    "sha256": "bbcab788a4a2389a175fc61feae07c30e071071462c5c7548a3315040d42586f"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-payload.log.txt",
+    "bytes": 3904,
+    "sha256": "cc16804d2bb557547793eaa4bddf2099e540ab106ef4a56859ca37dc2ab01558"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-scope-jobs.log.txt",
+    "bytes": 215,
+    "sha256": "76c9a278330040e7a582bbcd4169e6ae8e6a5e75118bd667fde0874546feedb2"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-scope-migrations.log.txt",
+    "bytes": 1452,
+    "sha256": "36c308fb79962b9dc39587999da8a07d9305c5f77ade41d4a29620aabee573fe"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-scope.json",
+    "bytes": 1402,
+    "sha256": "36d6f6abe6658061183a0c0b2d351f70f82c97bb9740fcce0cb07420f1cf8939"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-scope.log.txt",
+    "bytes": 4929,
+    "sha256": "12a529193fac4f89c3863f105d541be830a7da8cb7024c850b3d81ddca9188bc"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-unknown-jobs.log.txt",
+    "bytes": 215,
+    "sha256": "76c9a278330040e7a582bbcd4169e6ae8e6a5e75118bd667fde0874546feedb2"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-unknown-migrations.log.txt",
+    "bytes": 1454,
+    "sha256": "2fa4a6f0d7a8db7f5e7d5001d51e7ad48540cdd0607b0a0cb756fc68f6357c96"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-unknown.json",
+    "bytes": 1404,
+    "sha256": "63e7f092a67e644f3675cc3c111dac143be2eb60244d3ac74cb7b76f1c195775"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/negative-unknown.log.txt",
+    "bytes": 3072,
+    "sha256": "4532dee0e0582c6a9d7c3bef65da696112205595ae283fe094d737cadae589aa"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/postgres-server.log.txt",
+    "bytes": 25405,
+    "sha256": "6daba388dd13a16f7a299197e9e4149ccda9c443bed16d178e02a6f60ddcd18b"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/preflight-database.json",
+    "bytes": 73,
+    "sha256": "3df8baeb6a14bc56c15ef6a7074e2761fc68d8e7f26927c8417f2e397e533e0e"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/preservation-regressions.py",
+    "bytes": 2384,
+    "sha256": "ea3e26da6f17717dd2fbfc73c55e253be1619cbf178327e53d0daeea5ffd6273"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/regression-api-unit.log.txt",
+    "bytes": 238,
+    "sha256": "f12d6d301222a4ef0323ca5915f1d3828891679b6b480225d353166be79942a2"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/regression-t36-install.log.txt",
+    "bytes": 198,
+    "sha256": "53819814031a52de642b4cc0749f194ca68dbbecc6f82743cf3ad359956c250f"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/regression-t36-reminders.log.txt",
+    "bytes": 5564,
+    "sha256": "2f228ca6f21c1b960275d51f17a530c807497772d413466b66cd36a64a14a1f0"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/regression-t37-auth.log.txt",
+    "bytes": 474,
+    "sha256": "a767de5c968f6b65b3e49756ffedacbbdc64e7a4ca17a5788b41dbe24a95ab9a"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/regression-t40-registration.log.txt",
+    "bytes": 472,
+    "sha256": "1877a829bce213c7c12f1d7ca37c9b752069daccafaddd33d3574db9bcee65ac"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/regression-t41-dashboard.log.txt",
+    "bytes": 464,
+    "sha256": "9e7a10c0b672e461e1ac8894b741c1b379bdba59330365bbf90bdfd3cf8afee7"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/regression-t42-loans.log.txt",
+    "bytes": 2921,
+    "sha256": "ee7bdd0c335c374c99e5e856b16e364e97db47dc1b266c35e7054d02a7d5aab5"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/regressions.json",
+    "bytes": 1783,
+    "sha256": "5165c0b5dfa93353b72e8e9e6f50b0ae767938a1636b298c5e31360d8f313523"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/run-1-delayed-state.json",
+    "bytes": 419,
+    "sha256": "5375ba1cdbe45019f5927d99ece5500f450e5bcf30a07372ef8d6bccdbc73408"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/run-1.json",
+    "bytes": 1026,
+    "sha256": "42c723bc828c88d791da115a4a2e66b13dd2b788a5a90a414c23281431cd96b3"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/run-1.log.txt",
+    "bytes": 6010,
+    "sha256": "350c5abf862beb9f141ccefd580534361a8eccf8f22a9ff94566f2017e46cdd4"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/run-2-delayed-state.json",
+    "bytes": 419,
+    "sha256": "674593c319870566677f643e036813a02af4807163e522cfaafa5cbf387a2060"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/run-2.json",
+    "bytes": 1025,
+    "sha256": "d87a257afee3dc3914dbcd30e9b6e2d3a754d0614e7510aac221b12cf5b3648b"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/run-2.log.txt",
+    "bytes": 6006,
+    "sha256": "2621105a30e1f0e92b94625d31b038dee350a5392ad8e1ffabd5a3defee050b8"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/run-3-delayed-state.json",
+    "bytes": 419,
+    "sha256": "4b5930374d016197eea83b97a23d377838f6b7fdbcb1984f06edb1ee56e1e08e"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/run-3.json",
+    "bytes": 1025,
+    "sha256": "7c2e01751b4435bb522697daae066328abd1f2d13191284e35e9e08c9f068334"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/run-3.log.txt",
+    "bytes": 6006,
+    "sha256": "acbd6385405ada7586f7c77dd142bac3c28f821235b4ed7693c532a71e519ff7"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/run-4-delayed-state.json",
+    "bytes": 419,
+    "sha256": "16d06d14920ce530a7bcfcb56cc00f3ae7efb7d4b1ee4bccb6258399d2cbe49b"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/run-4.json",
+    "bytes": 1026,
+    "sha256": "78feb2d0ca60eb7d33f07400bb5e7e0b71b94d88543e861c0045d18638489b1f"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/run-4.log.txt",
+    "bytes": 6010,
+    "sha256": "0b0266b921e8b9e4c48d233a288a05d7feee68a24b90c551d5c9433bc29c8aea"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/run-5-delayed-state.json",
+    "bytes": 419,
+    "sha256": "5b73d59ac1a354ecccf6c2c844f500f08527945fb90dd2786700465b64e8220c"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/run-5.json",
+    "bytes": 1026,
+    "sha256": "3f2c273800272951f9bad00887f163ffa0c90edf916e209bf3b4df550b01f1a9"
+  },
+  {
+    "path": "docs/test-artifacts/t38-controlled-verification-2026-10-29/run-5.log.txt",
+    "bytes": 6012,
+    "sha256": "9a0543380db719544f63e6330f72fb619858f2ddcd7c24d5721003a87927f410"
+  },
+  {
+    "path": "docs/test-artifacts/t38-ownership-recovery-replacement-2026-10-29/REVIEW.md",
+    "bytes": 10811,
+    "sha256": "29eb0d251e03b6bd679ee712d108122ec93437ec9355656db8eea092de83a32a"
+  },
+  {
+    "path": "docs/test-artifacts/t38-ownership-recovery-replacement-2026-10-29/candidate.patch",
+    "bytes": 11679,
+    "sha256": "90231e3d25ae40a4375d4f9c38bbc7399642e01b5b10ed867a672101dd4aba27"
+  }
+]

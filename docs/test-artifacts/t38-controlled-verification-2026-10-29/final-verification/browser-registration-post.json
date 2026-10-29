@@ -1,0 +1,25 @@
+{
+  "database": {
+    "database": "safethrift_browser_final_20261029_test",
+    "sessions": [],
+    "t36_jobs": 0,
+    "t38_jobs": 0,
+    "members": 0,
+    "loans": 0,
+    "repayments": 0,
+    "accounts": 0,
+    "savings": 0,
+    "withdrawals": 0,
+    "applications": 0
+  },
+  "resources": {
+    "listening_ports": {
+      "2040": false,
+      "2041": false,
+      "2042": false,
+      "3040": false,
+      "3042": false
+    },
+    "verification_processes": []
+  }
+}

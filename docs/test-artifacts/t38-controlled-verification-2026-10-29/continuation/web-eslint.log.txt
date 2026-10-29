@@ -1,0 +1,4 @@
+
+> @safethrift/web@0.1.0 lint /home/princewill/Projects/safethrift-coop/platform/apps/web
+> eslint
+

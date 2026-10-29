@@ -1,0 +1,30 @@
+
+> @safethrift/web@0.1.0 test:registration:browser /home/princewill/Projects/safethrift-coop/platform/apps/web
+> node tests/registration-browser.mjs
+
+/home/princewill/Projects/safethrift-coop/platform/apps/web:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @safethrift/web@0.1.0 test:registration:browser: `node tests/registration-browser.mjs`
+Exit status 1
+file:///home/princewill/Projects/safethrift-coop/platform/apps/api/test/fixtures/t40-browser-server.mjs:21
+  throw new Error('Explicit local test services required');
+        ^
+
+Error: Explicit local test services required
+    at file:///home/princewill/Projects/safethrift-coop/platform/apps/api/test/fixtures/t40-browser-server.mjs:21:9
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.21.1
+file:///home/princewill/Projects/safethrift-coop/platform/apps/web/tests/registration-browser.mjs:33
+  fixture.once("exit", () => reject(new Error("Fixture API exited")));
+                                    ^
+
+Error: Fixture API exited
+    at ChildProcess.<anonymous> (file:///home/princewill/Projects/safethrift-coop/platform/apps/web/tests/registration-browser.mjs:33:37)
+    at Object.onceWrapper (node:events:634:26)
+    at ChildProcess.emit (node:events:519:28)
+    at ChildProcess._handle.onexit (node:internal/child_process:293:12)
+
+Node.js v22.21.1

@@ -1,0 +1,4 @@
+
+> @safethrift/api@0.0.1 build /home/princewill/Projects/safethrift-coop/platform/apps/api
+> nest build
+

@@ -1,0 +1,10 @@
+
+> @safethrift/api@0.0.1 test:e2e /home/princewill/Projects/safethrift-coop/platform/apps/api
+> jest --config ./test/jest-e2e.json --runInBand --runTestsByPath test/dashboard.integration.e2e-spec.ts
+
+[Nest] 137713  - 10/29/2026, 11:54:35 AM     LOG [PrismaService] Database connected
+Test Suites: 1 passed, 1 total
+Tests:       8 passed, 8 total
+Snapshots:   0 total
+Time:        11.864 s
+Ran all test suites within paths "test/dashboard.integration.e2e-spec.ts".

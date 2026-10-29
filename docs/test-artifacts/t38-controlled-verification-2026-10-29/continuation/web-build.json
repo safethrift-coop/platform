@@ -1,0 +1,10 @@
+{
+  "command": [
+    "pnpm",
+    "--filter",
+    "@safethrift/web",
+    "build"
+  ],
+  "exit_code": 0,
+  "seconds": 46.14678895099996
+}

@@ -1,0 +1,12 @@
+{
+  "command": [
+    "pnpm",
+    "--filter",
+    "@safethrift/api",
+    "exec",
+    "tsc",
+    "--noEmit"
+  ],
+  "exit_code": 0,
+  "seconds": 29.86627200999999
+}

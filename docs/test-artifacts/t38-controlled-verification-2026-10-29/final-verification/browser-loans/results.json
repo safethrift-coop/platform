@@ -1,0 +1,14 @@
+{
+  "ownedDiscovery": true,
+  "directLoanSignIn": true,
+  "status": true,
+  "schedule": true,
+  "repaymentPagination": true,
+  "disabledApplication": true,
+  "disabledRepayment": true,
+  "financialRequests": 0,
+  "reviewSnapshots": true,
+  "memberQueueDenied": true,
+  "axeViolations": 0,
+  "mobileOverflow": false
+}

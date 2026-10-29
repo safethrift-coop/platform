@@ -1,0 +1,10 @@
+{
+  "command": [
+    "pnpm",
+    "--filter",
+    "@safethrift/web",
+    "typecheck"
+  ],
+  "exit_code": 0,
+  "seconds": 9.427741395999874
+}

@@ -1,0 +1,24 @@
+
+> @safethrift/web@0.1.0 test:dashboard:browser /home/princewill/Projects/safethrift-coop/platform/apps/web
+> node tests/dashboard-browser.mjs
+
+[Nest] 54239  - 10/29/2026, 7:36:05 PM     LOG [PrismaService] Database connected
+▲ Next.js 16.2.4 (webpack)
+- Local:         http://localhost:2041
+- Network:       http://localhost:2041
+✓ Ready in 1686ms
+
+○ Compiling /dashboard ...
+ GET /dashboard 200 in 22.5s (next.js: 20.8s, application-code: 1694ms)
+ GET /dashboard 200 in 385ms (next.js: 17ms, application-code: 368ms)
+ GET /dashboard/accounts/cmvtvwi4z0000unsuzahgc84c 200 in 4.9s (next.js: 4.7s, application-code: 240ms)
+ GET /dashboard/accounts/cmvtvwi4z0000unsuzahgc84c 200 in 271ms (next.js: 65ms, application-code: 206ms)
+ GET /dashboard 200 in 135ms (next.js: 41ms, application-code: 94ms)
+ GET /dashboard/accounts/cmvtvwi4z0000unsuzahgc84c 200 in 182ms (next.js: 70ms, application-code: 112ms)
+ GET /dashboard 200 in 780ms (next.js: 7ms, application-code: 772ms)
+ GET /dashboard/accounts/cmvtvwi5d0001unsux338djoc 200 in 296ms (next.js: 52ms, application-code: 245ms)
+ GET /dashboard 200 in 117ms (next.js: 16ms, application-code: 101ms)
+PASS: T41 protected dashboard, history, disabled gates, unchanged uncertain replay, synthetic mutations, GSA, pending state, mobile and axe.
+ GET /dashboard/accounts/cmvtvwi4z0000unsuzahgc84c 200 in 629ms (next.js: 83ms, application-code: 546ms)
+[?25h
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior

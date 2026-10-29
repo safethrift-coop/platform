@@ -1,0 +1,16 @@
+
+> @safethrift/web@0.1.0 test:registration:browser /home/princewill/Projects/safethrift-coop/platform/apps/web
+> node tests/registration-browser.mjs
+
+[Nest] 52417  - 10/29/2026, 7:34:56 PM     LOG [PrismaService] Database connected
+▲ Next.js 16.2.4 (webpack)
+- Local:         http://localhost:2040
+- Network:       http://localhost:2040
+✓ Ready in 1896ms
+
+○ Compiling /register ...
+ GET /register 200 in 27.6s (next.js: 25.5s, application-code: 2.1s)
+ GET /register 200 in 258ms (next.js: 18ms, application-code: 240ms)
+ GET /register 200 in 206ms (next.js: 14ms, application-code: 193ms)
+PASS: T40 individual/family browser journeys, verification/login, household clearing, receipt recovery, keyboard, mobile layout, axe and memory-only storage.
+[?25h

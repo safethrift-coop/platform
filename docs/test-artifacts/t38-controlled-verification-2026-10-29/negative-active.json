@@ -1,0 +1,54 @@
+{
+  "case": "active",
+  "exit_code": 1,
+  "expected_rejection": "active leases",
+  "diagnostic_job_id": "0a660d47-ca92-4327-a618-35d1464dd381",
+  "before": {
+    "id": "0a660d47-ca92-4327-a618-35d1464dd381",
+    "name": "t38-evidence",
+    "data": {
+      "eventId": "5319acdc-b1f5-45a4-8e0f-ababc96fb3dd"
+    },
+    "retryCount": 0,
+    "expireInSeconds": 120,
+    "heartbeatSeconds": 30,
+    "groupId": null,
+    "groupTier": null,
+    "policy": "standard",
+    "state": "active",
+    "priority": 0,
+    "retryLimit": 5,
+    "retryDelay": 30,
+    "retryBackoff": true,
+    "retryDelayMax": 1800,
+    "startAfter": "2026-10-29T10:52:15.212Z",
+    "startedOn": "2026-10-29T10:52:15.524Z",
+    "singletonKey": null,
+    "singletonOn": null,
+    "deleteAfterSeconds": 604800,
+    "heartbeatOn": "2026-10-29T10:52:15.524Z",
+    "createdOn": "2026-10-29T10:52:15.212Z",
+    "completedOn": null,
+    "keepUntil": "2026-10-30T10:52:15.212Z",
+    "deadLetter": "t38-dead",
+    "blocked": false,
+    "blocking": false,
+    "pendingDependencies": 0,
+    "output": null,
+    "sourceName": null,
+    "sourceId": null,
+    "sourceCreatedOn": null,
+    "sourceRetryCount": null,
+    "sourceOutput": null,
+    "sourceRootId": null
+  },
+  "after": {
+    "id": "0a660d47-ca92-4327-a618-35d1464dd381",
+    "state": "active",
+    "data": {
+      "eventId": "5319acdc-b1f5-45a4-8e0f-ababc96fb3dd"
+    },
+    "retry_count": 0
+  },
+  "other_sessions": 0
+}
