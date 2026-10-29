@@ -153,11 +153,20 @@ jobs:
           NODE_ENV: test
           T38_MIGRATION_TEST_DATABASE_URL: postgresql://safethrift:safethrift_test@localhost:5432/safethrift_payment_migration_test
 
+      - name: Prepare dedicated T38 recovery database
+        run: |
+          createdb --host localhost --username safethrift safethrift_t38_recovery_ci_test
+          pnpm --filter @safethrift/prisma exec prisma migrate deploy
+          pnpm --filter @safethrift/api payments:jobs:migrate
+        env:
+          PGPASSWORD: safethrift_test
+          DATABASE_URL: postgresql://safethrift:safethrift_test@localhost:5432/safethrift_t38_recovery_ci_test
+
       - name: T38 webhook intake and evidence integration
         run: pnpm --filter @safethrift/api test:payment-webhooks
         env:
           NODE_ENV: test
-          T38_TEST_DATABASE_URL: postgresql://safethrift:safethrift_test@localhost:5432/safethrift_test
+          T38_TEST_DATABASE_URL: postgresql://safethrift:safethrift_test@localhost:5432/safethrift_t38_recovery_ci_test
 
       - name: Verify T40 historical registration preservation
         run: |
