@@ -187,13 +187,15 @@ describe(
       process.env = original;
     });
     it('verifies actual HTTP raw bytes, rejects tampering, unsigned and oversized bodies', async () => {
-      const body = bytes(stripe());
+      const event = stripe();
+      const body = bytes(event);
       await request(app.getHttpServer())
         .post('/api/v1/webhooks/stripe')
         .set('Content-Type', 'application/json')
         .set('Stripe-Signature', stripeSign(body))
         .send(body.toString())
         .expect(200);
+      ownedProviderEventIds.add(event.id);
       await request(app.getHttpServer())
         .post('/api/v1/webhooks/stripe')
         .set('Content-Type', 'application/json')
@@ -257,6 +259,7 @@ describe(
         service.receive('stripe', body, stripeSign(body)),
         service.receive('stripe', body, stripeSign(body)),
       ]);
+      ownedProviderEventIds.add(event.id);
       let row = await eventRow(event.id);
       await Promise.all([service.process(row.id), service.process(row.id)]);
       assert.equal(
