@@ -10,3 +10,4 @@ coverage/
 .DS_Store
 .t25-review.patch
 .t25-review.zip
+.agents
