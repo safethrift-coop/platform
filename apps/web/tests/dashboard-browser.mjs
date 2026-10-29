@@ -240,13 +240,30 @@ try {
     await evaluate("document.body.innerText.includes('123')"),
     false,
   );
+  // Hold every overview request (including development effect replays) until
+  // loading is observed; a second response must not clear it before the assertion.
   await evaluate(
-    `(()=>{const original=window.fetch.bind(window);let fail=true;window.fetch=async(url,init)=>{if(String(url).endsWith('/accounts/overview')&&fail){fail=false;await new Promise(resolve=>setTimeout(resolve,700));return new Response('{}',{status:503});}return original(url,init);};})()`,
+    `(() => {
+      const original = window.fetch.bind(window);
+      window.restoreDashboardOverview = () => { window.fetch = original; };
+      const gate = new Promise(resolve => {
+        window.releaseDashboardOverview = resolve;
+      });
+      window.fetch = async (url, init) => {
+        if (String(url).endsWith('/accounts/overview')) {
+          await gate;
+          return new Response('{}', { status: 503 });
+        }
+        return original(url, init);
+      };
+    })()`,
   );
   await signIn();
   await waitText("Loading dashboard");
+  await evaluate("window.releaseDashboardOverview()");
   await waitText("The result could not be confirmed");
   await accessibility("dashboard error");
+  await evaluate("window.restoreDashboardOverview()");
   await click("Retry dashboard");
   await waitText("Active savings accounts");
   await waitText("£100.00");
