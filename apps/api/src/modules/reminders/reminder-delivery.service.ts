@@ -15,9 +15,12 @@ import {
   emailPayload,
   IDEMPOTENCY_SAFE_MS,
   overdueEmail,
+  renewalEmail,
+  renewalWindow,
   scheduleInclude,
   TERMINAL_DELIVERY,
 } from './reminder-policy';
+import { MembershipExpiryService } from './membership-expiry.service';
 
 type Store = Pick<
   Prisma.TransactionClient,
@@ -61,6 +64,8 @@ export class ReminderDeliveryService {
         return null;
       if (row.jobId !== job.id)
         throw new Error('T36 reminder/job identity mismatch');
+      if (row.reminderChannel !== 'email')
+        throw new Error('T36 reminder channel mismatch');
       const accepted = await tx.reminderAttempt.findFirst({
         where: {
           reminderId: row.id,
@@ -115,12 +120,42 @@ export class ReminderDeliveryService {
             include: scheduleInclude,
           })
         : null;
-      if (
-        !schedule ||
-        !eligible(schedule, now) ||
-        (row.payload &&
-          emailPayload(row.payload).to !== schedule.loan.member.email)
+      let payload: ReturnType<typeof overdueEmail> | null = null;
+      if (row.reminderType === 'membership_renewal') {
+        const member = await tx.member.findUnique({
+          where: { id: row.memberId },
+        });
+        const expiry = await new MembershipExpiryService(this.prisma).current(
+          row.memberId,
+          tx,
+        );
+        const window =
+          expiry?.expiresOn && renewalWindow(expiry.expiresOn, now);
+        if (
+          member?.membershipStatus === 'active' &&
+          member.emailVerified &&
+          expiry?.id === row.membershipExpiryRecordId &&
+          expiry.expiresOn &&
+          window &&
+          window === row.renewalWindowDays &&
+          (!row.payload || emailPayload(row.payload).to === member.email)
+        ) {
+          payload = row.payload
+            ? emailPayload(row.payload)
+            : renewalEmail(member, expiry.expiresOn, window, row.id);
+        }
+      } else if (
+        row.reminderType === 'late_payment' &&
+        schedule &&
+        eligible(schedule, now) &&
+        (!row.payload ||
+          emailPayload(row.payload).to === schedule.loan.member.email)
       ) {
+        payload = row.payload
+          ? emailPayload(row.payload)
+          : overdueEmail(schedule, now, row.id);
+      }
+      if (!payload) {
         await tx.reminderLog.update({
           where: { id: row.id },
           data: {
@@ -133,9 +168,6 @@ export class ReminderDeliveryService {
         });
         return null;
       }
-      const payload = row.payload
-        ? emailPayload(row.payload)
-        : overdueEmail(schedule, now, row.id);
       await tx.reminderAttempt.updateMany({
         where: { reminderId: row.id, outcome: 'attempted' },
         data: {

@@ -5,6 +5,7 @@ import {
   IsEnum,
   IsIn,
   IsInt,
+  IsOptional,
   IsString,
   Min,
   MinLength,
@@ -24,6 +25,33 @@ class EnvironmentVariables {
 
   @IsIn(['disabled', 'simulate', 'resend'])
   T36_EMAIL_MODE: string = 'disabled';
+
+  @IsIn(['disabled', 'simulate', 'twilio'])
+  T36_SMS_MODE: string = 'disabled';
+
+  @IsOptional()
+  @IsString()
+  TWILIO_ACCOUNT_SID?: string;
+
+  @IsOptional()
+  @IsString()
+  TWILIO_API_KEY_SID?: string;
+
+  @IsOptional()
+  @IsString()
+  TWILIO_API_KEY_SECRET?: string;
+
+  @IsOptional()
+  @IsString()
+  TWILIO_AUTH_TOKEN?: string;
+
+  @IsOptional()
+  @IsString()
+  TWILIO_MESSAGING_SERVICE_SID?: string;
+
+  @IsOptional()
+  @IsString()
+  T36_TWILIO_STATUS_CALLBACK_URL?: string;
 
   @IsEnum(Environment)
   NODE_ENV: Environment = Environment.Development;
@@ -90,5 +118,29 @@ export function validate(
     throw new Error(
       'T36 external email is not authorized in production/staging',
     );
+  if (
+    ['production', 'staging'].includes(validated.NODE_ENV) &&
+    validated.T36_SMS_MODE === 'twilio'
+  )
+    throw new Error('T36 external SMS is not authorized in production/staging');
+  if (validated.T36_SMS_MODE === 'twilio') {
+    for (const key of [
+      'TWILIO_ACCOUNT_SID',
+      'TWILIO_API_KEY_SID',
+      'TWILIO_API_KEY_SECRET',
+      'TWILIO_AUTH_TOKEN',
+      'TWILIO_MESSAGING_SERVICE_SID',
+      'T36_TWILIO_STATUS_CALLBACK_URL',
+    ] as const)
+      if (!validated[key]) throw new Error(`T36 ${key} is required`);
+    let callback: URL;
+    try {
+      callback = new URL(validated.T36_TWILIO_STATUS_CALLBACK_URL!);
+    } catch {
+      throw new Error('T36 Twilio callback URL must be valid HTTPS');
+    }
+    if (callback.protocol !== 'https:')
+      throw new Error('T36 Twilio callback URL must be valid HTTPS');
+  }
   return validated;
 }

@@ -52,6 +52,9 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   get reminderLog() {
     return this.client.reminderLog;
   }
+  get membershipExpiryRecord(): Prisma.TransactionClient['membershipExpiryRecord'] {
+    return this.client.membershipExpiryRecord;
+  }
   get reminderAttempt() {
     return this.client.reminderAttempt;
   }
@@ -121,7 +124,7 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   }
 
   $queryRaw<T = unknown>(
-    query: TemplateStringsArray,
+    query: TemplateStringsArray | Prisma.Sql,
     ...values: unknown[]
   ): Promise<T> {
     return this.client.$queryRaw(query, ...values);

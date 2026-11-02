@@ -8,7 +8,9 @@ import { PrismaService } from '../database/prisma.service';
 export const JOB_SCHEMA = 't36_jobs';
 export const QUEUES = {
   scan: 't36-overdue-scan',
+  renewalScan: 't36-renewal-scan',
   email: 't36-reminder-email',
+  sms: 't36-reminder-sms',
   events: 't36-provider-event',
   reconcile: 't36-reconcile',
   dead: 't36-dead-letter',
@@ -78,7 +80,9 @@ export class JobsService implements OnModuleDestroy {
       });
       for (const name of [
         QUEUES.scan,
+        QUEUES.renewalScan,
         QUEUES.email,
+        QUEUES.sms,
         QUEUES.events,
         QUEUES.reconcile,
       ]) {

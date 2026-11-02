@@ -176,6 +176,9 @@ try {
     );
   }
   async function accessibility(name) {
+    // Dynamic Next.js routes can stream their metadata after visible content.
+    // Audit the completed document, while still failing if its title never arrives.
+    await waitFor("Boolean(document.title.trim())");
     await evaluate(axe);
     const report = await evaluate(
       `axe.run(document,{runOnly:{type:'tag',values:['wcag2a','wcag2aa','wcag21aa']}}).then(result=>({violations:result.violations.map(item=>({id:item.id,impact:item.impact,nodes:item.nodes.map(node=>node.target)}))}))`,

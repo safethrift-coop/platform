@@ -11,6 +11,9 @@ import { ResendReminderProvider } from './reminder-email.provider';
 import {
   eligible,
   overdueEmail,
+  renewalEmail,
+  renewalWindow,
+  smsEligible,
   utcDate,
   type Installment,
 } from './reminder-policy';
@@ -55,6 +58,35 @@ afterEach(() => {
 });
 
 describe('T36 reminder policy and transport', () => {
+  it('uses exact UTC calendar windows and requires verified, permitted E.164 SMS', () => {
+    const expiry = new Date('2026-12-02T00:00:00Z');
+    expect(renewalWindow(expiry, new Date('2026-11-02T23:59:59Z'))).toBe(30);
+    expect(renewalWindow(expiry, new Date('2026-11-25T08:00:00Z'))).toBe(7);
+    expect(renewalWindow(expiry, new Date('2026-11-26T08:00:00Z'))).toBeNull();
+    const member = {
+      phoneNumber: '+447700900123',
+      phoneVerifiedAt: new Date(),
+      smsReminderPermissionAt: new Date(),
+      smsReminderPermissionRevokedAt: null as Date | null,
+    };
+    expect(smsEligible(member)).toBe(true);
+    expect(smsEligible({ ...member, phoneNumber: '07700900123' })).toBe(false);
+    expect(smsEligible({ ...member, phoneVerifiedAt: null })).toBe(false);
+    expect(smsEligible({ ...member, smsReminderPermissionAt: null })).toBe(
+      false,
+    );
+    expect(
+      smsEligible({ ...member, smsReminderPermissionRevokedAt: new Date() }),
+    ).toBe(false);
+    expect(
+      renewalEmail(
+        { firstName: '<Member>', email: 'test@example.invalid' },
+        expiry,
+        30,
+        'id',
+      ).html,
+    ).toContain('2026-12-02');
+  });
   it('uses the UTC date, excludes today and requires outstanding eligible active/disbursed debt', () => {
     const now = new Date('2026-10-25T00:00:00Z');
     expect(utcDate(new Date('2026-10-25T01:00:00+01:00'))).toEqual(now);

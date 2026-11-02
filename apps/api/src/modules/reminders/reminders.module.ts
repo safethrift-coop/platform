@@ -9,6 +9,7 @@ import {
 import { ReminderWorkersService } from './reminder-workers.service';
 import { ReminderWebhookService } from './reminder-webhook.service';
 import { ReminderWebhookController } from './reminder-webhook.controller';
+import { MembershipExpiryService } from './membership-expiry.service';
 
 @Module({
   imports: [JobsModule],
@@ -17,6 +18,7 @@ import { ReminderWebhookController } from './reminder-webhook.controller';
     ReminderDeliveryService,
     ReminderWorkersService,
     ReminderWebhookService,
+    MembershipExpiryService,
     { provide: ReminderEmailProvider, useClass: ResendReminderProvider },
   ],
   controllers: [ReminderWebhookController],

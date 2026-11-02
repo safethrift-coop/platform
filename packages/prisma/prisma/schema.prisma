@@ -125,6 +125,7 @@ enum ReminderChannel {
 
 enum DeliveryStatus {
   queued
+  dispatch_claimed
   sent
   delivered
   failed
@@ -257,6 +258,11 @@ model Member {
   mfaSecret          String?          @map("mfa_secret")
   emailVerified      Boolean          @default(false) @map("email_verified")
   emailVerifiedAt    DateTime?        @map("email_verified_at")
+  phoneVerifiedAt    DateTime?        @map("phone_verified_at") @db.Timestamptz(3)
+  phoneVerificationSource String?      @map("phone_verification_source")
+  smsReminderPermissionAt DateTime?    @map("sms_reminder_permission_at") @db.Timestamptz(3)
+  smsReminderPermissionSource String?  @map("sms_reminder_permission_source")
+  smsReminderPermissionRevokedAt DateTime? @map("sms_reminder_permission_revoked_at") @db.Timestamptz(3)
   passwordHash       String           @map("password_hash")
   savingsPointsTotal Int              @default(0) @map("savings_points_total")
   currentRiskBand    RiskBand         @default(unscored) @map("current_risk_band")
@@ -283,11 +289,36 @@ model Member {
   groupMemberships      GroupMembership[]
   auditLogs             AuditLog[]
   complianceFlags       ComplianceFlag[]
+  membershipExpiryRecords MembershipExpiryRecord[] @relation("MembershipExpiryOwner")
+  recordedExpiryRecords   MembershipExpiryRecord[] @relation("MembershipExpiryRecorder")
 
   @@index([membershipStatus])
   @@index([city, region])
   @@index([joinedDate])
   @@map("members")
+}
+
+// Append-only evidence. Absence of a row, or a current row with expiresOn NULL,
+// means that expiry is unknown. T36 never infers or populates these records.
+model MembershipExpiryRecord {
+  id                 String    @id @default(cuid())
+  memberId           String    @map("member_id")
+  expiresOn          DateTime? @map("expires_on") @db.Date
+  sourceReference    String    @map("source_reference")
+  authorityReference String    @map("authority_reference")
+  recordedBy         String?   @map("recorded_by")
+  recordedAt         DateTime  @default(now()) @map("recorded_at") @db.Timestamptz(3)
+  replacesRecordId   String?   @unique @map("replaces_record_id")
+
+  member     Member                  @relation("MembershipExpiryOwner", fields: [memberId], references: [id], onDelete: Restrict)
+  recorder   Member?                 @relation("MembershipExpiryRecorder", fields: [recordedBy], references: [id], onDelete: Restrict)
+  replaces   MembershipExpiryRecord? @relation("MembershipExpiryChain", fields: [replacesRecordId], references: [id], onDelete: Restrict)
+  replacedBy MembershipExpiryRecord? @relation("MembershipExpiryChain")
+  reminders  ReminderLog[]
+
+  @@unique([id, memberId], map: "membership_expiry_records_id_member_key")
+  @@index([memberId, recordedAt, id])
+  @@map("membership_expiry_records")
 }
 
 // ─────────────────────────────────────────────
@@ -529,8 +560,12 @@ model ReminderLog {
   providerEventAt     DateTime?          @map("provider_event_at")
   providerEventType   String?            @map("provider_event_type")
   attemptToken        String?            @map("attempt_token")
+  membershipExpiryRecordId String?        @map("membership_expiry_record_id")
+  membershipExpiresOn      DateTime?      @map("membership_expires_on") @db.Date
+  renewalWindowDays        Int?           @map("renewal_window_days") @db.SmallInt
   attempts            ReminderAttempt[]
   schedule            RepaymentSchedule? @relation(fields: [repaymentScheduleId], references: [id], onDelete: Restrict)
+  membershipExpiryRecord MembershipExpiryRecord? @relation(fields: [membershipExpiryRecordId, memberId], references: [id, memberId], onDelete: Restrict)
 
   member    Member             @relation(fields: [memberId], references: [id])
   loan      Loan?              @relation(fields: [relatedLoanId], references: [id])
@@ -544,6 +579,7 @@ model ReminderLog {
   @@index([sentDate])
   @@index([deliveryStatus, queuedAt])
   @@index([externalId])
+  @@index([membershipExpiryRecordId])
   @@map("reminder_logs")
 }
 
