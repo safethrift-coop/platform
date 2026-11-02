@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Icon } from "@/components/icon";
-import { faqs, products, resources, steps } from "@/lib/content";
+import { faqs, resources } from "@/lib/content";
 import "./marketing.css";
 
 export function MarketingSite({ children }: { children: ReactNode }) {
@@ -115,65 +115,6 @@ export function PublicNotice({
       <h3>{title}</h3>
       <div>{children}</div>
     </aside>
-  );
-}
-
-export function CooperativeModel() {
-  return (
-    <aside className="m-model" aria-labelledby="model-heading">
-      <div className="m-model-top">
-        <Label>The proposed model</Label>
-        <span className="m-model-mark" aria-hidden="true">
-          s.
-        </span>
-      </div>
-      <h2 id="model-heading">
-        Individual habits.
-        <br /> Shared possibility.
-      </h2>
-      <ol>
-        {steps.map((step, index) => (
-          <li key={step.title}>
-            <span className="m-step-number" aria-hidden="true">
-              0{index + 1}
-            </span>
-            <div>
-              <h3>{step.title}</h3>
-              <p>{step.text}</p>
-            </div>
-          </li>
-        ))}
-      </ol>
-      <p className="m-small m-model-note">
-        An explanation of the proposal, not an available financial service.
-      </p>
-    </aside>
-  );
-}
-
-export function ProductOverview() {
-  return (
-    <div className="m-product-index">
-      {products.map((product, index) => (
-        <article key={product.id} className="m-product-row">
-          <span className="m-product-code">
-            {product.code}
-            <span aria-hidden="true"> / 0{index + 1}</span>
-          </span>
-          <div>
-            <h3>{product.name}</h3>
-            <p>{product.benefit}</p>
-          </div>
-          <Link
-            href={`/products#${product.id}-details`}
-            className="m-product-explore"
-          >
-            Explore {product.code}
-            <Icon name="arrow" />
-          </Link>
-        </article>
-      ))}
-    </div>
   );
 }
 

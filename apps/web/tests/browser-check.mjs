@@ -313,9 +313,9 @@ try {
     "location.pathname === '/' && document.readyState === 'complete'",
   );
   for (const selector of [
-    ".actions .button",
-    ".actions .button-secondary",
-    ".closing .button",
+    ".b-hero-copy .b-link",
+    ".b-participation-piece",
+    ".b-closing .b-button",
   ]) {
     await evaluate(
       `document.querySelector(${JSON.stringify(selector)}).scrollIntoView({block:'center',behavior:'instant'})`,
