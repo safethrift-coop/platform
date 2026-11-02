@@ -1,0 +1,20 @@
+[
+  {
+    "name": "Polish verification",
+    "started": "2026-11-02T08:31:33.566Z",
+    "finished": "2026-11-02T08:32:22.390Z",
+    "exitCode": 0
+  },
+  {
+    "name": "Existing T39 browser suite",
+    "started": "2026-11-02T08:32:22.391Z",
+    "finished": "2026-11-02T08:32:58.465Z",
+    "exitCode": 0
+  },
+  {
+    "name": "Existing HTTP/SEO/closed-gate suites",
+    "started": "2026-11-02T08:32:58.466Z",
+    "finished": "2026-11-02T08:33:02.164Z",
+    "exitCode": 0
+  }
+]

@@ -1,0 +1,97 @@
+{
+  "extras": [
+    {
+      "name": "state-menu-closed",
+      "width": 390,
+      "height": 4604,
+      "scrollWidth": 390,
+      "screenshotHeight": 844
+    },
+    {
+      "name": "state-menu-open",
+      "width": 390,
+      "height": 4604,
+      "scrollWidth": 390,
+      "screenshotHeight": 844
+    },
+    {
+      "name": "home-text-200",
+      "width": 442,
+      "scrollWidth": 442,
+      "clipped": [
+        "Personal saving.Sharedpurpose.",
+        "∿SavingPersonal commitment",
+        "≡ParticipationShared responsibility",
+        "People working towards common aims, with responsibilities to",
+        "Shared purpose startswith clear information."
+      ]
+    },
+    {
+      "name": "home-text-200",
+      "width": 442,
+      "height": 12202,
+      "scrollWidth": 442,
+      "screenshotHeight": 1400
+    },
+    {
+      "name": "products-text-200",
+      "width": 589,
+      "scrollWidth": 589,
+      "clipped": [
+        "Your circumstances.Your saving approach.",
+        "A shared purpose.A part to understand."
+      ]
+    },
+    {
+      "name": "products-text-200",
+      "width": 589,
+      "height": 10566,
+      "scrollWidth": 589,
+      "screenshotHeight": 1400
+    },
+    {
+      "name": "home-zoom-equivalent-200",
+      "width": 720,
+      "scrollWidth": 720
+    },
+    {
+      "name": "products-zoom-equivalent-200",
+      "width": 720,
+      "scrollWidth": 720
+    },
+    {
+      "name": "state-motif-focus",
+      "width": 1440,
+      "height": 3498,
+      "scrollWidth": 1440,
+      "screenshotHeight": 900
+    },
+    {
+      "name": "motif-anchor",
+      "hash": "#participation",
+      "activeId": "participation"
+    },
+    {
+      "name": "state-navigation-focus",
+      "width": 1440,
+      "height": 3498,
+      "scrollWidth": 1440,
+      "screenshotHeight": 900
+    },
+    {
+      "name": "reduced-motion",
+      "matches": true,
+      "scrollBehavior": "auto"
+    }
+  ],
+  "escape": {
+    "closed": true,
+    "focusRestored": true
+  },
+  "menuAudit": {
+    "violations": [],
+    "incomplete": [
+      "color-contrast"
+    ]
+  }
+}

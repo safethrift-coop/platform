@@ -1,0 +1,13 @@
+{
+  "command": "pnpm --filter @safethrift/web test:browser",
+  "exitCode": 0,
+  "viewportWidths": [
+    320,
+    390,
+    768,
+    1024,
+    1440
+  ],
+  "assertionChanges": 0,
+  "selectorChanges": 3
+}

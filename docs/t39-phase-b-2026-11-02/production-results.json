@@ -1,0 +1,20 @@
+[
+  {
+    "name": "production browser matrix",
+    "start": "2026-11-02T07:46:45.450Z",
+    "finished": "2026-11-02T07:47:46.081Z",
+    "exitCode": 0
+  },
+  {
+    "name": "existing T39 browser suite",
+    "start": "2026-11-02T07:47:46.083Z",
+    "finished": "2026-11-02T07:48:25.104Z",
+    "exitCode": 0
+  },
+  {
+    "name": "existing HTTP, metadata and closed-gate suites",
+    "start": "2026-11-02T07:48:25.105Z",
+    "finished": "2026-11-02T07:48:28.531Z",
+    "exitCode": 0
+  }
+]

@@ -1,0 +1,237 @@
+--- starting Phase B/apps/web/src/components/public-site/marketing.css
++++ final polish/apps/web/src/components/public-site/marketing.css
+@@ -2341,3 +2341,234 @@
+ .marketing-site :is(.b-account, .b-story-copy, .b-today, .b-governance) h3 {
+   font-weight: 700;
+ }
++
++/* T39 final polish: every new selector requires one of these two page markers.
++   Existing shared rules, typefaces, palette, navigation and footer are unchanged. */
++.marketing-site .m-about-page .m-section {
++  padding-block: 48px;
++}
++.marketing-site .m-about-page .m-section-heading {
++  margin-bottom: 24px;
++}
++.marketing-site .m-about-page .m-intro-copy > p,
++.marketing-site .m-knowledge-page .m-intro-copy > p {
++  line-height: 1.6;
++}
++.marketing-site .m-about-page .m-intro-note,
++.marketing-site .m-knowledge-page .m-intro-note {
++  font-size: 1rem;
++  margin-top: 16px;
++}
++.marketing-site .m-about-page .m-about-purpose .m-reading-grid {
++  grid-template-columns: 3fr 9fr;
++  gap: 32px;
++}
++.marketing-site .m-about-page .m-about-purpose .m-statement {
++  font-size: clamp(1.5rem, 2.2vw, 2rem);
++  max-width: 20ch;
++}
++.marketing-site .m-about-page .m-about-purpose .m-reading-grid > div {
++  max-width: 62ch;
++}
++.marketing-site .m-about-page .m-about-purpose h3 {
++  margin-bottom: 12px;
++}
++.marketing-site .m-about-page .m-about-purpose h3:not(:first-child) {
++  margin-top: 24px;
++}
++.marketing-site .m-about-page .m-about-purpose .m-reading-grid > div > p {
++  line-height: 1.6;
++}
++.marketing-site .m-about-page .m-principles {
++  gap: 0 48px;
++}
++.marketing-site .m-about-page .m-principles li {
++  grid-template-columns: 2rem minmax(0, 1fr);
++  column-gap: 16px;
++  padding-block: 24px;
++  align-items: start;
++}
++.marketing-site .m-about-page .m-principles li > span,
++.marketing-site .m-knowledge-page .m-resource-number {
++  font: 600 1rem/1.5 var(--b-display);
++  font-variant-numeric: tabular-nums;
++  padding-top: 3px;
++}
++.marketing-site .m-about-page .m-principles h3 {
++  margin-bottom: 8px;
++}
++.marketing-site .m-about-page .m-principles li > div {
++  max-width: 48ch;
++}
++.marketing-site .m-about-page .m-principles p {
++  margin: 0;
++  line-height: 1.5;
++}
++.marketing-site .m-about-page .m-governance-list {
++  margin-top: 28px;
++  padding: 24px;
++  gap: 24px;
++}
++.marketing-site .m-about-page .m-governance-list article {
++  border-top: 0;
++  padding-top: 0;
++}
++.marketing-site .m-about-page .m-governance-list .m-label {
++  margin-bottom: 12px;
++}
++.marketing-site .m-about-page .m-governance-list h3 {
++  max-width: 20ch;
++}
++.marketing-site .m-about-page .m-governance-list p:not(.m-label) {
++  margin: 0;
++  line-height: 1.6;
++}
++.marketing-site .m-about-page .m-facts {
++  gap: 32px;
++}
++.marketing-site .m-about-page .m-facts .m-label {
++  margin-bottom: 12px;
++}
++.marketing-site .m-about-page .m-facts article > p:last-child {
++  margin-bottom: 0;
++  max-width: 56ch;
++}
++.marketing-site .m-about-page .m-faq-grid {
++  grid-template-columns: 3fr 9fr;
++  gap: 32px;
++}
++.marketing-site .m-about-page .m-faq-grid h2 {
++  margin-bottom: 16px;
++}
++.marketing-site .m-about-page .m-faq-grid > div:first-child > p:last-child {
++  margin-bottom: 0;
++}
++.marketing-site .m-about-page .m-invitation {
++  padding-block: 48px;
++}
++.marketing-site .m-about-page .m-invitation h2 {
++  margin-bottom: 16px;
++}
++.marketing-site .m-about-page .m-invitation .m-small {
++  margin-top: 12px;
++}
++.marketing-site .m-knowledge-page .m-library-grid {
++  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.7fr);
++  gap: 64px;
++  align-items: start;
++}
++.marketing-site .m-knowledge-page .m-library-grid > div:first-child {
++  max-width: 32ch;
++}
++.marketing-site .m-knowledge-page .m-library h2 {
++  margin-bottom: 16px;
++}
++.marketing-site .m-knowledge-page .m-library .m-small {
++  font-size: 1rem;
++}
++.marketing-site .m-knowledge-page .m-resource-index article {
++  grid-template-columns: 2rem minmax(0, 1fr);
++  gap: 8px 16px;
++  padding-block: 24px;
++}
++.marketing-site .m-knowledge-page .m-resource-index h3 {
++  margin-bottom: 8px;
++  max-width: 34ch;
++}
++.marketing-site .m-knowledge-page .m-resource-index p {
++  margin: 0;
++  max-width: 56ch;
++  line-height: 1.5;
++}
++.marketing-site .m-knowledge-page .m-resource-status {
++  grid-column: 2;
++  font-size: 1rem;
++  font-weight: 600;
++  line-height: 1.5;
++}
++.marketing-site .m-knowledge-page .m-knowledge-learning .m-section-heading,
++.marketing-site .m-knowledge-page .m-knowledge-learning .m-reading-grid {
++  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.7fr);
++  gap: 64px;
++}
++.marketing-site .m-knowledge-page .m-knowledge-learning .m-section-heading {
++  margin-bottom: 28px;
++}
++.marketing-site .m-knowledge-page .m-knowledge-learning .m-statement {
++  font-size: clamp(1.5rem, 2.2vw, 2rem);
++  max-width: 20ch;
++}
++.marketing-site .m-knowledge-page .m-knowledge-learning .m-reading-grid > div {
++  max-width: 60ch;
++}
++.marketing-site
++  .m-knowledge-page
++  .m-knowledge-learning
++  .m-reading-grid
++  > div
++  > p {
++  line-height: 1.6;
++}
++@media (min-width: 901px) {
++  .marketing-site .m-knowledge-page .m-intro-grid {
++    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
++    gap: 48px;
++  }
++  .marketing-site .m-knowledge-page .m-intro h1 {
++    max-width: 20ch;
++  }
++}
++@media (max-width: 800px) {
++  .marketing-site .m-about-page .m-about-purpose .m-reading-grid,
++  .marketing-site .m-about-page .m-faq-grid,
++  .marketing-site .m-knowledge-page .m-library-grid,
++  .marketing-site .m-knowledge-page .m-knowledge-learning .m-section-heading,
++  .marketing-site .m-knowledge-page .m-knowledge-learning .m-reading-grid {
++    grid-template-columns: minmax(0, 1fr);
++    gap: 24px;
++  }
++  .marketing-site .m-knowledge-page .m-library-grid > div:first-child {
++    max-width: 55ch;
++  }
++  .marketing-site .m-about-page .m-governance-list {
++    display: grid;
++    grid-template-columns: minmax(0, 1fr);
++    gap: 0;
++    padding: 20px;
++  }
++  .marketing-site .m-about-page .m-governance-list article + article {
++    margin-top: 20px;
++    padding-top: 20px;
++    border-top: 1px solid var(--b-rule);
++  }
++}
++@media (max-width: 700px) {
++  .marketing-site .m-about-page .m-section,
++  .marketing-site .m-about-page .m-invitation {
++    padding-block: 32px;
++  }
++  .marketing-site .m-about-page .m-section-heading,
++  .marketing-site .m-knowledge-page .m-knowledge-learning .m-section-heading {
++    margin-bottom: 20px;
++  }
++  .marketing-site .m-about-page .m-section-heading .m-label,
++  .marketing-site .m-knowledge-page .m-section-heading .m-label {
++    margin-bottom: 12px;
++  }
++  .marketing-site .m-about-page .m-principles,
++  .marketing-site .m-about-page .m-facts {
++    grid-template-columns: minmax(0, 1fr);
++  }
++  .marketing-site .m-about-page .m-principles li {
++    padding-block: 20px;
++    column-gap: 12px;
++  }
++  .marketing-site .m-knowledge-page .m-library-grid,
++  .marketing-site .m-knowledge-page .m-knowledge-learning .m-reading-grid {
++    gap: 20px;
++  }
++  .marketing-site .m-knowledge-page .m-resource-index article {
++    padding-block: 20px;
++    column-gap: 12px;
++  }
++}

@@ -1,0 +1,23 @@
+[
+  {
+    "command": "pnpm --filter @safethrift/web typecheck",
+    "exitCode": 0,
+    "started": "2026-11-02T07:44:37.505Z",
+    "finished": "2026-11-02T07:44:49.151Z",
+    "log": "/tmp/safethrift-t39-phase-b-typecheck.log"
+  },
+  {
+    "command": "pnpm --filter @safethrift/web lint",
+    "exitCode": 0,
+    "started": "2026-11-02T07:44:49.154Z",
+    "finished": "2026-11-02T07:45:13.395Z",
+    "log": "/tmp/safethrift-t39-phase-b-lint.log"
+  },
+  {
+    "command": "pnpm --filter @safethrift/web build",
+    "exitCode": 0,
+    "started": "2026-11-02T07:45:13.398Z",
+    "finished": "2026-11-02T07:45:54.791Z",
+    "log": "/tmp/safethrift-t39-phase-b-build.log"
+  }
+]

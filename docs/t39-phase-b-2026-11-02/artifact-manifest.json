@@ -1,0 +1,246 @@
+[
+  {
+    "file": "README.md",
+    "bytes": 17030
+  },
+  {
+    "file": "REDACTION-AUDIT.md",
+    "bytes": 1582
+  },
+  {
+    "file": "about-1024.png",
+    "bytes": 470714
+  },
+  {
+    "file": "about-1440.png",
+    "bytes": 509697
+  },
+  {
+    "file": "about-320.png",
+    "bytes": 455267
+  },
+  {
+    "file": "about-390.png",
+    "bytes": 447884
+  },
+  {
+    "file": "about-768.png",
+    "bytes": 464812
+  },
+  {
+    "file": "artifact-manifest.json",
+    "bytes": 3884
+  },
+  {
+    "file": "baseline.json",
+    "bytes": 74351
+  },
+  {
+    "file": "browser-errors.json",
+    "bytes": 43
+  },
+  {
+    "file": "browser-harness-adaptation.diff",
+    "bytes": 525
+  },
+  {
+    "file": "comparison-home-1440.png",
+    "bytes": 601299
+  },
+  {
+    "file": "comparison-home-390.png",
+    "bytes": 427089
+  },
+  {
+    "file": "comparison-products-1440.png",
+    "bytes": 666076
+  },
+  {
+    "file": "comparison-products-390.png",
+    "bytes": 503028
+  },
+  {
+    "file": "existing-browser-audit.json",
+    "bytes": 288838
+  },
+  {
+    "file": "existing-browser-results.json",
+    "bytes": 201
+  },
+  {
+    "file": "home-1024.png",
+    "bytes": 394335
+  },
+  {
+    "file": "home-1440.png",
+    "bytes": 437433
+  },
+  {
+    "file": "home-320.png",
+    "bytes": 333630
+  },
+  {
+    "file": "home-390.png",
+    "bytes": 331031
+  },
+  {
+    "file": "home-768.png",
+    "bytes": 382732
+  },
+  {
+    "file": "home-text-200.png",
+    "bytes": 94061
+  },
+  {
+    "file": "index.html",
+    "bytes": 8325
+  },
+  {
+    "file": "interaction-results.json",
+    "bytes": 6768
+  },
+  {
+    "file": "keyboard-focus.png",
+    "bytes": 123011
+  },
+  {
+    "file": "knowledge-centre-1024.png",
+    "bytes": 244310
+  },
+  {
+    "file": "knowledge-centre-1440.png",
+    "bytes": 265508
+  },
+  {
+    "file": "knowledge-centre-320.png",
+    "bytes": 221849
+  },
+  {
+    "file": "knowledge-centre-390.png",
+    "bytes": 217018
+  },
+  {
+    "file": "knowledge-centre-768.png",
+    "bytes": 230423
+  },
+  {
+    "file": "membership-1024.png",
+    "bytes": 364219
+  },
+  {
+    "file": "membership-1440.png",
+    "bytes": 385434
+  },
+  {
+    "file": "membership-320.png",
+    "bytes": 338331
+  },
+  {
+    "file": "membership-390.png",
+    "bytes": 331675
+  },
+  {
+    "file": "membership-768.png",
+    "bytes": 351883
+  },
+  {
+    "file": "mobile-menu-open.png",
+    "bytes": 342253
+  },
+  {
+    "file": "preservation-results.json",
+    "bytes": 1017
+  },
+  {
+    "file": "preview-cleanup.json",
+    "bytes": 364
+  },
+  {
+    "file": "production-results.json",
+    "bytes": 484
+  },
+  {
+    "file": "products-1024.png",
+    "bytes": 454454
+  },
+  {
+    "file": "products-1440.png",
+    "bytes": 477694
+  },
+  {
+    "file": "products-320.png",
+    "bytes": 321846
+  },
+  {
+    "file": "products-390.png",
+    "bytes": 311648
+  },
+  {
+    "file": "products-768.png",
+    "bytes": 443640
+  },
+  {
+    "file": "products-text-200.png",
+    "bytes": 83574
+  },
+  {
+    "file": "protected-baseline.json",
+    "bytes": 180192
+  },
+  {
+    "file": "protected-regressions.json",
+    "bytes": 912
+  },
+  {
+    "file": "public-matrix.json",
+    "bytes": 13153
+  },
+  {
+    "file": "run-existing-browser.mjs",
+    "bytes": 1260
+  },
+  {
+    "file": "run-production-verification.mjs",
+    "bytes": 2167
+  },
+  {
+    "file": "run-protected.mjs",
+    "bytes": 2082
+  },
+  {
+    "file": "run-static.mjs",
+    "bytes": 909
+  },
+  {
+    "file": "static-results.json",
+    "bytes": 669
+  },
+  {
+    "file": "stop-baseline-preview.mjs",
+    "bytes": 1028
+  },
+  {
+    "file": "stop-test-services.mjs",
+    "bytes": 1462
+  },
+  {
+    "file": "t40-browser-summary.json",
+    "bytes": 239
+  },
+  {
+    "file": "t41-browser-summary.json",
+    "bytes": 457
+  },
+  {
+    "file": "t42-browser-summary.json",
+    "bytes": 316
+  },
+  {
+    "file": "test-service-cleanup.json",
+    "bytes": 436
+  },
+  {
+    "file": "verify.mjs",
+    "bytes": 11979
+  }
+]

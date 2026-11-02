@@ -1,0 +1,177 @@
+[
+  {
+    "route": "/about",
+    "width": 1440,
+    "mainTextUnchanged": true,
+    "beforeTextSha256": "b40b055bc2b0eda0a5f9f337541aa2c1bd30766b642b71b50544380cd519d90c",
+    "afterTextSha256": "b40b055bc2b0eda0a5f9f337541aa2c1bd30766b642b71b50544380cd519d90c"
+  },
+  {
+    "route": "/knowledge-centre",
+    "width": 1440,
+    "mainTextUnchanged": true,
+    "beforeTextSha256": "18d322a8a15c34fd71d0427e6d8dc9285da9c1af8a5a2ed16dc739a99b409d88",
+    "afterTextSha256": "18d322a8a15c34fd71d0427e6d8dc9285da9c1af8a5a2ed16dc739a99b409d88"
+  },
+  {
+    "route": "/",
+    "width": 1440,
+    "mainTextUnchanged": true,
+    "beforeTextSha256": "15f59b43ccad93c252167acc8c642f0eb562b9f7c3c8a80d2f5621777d61d6f3",
+    "afterTextSha256": "15f59b43ccad93c252167acc8c642f0eb562b9f7c3c8a80d2f5621777d61d6f3"
+  },
+  {
+    "route": "/products",
+    "width": 1440,
+    "mainTextUnchanged": true,
+    "beforeTextSha256": "9963607ad17173aae4a4241445f70a8826605342664efdbcd1f515bdb688de68",
+    "afterTextSha256": "9963607ad17173aae4a4241445f70a8826605342664efdbcd1f515bdb688de68"
+  },
+  {
+    "route": "/membership",
+    "width": 1440,
+    "mainTextUnchanged": true,
+    "beforeTextSha256": "27ba63219645389d0b872f257e7f485791340388b46c1dc9595ad710c03317ff",
+    "afterTextSha256": "27ba63219645389d0b872f257e7f485791340388b46c1dc9595ad710c03317ff"
+  },
+  {
+    "route": "/about",
+    "width": 390,
+    "mainTextUnchanged": true,
+    "beforeTextSha256": "b40b055bc2b0eda0a5f9f337541aa2c1bd30766b642b71b50544380cd519d90c",
+    "afterTextSha256": "b40b055bc2b0eda0a5f9f337541aa2c1bd30766b642b71b50544380cd519d90c"
+  },
+  {
+    "route": "/knowledge-centre",
+    "width": 390,
+    "mainTextUnchanged": true,
+    "beforeTextSha256": "18d322a8a15c34fd71d0427e6d8dc9285da9c1af8a5a2ed16dc739a99b409d88",
+    "afterTextSha256": "18d322a8a15c34fd71d0427e6d8dc9285da9c1af8a5a2ed16dc739a99b409d88"
+  },
+  {
+    "route": "/",
+    "width": 390,
+    "mainTextUnchanged": true,
+    "beforeTextSha256": "15f59b43ccad93c252167acc8c642f0eb562b9f7c3c8a80d2f5621777d61d6f3",
+    "afterTextSha256": "15f59b43ccad93c252167acc8c642f0eb562b9f7c3c8a80d2f5621777d61d6f3"
+  },
+  {
+    "route": "/products",
+    "width": 390,
+    "mainTextUnchanged": true,
+    "beforeTextSha256": "9963607ad17173aae4a4241445f70a8826605342664efdbcd1f515bdb688de68",
+    "afterTextSha256": "9963607ad17173aae4a4241445f70a8826605342664efdbcd1f515bdb688de68"
+  },
+  {
+    "route": "/membership",
+    "width": 390,
+    "mainTextUnchanged": true,
+    "beforeTextSha256": "27ba63219645389d0b872f257e7f485791340388b46c1dc9595ad710c03317ff",
+    "afterTextSha256": "27ba63219645389d0b872f257e7f485791340388b46c1dc9595ad710c03317ff"
+  },
+  {
+    "route": "/about",
+    "width": 320,
+    "mainTextUnchanged": true,
+    "beforeTextSha256": "b40b055bc2b0eda0a5f9f337541aa2c1bd30766b642b71b50544380cd519d90c",
+    "afterTextSha256": "b40b055bc2b0eda0a5f9f337541aa2c1bd30766b642b71b50544380cd519d90c"
+  },
+  {
+    "route": "/knowledge-centre",
+    "width": 320,
+    "mainTextUnchanged": true,
+    "beforeTextSha256": "18d322a8a15c34fd71d0427e6d8dc9285da9c1af8a5a2ed16dc739a99b409d88",
+    "afterTextSha256": "18d322a8a15c34fd71d0427e6d8dc9285da9c1af8a5a2ed16dc739a99b409d88"
+  },
+  {
+    "route": "/",
+    "width": 320,
+    "mainTextUnchanged": true,
+    "beforeTextSha256": "15f59b43ccad93c252167acc8c642f0eb562b9f7c3c8a80d2f5621777d61d6f3",
+    "afterTextSha256": "15f59b43ccad93c252167acc8c642f0eb562b9f7c3c8a80d2f5621777d61d6f3"
+  },
+  {
+    "route": "/products",
+    "width": 320,
+    "mainTextUnchanged": true,
+    "beforeTextSha256": "9963607ad17173aae4a4241445f70a8826605342664efdbcd1f515bdb688de68",
+    "afterTextSha256": "9963607ad17173aae4a4241445f70a8826605342664efdbcd1f515bdb688de68"
+  },
+  {
+    "route": "/membership",
+    "width": 320,
+    "mainTextUnchanged": true,
+    "beforeTextSha256": "27ba63219645389d0b872f257e7f485791340388b46c1dc9595ad710c03317ff",
+    "afterTextSha256": "27ba63219645389d0b872f257e7f485791340388b46c1dc9595ad710c03317ff"
+  },
+  {
+    "route": "/about",
+    "width": 768,
+    "mainTextUnchanged": true,
+    "beforeTextSha256": "b40b055bc2b0eda0a5f9f337541aa2c1bd30766b642b71b50544380cd519d90c",
+    "afterTextSha256": "b40b055bc2b0eda0a5f9f337541aa2c1bd30766b642b71b50544380cd519d90c"
+  },
+  {
+    "route": "/knowledge-centre",
+    "width": 768,
+    "mainTextUnchanged": true,
+    "beforeTextSha256": "18d322a8a15c34fd71d0427e6d8dc9285da9c1af8a5a2ed16dc739a99b409d88",
+    "afterTextSha256": "18d322a8a15c34fd71d0427e6d8dc9285da9c1af8a5a2ed16dc739a99b409d88"
+  },
+  {
+    "route": "/",
+    "width": 768,
+    "mainTextUnchanged": true,
+    "beforeTextSha256": "15f59b43ccad93c252167acc8c642f0eb562b9f7c3c8a80d2f5621777d61d6f3",
+    "afterTextSha256": "15f59b43ccad93c252167acc8c642f0eb562b9f7c3c8a80d2f5621777d61d6f3"
+  },
+  {
+    "route": "/products",
+    "width": 768,
+    "mainTextUnchanged": true,
+    "beforeTextSha256": "9963607ad17173aae4a4241445f70a8826605342664efdbcd1f515bdb688de68",
+    "afterTextSha256": "9963607ad17173aae4a4241445f70a8826605342664efdbcd1f515bdb688de68"
+  },
+  {
+    "route": "/membership",
+    "width": 768,
+    "mainTextUnchanged": true,
+    "beforeTextSha256": "27ba63219645389d0b872f257e7f485791340388b46c1dc9595ad710c03317ff",
+    "afterTextSha256": "27ba63219645389d0b872f257e7f485791340388b46c1dc9595ad710c03317ff"
+  },
+  {
+    "route": "/about",
+    "width": 1024,
+    "mainTextUnchanged": true,
+    "beforeTextSha256": "b40b055bc2b0eda0a5f9f337541aa2c1bd30766b642b71b50544380cd519d90c",
+    "afterTextSha256": "b40b055bc2b0eda0a5f9f337541aa2c1bd30766b642b71b50544380cd519d90c"
+  },
+  {
+    "route": "/knowledge-centre",
+    "width": 1024,
+    "mainTextUnchanged": true,
+    "beforeTextSha256": "18d322a8a15c34fd71d0427e6d8dc9285da9c1af8a5a2ed16dc739a99b409d88",
+    "afterTextSha256": "18d322a8a15c34fd71d0427e6d8dc9285da9c1af8a5a2ed16dc739a99b409d88"
+  },
+  {
+    "route": "/",
+    "width": 1024,
+    "mainTextUnchanged": true,
+    "beforeTextSha256": "15f59b43ccad93c252167acc8c642f0eb562b9f7c3c8a80d2f5621777d61d6f3",
+    "afterTextSha256": "15f59b43ccad93c252167acc8c642f0eb562b9f7c3c8a80d2f5621777d61d6f3"
+  },
+  {
+    "route": "/products",
+    "width": 1024,
+    "mainTextUnchanged": true,
+    "beforeTextSha256": "9963607ad17173aae4a4241445f70a8826605342664efdbcd1f515bdb688de68",
+    "afterTextSha256": "9963607ad17173aae4a4241445f70a8826605342664efdbcd1f515bdb688de68"
+  },
+  {
+    "route": "/membership",
+    "width": 1024,
+    "mainTextUnchanged": true,
+    "beforeTextSha256": "27ba63219645389d0b872f257e7f485791340388b46c1dc9595ad710c03317ff",
+    "afterTextSha256": "27ba63219645389d0b872f257e7f485791340388b46c1dc9595ad710c03317ff"
+  }
+]

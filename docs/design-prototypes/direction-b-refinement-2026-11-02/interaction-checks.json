@@ -1,0 +1,162 @@
+{
+  "extras": [
+    {
+      "name": "state-menu-closed",
+      "width": 390,
+      "height": 4285,
+      "scrollWidth": 390,
+      "screenshotHeight": 844
+    },
+    {
+      "name": "state-menu-open",
+      "width": 390,
+      "height": 4285,
+      "scrollWidth": 390,
+      "screenshotHeight": 844
+    },
+    {
+      "name": "home-text-200",
+      "width": 390,
+      "scrollWidth": 390,
+      "clipped": []
+    },
+    {
+      "name": "home-text-200",
+      "width": 390,
+      "height": 12305,
+      "scrollWidth": 390,
+      "screenshotHeight": 1400
+    },
+    {
+      "name": "products-text-200",
+      "width": 390,
+      "scrollWidth": 390,
+      "clipped": []
+    },
+    {
+      "name": "products-text-200",
+      "width": 390,
+      "height": 10872,
+      "scrollWidth": 390,
+      "screenshotHeight": 1400
+    },
+    {
+      "name": "home-zoom-equivalent-200",
+      "width": 720,
+      "scrollWidth": 720
+    },
+    {
+      "name": "products-zoom-equivalent-200",
+      "width": 720,
+      "scrollWidth": 720
+    },
+    {
+      "name": "state-motif-focus",
+      "width": 1440,
+      "height": 3345,
+      "scrollWidth": 1440,
+      "screenshotHeight": 900
+    },
+    {
+      "name": "motif-anchor",
+      "hash": "#participation",
+      "activeId": "participation"
+    },
+    {
+      "name": "state-navigation-focus",
+      "width": 1440,
+      "height": 3345,
+      "scrollWidth": 1440,
+      "screenshotHeight": 900
+    },
+    {
+      "name": "reduced-motion",
+      "matches": true,
+      "scrollBehavior": "auto"
+    },
+    {
+      "name": "state-navigation-active-hover",
+      "width": 1440,
+      "height": 3754,
+      "scrollWidth": 1440,
+      "screenshotHeight": 650
+    },
+    {
+      "name": "state-motif-hover",
+      "width": 1440,
+      "height": 3345,
+      "scrollWidth": 1440,
+      "screenshotHeight": 900
+    },
+    {
+      "name": "state-product-links",
+      "width": 1440,
+      "height": 3345,
+      "scrollWidth": 1440,
+      "screenshotHeight": 900
+    },
+    {
+      "name": "six-product-anchor-contracts",
+      "anchors": [
+        {
+          "id": "fsa",
+          "exists": true,
+          "hash": "#fsa",
+          "focus": "fsa"
+        },
+        {
+          "id": "rsa",
+          "exists": true,
+          "hash": "#rsa",
+          "focus": "rsa"
+        },
+        {
+          "id": "gsa",
+          "exists": true,
+          "hash": "#gsa",
+          "focus": "gsa"
+        },
+        {
+          "id": "fsa-details",
+          "exists": true,
+          "hash": "#fsa-details",
+          "focus": "fsa-details"
+        },
+        {
+          "id": "rsa-details",
+          "exists": true,
+          "hash": "#rsa-details",
+          "focus": "rsa-details"
+        },
+        {
+          "id": "gsa-details",
+          "exists": true,
+          "hash": "#gsa-details",
+          "focus": "gsa-details"
+        }
+      ]
+    },
+    {
+      "name": "home-links",
+      "missingLocalAnchors": [],
+      "controls": 0,
+      "touchTargets": []
+    },
+    {
+      "name": "products-links",
+      "missingLocalAnchors": [],
+      "controls": 0,
+      "touchTargets": []
+    }
+  ],
+  "escape": {
+    "closed": true,
+    "focusRestored": true
+  },
+  "menuAudit": {
+    "violations": [],
+    "incomplete": [
+      "color-contrast"
+    ]
+  }
+}

@@ -1,0 +1,197 @@
+[
+  {
+    "page": "home",
+    "width": 320,
+    "beforePixels": [
+      320,
+      4917
+    ],
+    "afterPixels": [
+      320,
+      4917
+    ],
+    "pixelIdentical": true
+  },
+  {
+    "page": "home",
+    "width": 390,
+    "beforePixels": [
+      390,
+      4263
+    ],
+    "afterPixels": [
+      390,
+      4263
+    ],
+    "pixelIdentical": true
+  },
+  {
+    "page": "home",
+    "width": 768,
+    "beforePixels": [
+      768,
+      3551
+    ],
+    "afterPixels": [
+      768,
+      3551
+    ],
+    "pixelIdentical": true
+  },
+  {
+    "page": "home",
+    "width": 1024,
+    "beforePixels": [
+      1024,
+      3190
+    ],
+    "afterPixels": [
+      1024,
+      3190
+    ],
+    "pixelIdentical": true
+  },
+  {
+    "page": "home",
+    "width": 1440,
+    "beforePixels": [
+      1440,
+      3323
+    ],
+    "afterPixels": [
+      1440,
+      3323
+    ],
+    "pixelIdentical": true
+  },
+  {
+    "page": "products",
+    "width": 320,
+    "beforePixels": [
+      320,
+      4656
+    ],
+    "afterPixels": [
+      320,
+      4656
+    ],
+    "pixelIdentical": true
+  },
+  {
+    "page": "products",
+    "width": 390,
+    "beforePixels": [
+      390,
+      4134
+    ],
+    "afterPixels": [
+      390,
+      4134
+    ],
+    "pixelIdentical": true
+  },
+  {
+    "page": "products",
+    "width": 768,
+    "beforePixels": [
+      768,
+      4020
+    ],
+    "afterPixels": [
+      768,
+      4020
+    ],
+    "pixelIdentical": true
+  },
+  {
+    "page": "products",
+    "width": 1024,
+    "beforePixels": [
+      1024,
+      3818
+    ],
+    "afterPixels": [
+      1024,
+      3818
+    ],
+    "pixelIdentical": true
+  },
+  {
+    "page": "products",
+    "width": 1440,
+    "beforePixels": [
+      1440,
+      3768
+    ],
+    "afterPixels": [
+      1440,
+      3768
+    ],
+    "pixelIdentical": true
+  },
+  {
+    "page": "membership",
+    "width": 320,
+    "beforePixels": [
+      320,
+      4973
+    ],
+    "afterPixels": [
+      320,
+      4973
+    ],
+    "pixelIdentical": true
+  },
+  {
+    "page": "membership",
+    "width": 390,
+    "beforePixels": [
+      390,
+      4463
+    ],
+    "afterPixels": [
+      390,
+      4463
+    ],
+    "pixelIdentical": true
+  },
+  {
+    "page": "membership",
+    "width": 768,
+    "beforePixels": [
+      768,
+      3810
+    ],
+    "afterPixels": [
+      768,
+      3810
+    ],
+    "pixelIdentical": true
+  },
+  {
+    "page": "membership",
+    "width": 1024,
+    "beforePixels": [
+      1024,
+      3082
+    ],
+    "afterPixels": [
+      1024,
+      3082
+    ],
+    "pixelIdentical": true
+  },
+  {
+    "page": "membership",
+    "width": 1440,
+    "beforePixels": [
+      1440,
+      3064
+    ],
+    "afterPixels": [
+      1440,
+      3064
+    ],
+    "pixelIdentical": true
+  }
+]

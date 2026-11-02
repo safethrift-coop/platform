@@ -1,0 +1,34 @@
+[
+  {
+    "name": "T40",
+    "script": "test:registration:browser",
+    "started": "2026-11-02T07:08:58.616Z",
+    "finished": "2026-11-02T07:11:19.244Z",
+    "exitCode": 0,
+    "log": "/tmp/safethrift-t39-phase-b-T40.log"
+  },
+  {
+    "name": "T41",
+    "script": "test:dashboard:browser",
+    "started": "2026-11-02T07:11:19.254Z",
+    "finished": "2026-11-02T07:11:43.058Z",
+    "exitCode": 1,
+    "log": "/tmp/safethrift-t39-phase-b-T41.log"
+  },
+  {
+    "name": "T41",
+    "script": "test:dashboard:browser",
+    "started": "2026-11-02T07:27:09.373Z",
+    "finished": "2026-11-02T07:28:33.001Z",
+    "exitCode": 0,
+    "log": "/tmp/safethrift-t39-phase-b-T41-attempt2.log"
+  },
+  {
+    "name": "T42",
+    "script": "test:loans:browser",
+    "started": "2026-11-02T07:28:33.055Z",
+    "finished": "2026-11-02T07:29:53.595Z",
+    "exitCode": 0,
+    "log": "/tmp/safethrift-t39-phase-b-T42-attempt1.log"
+  }
+]

@@ -1,0 +1,328 @@
+{
+  "menuAudit": {
+    "violations": [],
+    "incomplete": []
+  },
+  "escape": {
+    "closed": true,
+    "restored": true
+  },
+  "clientNavigation": {
+    "route": "/about",
+    "closed": true,
+    "active": "/about"
+  },
+  "disclosure": true,
+  "reducedMotion": "auto",
+  "enlargedText": [
+    {
+      "route": "/",
+      "width": 390,
+      "scrollWidth": 390,
+      "height": 12254,
+      "archivo": true,
+      "sourceSans": true,
+      "fonts": [
+        {
+          "family": "Safethrift Archivo",
+          "status": "loaded"
+        },
+        {
+          "family": "Safethrift Source Sans",
+          "status": "loaded"
+        }
+      ],
+      "clipping": [],
+      "forms": 0,
+      "duplicateIds": [],
+      "missingAnchors": []
+    },
+    {
+      "route": "/products",
+      "width": 390,
+      "scrollWidth": 390,
+      "height": 10869,
+      "archivo": true,
+      "sourceSans": true,
+      "fonts": [
+        {
+          "family": "Safethrift Archivo",
+          "status": "loaded"
+        },
+        {
+          "family": "Safethrift Source Sans",
+          "status": "loaded"
+        }
+      ],
+      "clipping": [],
+      "forms": 0,
+      "duplicateIds": [],
+      "missingAnchors": []
+    },
+    {
+      "route": "/about",
+      "width": 390,
+      "scrollWidth": 390,
+      "height": 19409,
+      "archivo": true,
+      "sourceSans": true,
+      "fonts": [
+        {
+          "family": "Safethrift Archivo",
+          "status": "loaded"
+        },
+        {
+          "family": "Safethrift Source Sans",
+          "status": "loaded"
+        }
+      ],
+      "clipping": [],
+      "forms": 0,
+      "duplicateIds": [],
+      "missingAnchors": []
+    },
+    {
+      "route": "/membership",
+      "width": 390,
+      "scrollWidth": 390,
+      "height": 14488,
+      "archivo": true,
+      "sourceSans": true,
+      "fonts": [
+        {
+          "family": "Safethrift Archivo",
+          "status": "loaded"
+        },
+        {
+          "family": "Safethrift Source Sans",
+          "status": "loaded"
+        }
+      ],
+      "clipping": [],
+      "forms": 0,
+      "duplicateIds": [],
+      "missingAnchors": []
+    },
+    {
+      "route": "/knowledge-centre",
+      "width": 390,
+      "scrollWidth": 390,
+      "height": 8746,
+      "archivo": true,
+      "sourceSans": true,
+      "fonts": [
+        {
+          "family": "Safethrift Archivo",
+          "status": "loaded"
+        },
+        {
+          "family": "Safethrift Source Sans",
+          "status": "loaded"
+        }
+      ],
+      "clipping": [],
+      "forms": 0,
+      "duplicateIds": [],
+      "missingAnchors": []
+    }
+  ],
+  "zoomEquivalent": [
+    {
+      "route": "/",
+      "width": 720,
+      "scrollWidth": 720,
+      "height": 3694,
+      "archivo": true,
+      "sourceSans": true,
+      "fonts": [
+        {
+          "family": "Safethrift Archivo",
+          "status": "loaded"
+        },
+        {
+          "family": "Safethrift Source Sans",
+          "status": "loaded"
+        }
+      ],
+      "clipping": [],
+      "forms": 0,
+      "duplicateIds": [],
+      "missingAnchors": []
+    },
+    {
+      "route": "/products",
+      "width": 720,
+      "scrollWidth": 720,
+      "height": 4157,
+      "archivo": true,
+      "sourceSans": true,
+      "fonts": [
+        {
+          "family": "Safethrift Archivo",
+          "status": "loaded"
+        },
+        {
+          "family": "Safethrift Source Sans",
+          "status": "loaded"
+        }
+      ],
+      "clipping": [],
+      "forms": 0,
+      "duplicateIds": [],
+      "missingAnchors": []
+    },
+    {
+      "route": "/about",
+      "width": 720,
+      "scrollWidth": 720,
+      "height": 5062,
+      "archivo": true,
+      "sourceSans": true,
+      "fonts": [
+        {
+          "family": "Safethrift Archivo",
+          "status": "loaded"
+        },
+        {
+          "family": "Safethrift Source Sans",
+          "status": "loaded"
+        }
+      ],
+      "clipping": [],
+      "forms": 0,
+      "duplicateIds": [],
+      "missingAnchors": []
+    },
+    {
+      "route": "/membership",
+      "width": 720,
+      "scrollWidth": 720,
+      "height": 3810,
+      "archivo": true,
+      "sourceSans": true,
+      "fonts": [
+        {
+          "family": "Safethrift Archivo",
+          "status": "loaded"
+        },
+        {
+          "family": "Safethrift Source Sans",
+          "status": "loaded"
+        }
+      ],
+      "clipping": [],
+      "forms": 0,
+      "duplicateIds": [],
+      "missingAnchors": []
+    },
+    {
+      "route": "/knowledge-centre",
+      "width": 720,
+      "scrollWidth": 720,
+      "height": 2434,
+      "archivo": true,
+      "sourceSans": true,
+      "fonts": [
+        {
+          "family": "Safethrift Archivo",
+          "status": "loaded"
+        },
+        {
+          "family": "Safethrift Source Sans",
+          "status": "loaded"
+        }
+      ],
+      "clipping": [],
+      "forms": 0,
+      "duplicateIds": [],
+      "missingAnchors": []
+    }
+  ],
+  "focus": {
+    "visible": true,
+    "outline": "rgb(240, 212, 119) solid 3px",
+    "offset": "5px"
+  },
+  "motif": {
+    "hash": "#participation",
+    "activeId": "participation"
+  },
+  "anchors": [
+    {
+      "id": "fsa",
+      "exists": true,
+      "details": true,
+      "focus": "fsa"
+    },
+    {
+      "id": "rsa",
+      "exists": true,
+      "details": true,
+      "focus": "rsa"
+    },
+    {
+      "id": "gsa",
+      "exists": true,
+      "details": true,
+      "focus": "gsa"
+    }
+  ],
+  "protectedStyles": [
+    {
+      "route": "/register",
+      "width": 390,
+      "baselineMatches": true,
+      "residentStylesMatch": true,
+      "markerAbsent": true
+    },
+    {
+      "route": "/dashboard",
+      "width": 390,
+      "baselineMatches": true,
+      "residentStylesMatch": true,
+      "markerAbsent": true
+    },
+    {
+      "route": "/dashboard/loans",
+      "width": 390,
+      "baselineMatches": true,
+      "residentStylesMatch": true,
+      "markerAbsent": true
+    },
+    {
+      "route": "/dashboard/loans/apply",
+      "width": 390,
+      "baselineMatches": true,
+      "residentStylesMatch": true,
+      "markerAbsent": true
+    },
+    {
+      "route": "/register",
+      "width": 1440,
+      "baselineMatches": true,
+      "residentStylesMatch": true,
+      "markerAbsent": true
+    },
+    {
+      "route": "/dashboard",
+      "width": 1440,
+      "baselineMatches": true,
+      "residentStylesMatch": true,
+      "markerAbsent": true
+    },
+    {
+      "route": "/dashboard/loans",
+      "width": 1440,
+      "baselineMatches": true,
+      "residentStylesMatch": true,
+      "markerAbsent": true
+    },
+    {
+      "route": "/dashboard/loans/apply",
+      "width": 1440,
+      "baselineMatches": true,
+      "residentStylesMatch": true,
+      "markerAbsent": true
+    }
+  ]
+}

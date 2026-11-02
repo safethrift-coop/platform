@@ -1,0 +1,358 @@
+[
+  {
+    "file": "README.md",
+    "bytes": 13617
+  },
+  {
+    "file": "about-source.diff",
+    "bytes": 11968
+  },
+  {
+    "file": "after-browser.json",
+    "bytes": 2297927
+  },
+  {
+    "file": "after/about-1024.png",
+    "bytes": 466458
+  },
+  {
+    "file": "after/about-1440.png",
+    "bytes": 504451
+  },
+  {
+    "file": "after/about-320.png",
+    "bytes": 449203
+  },
+  {
+    "file": "after/about-390.png",
+    "bytes": 461718
+  },
+  {
+    "file": "after/about-768.png",
+    "bytes": 460948
+  },
+  {
+    "file": "after/about-faq-focus.png",
+    "bytes": 73645
+  },
+  {
+    "file": "after/about-menu-open.png",
+    "bytes": 61623
+  },
+  {
+    "file": "after/about-text-200.png",
+    "bytes": 76449
+  },
+  {
+    "file": "after/home-1024.png",
+    "bytes": 394335
+  },
+  {
+    "file": "after/home-1440.png",
+    "bytes": 437433
+  },
+  {
+    "file": "after/home-320.png",
+    "bytes": 333630
+  },
+  {
+    "file": "after/home-390.png",
+    "bytes": 331031
+  },
+  {
+    "file": "after/home-768.png",
+    "bytes": 382732
+  },
+  {
+    "file": "after/knowledge-centre-1024.png",
+    "bytes": 241521
+  },
+  {
+    "file": "after/knowledge-centre-1440.png",
+    "bytes": 262681
+  },
+  {
+    "file": "after/knowledge-centre-320.png",
+    "bytes": 220105
+  },
+  {
+    "file": "after/knowledge-centre-390.png",
+    "bytes": 225786
+  },
+  {
+    "file": "after/knowledge-centre-768.png",
+    "bytes": 230747
+  },
+  {
+    "file": "after/knowledge-centre-text-200.png",
+    "bytes": 85090
+  },
+  {
+    "file": "after/membership-1024.png",
+    "bytes": 364219
+  },
+  {
+    "file": "after/membership-1440.png",
+    "bytes": 385434
+  },
+  {
+    "file": "after/membership-320.png",
+    "bytes": 338331
+  },
+  {
+    "file": "after/membership-390.png",
+    "bytes": 331675
+  },
+  {
+    "file": "after/membership-768.png",
+    "bytes": 351883
+  },
+  {
+    "file": "after/products-1024.png",
+    "bytes": 454454
+  },
+  {
+    "file": "after/products-1440.png",
+    "bytes": 477694
+  },
+  {
+    "file": "after/products-320.png",
+    "bytes": 321846
+  },
+  {
+    "file": "after/products-390.png",
+    "bytes": 311648
+  },
+  {
+    "file": "after/products-768.png",
+    "bytes": 443640
+  },
+  {
+    "file": "artifact-manifest.json",
+    "bytes": 6117
+  },
+  {
+    "file": "baseline-run.json",
+    "bytes": 149
+  },
+  {
+    "file": "baseline.json",
+    "bytes": 85962
+  },
+  {
+    "file": "before-browser.json",
+    "bytes": 3001429
+  },
+  {
+    "file": "before/about-1024.png",
+    "bytes": 470714
+  },
+  {
+    "file": "before/about-1440.png",
+    "bytes": 509697
+  },
+  {
+    "file": "before/about-320.png",
+    "bytes": 455267
+  },
+  {
+    "file": "before/about-390.png",
+    "bytes": 447884
+  },
+  {
+    "file": "before/about-768.png",
+    "bytes": 464812
+  },
+  {
+    "file": "before/home-1024.png",
+    "bytes": 394335
+  },
+  {
+    "file": "before/home-1440.png",
+    "bytes": 437433
+  },
+  {
+    "file": "before/home-320.png",
+    "bytes": 333630
+  },
+  {
+    "file": "before/home-390.png",
+    "bytes": 331031
+  },
+  {
+    "file": "before/home-768.png",
+    "bytes": 382732
+  },
+  {
+    "file": "before/knowledge-centre-1024.png",
+    "bytes": 244310
+  },
+  {
+    "file": "before/knowledge-centre-1440.png",
+    "bytes": 265508
+  },
+  {
+    "file": "before/knowledge-centre-320.png",
+    "bytes": 221849
+  },
+  {
+    "file": "before/knowledge-centre-390.png",
+    "bytes": 217018
+  },
+  {
+    "file": "before/knowledge-centre-768.png",
+    "bytes": 230423
+  },
+  {
+    "file": "before/membership-1024.png",
+    "bytes": 364219
+  },
+  {
+    "file": "before/membership-1440.png",
+    "bytes": 385434
+  },
+  {
+    "file": "before/membership-320.png",
+    "bytes": 338331
+  },
+  {
+    "file": "before/membership-390.png",
+    "bytes": 331675
+  },
+  {
+    "file": "before/membership-768.png",
+    "bytes": 351883
+  },
+  {
+    "file": "before/products-1024.png",
+    "bytes": 454454
+  },
+  {
+    "file": "before/products-1440.png",
+    "bytes": 477694
+  },
+  {
+    "file": "before/products-320.png",
+    "bytes": 321846
+  },
+  {
+    "file": "before/products-390.png",
+    "bytes": 311648
+  },
+  {
+    "file": "before/products-768.png",
+    "bytes": 443640
+  },
+  {
+    "file": "browser.mjs",
+    "bytes": 11215
+  },
+  {
+    "file": "comparison-about-1440.png",
+    "bytes": 755803
+  },
+  {
+    "file": "comparison-about-390.png",
+    "bytes": 927880
+  },
+  {
+    "file": "comparison-knowledge-centre-1440.png",
+    "bytes": 382692
+  },
+  {
+    "file": "comparison-knowledge-centre-390.png",
+    "bytes": 425160
+  },
+  {
+    "file": "content-preservation.json",
+    "bytes": 6658
+  },
+  {
+    "file": "css-scope-audit.json",
+    "bytes": 4496
+  },
+  {
+    "file": "existing-browser/about-1440.png",
+    "bytes": 504451
+  },
+  {
+    "file": "existing-browser/about-390.png",
+    "bytes": 462368
+  },
+  {
+    "file": "existing-browser/home-1440.png",
+    "bytes": 437433
+  },
+  {
+    "file": "existing-browser/home-390.png",
+    "bytes": 331777
+  },
+  {
+    "file": "existing-browser/knowledge-centre-1440.png",
+    "bytes": 262681
+  },
+  {
+    "file": "existing-browser/knowledge-centre-390.png",
+    "bytes": 226105
+  },
+  {
+    "file": "existing-browser/membership-1440.png",
+    "bytes": 385434
+  },
+  {
+    "file": "existing-browser/membership-390.png",
+    "bytes": 332272
+  },
+  {
+    "file": "existing-browser/products-1440.png",
+    "bytes": 477694
+  },
+  {
+    "file": "existing-browser/products-390.png",
+    "bytes": 312440
+  },
+  {
+    "file": "existing-browser/results.json",
+    "bytes": 286843
+  },
+  {
+    "file": "index.html",
+    "bytes": 7551
+  },
+  {
+    "file": "knowledge-centre-source.diff",
+    "bytes": 4352
+  },
+  {
+    "file": "marketing.css.diff",
+    "bytes": 7096
+  },
+  {
+    "file": "preservation-results.json",
+    "bytes": 1271
+  },
+  {
+    "file": "protected-impact.json",
+    "bytes": 3667
+  },
+  {
+    "file": "public-visual-preservation.json",
+    "bytes": 2696
+  },
+  {
+    "file": "run-browser.mjs",
+    "bytes": 2229
+  },
+  {
+    "file": "run-static.mjs",
+    "bytes": 912
+  },
+  {
+    "file": "static-results.json",
+    "bytes": 684
+  },
+  {
+    "file": "verification-run.json",
+    "bytes": 474
+  }
+]

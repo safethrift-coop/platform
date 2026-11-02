@@ -1,0 +1,146 @@
+{
+  "browserFixturesRunThisTask": false,
+  "reason": "No shared components, protected code or dependencies changed. Appended selectors all require About/Knowledge page markers; protected output compared before and after, including resident updated CSS.",
+  "views": [
+    {
+      "route": "/register",
+      "width": 390,
+      "outputUnchanged": true,
+      "residentStylesUnchanged": true,
+      "noPageMarker": true
+    },
+    {
+      "route": "/login",
+      "width": 390,
+      "outputUnchanged": true,
+      "residentStylesUnchanged": true,
+      "noPageMarker": true
+    },
+    {
+      "route": "/verify-email",
+      "width": 390,
+      "outputUnchanged": true,
+      "residentStylesUnchanged": true,
+      "noPageMarker": true
+    },
+    {
+      "route": "/dashboard",
+      "width": 390,
+      "outputUnchanged": true,
+      "residentStylesUnchanged": true,
+      "noPageMarker": true
+    },
+    {
+      "route": "/dashboard/accounts/test-account",
+      "width": 390,
+      "outputUnchanged": true,
+      "residentStylesUnchanged": true,
+      "noPageMarker": true
+    },
+    {
+      "route": "/dashboard/loans",
+      "width": 390,
+      "outputUnchanged": true,
+      "residentStylesUnchanged": true,
+      "noPageMarker": true
+    },
+    {
+      "route": "/dashboard/loans/apply",
+      "width": 390,
+      "outputUnchanged": true,
+      "residentStylesUnchanged": true,
+      "noPageMarker": true
+    },
+    {
+      "route": "/dashboard/loans/test-loan",
+      "width": 390,
+      "outputUnchanged": true,
+      "residentStylesUnchanged": true,
+      "noPageMarker": true
+    },
+    {
+      "route": "/dashboard/loans/applications/test-application",
+      "width": 390,
+      "outputUnchanged": true,
+      "residentStylesUnchanged": true,
+      "noPageMarker": true
+    },
+    {
+      "route": "/dashboard/loan-review",
+      "width": 390,
+      "outputUnchanged": true,
+      "residentStylesUnchanged": true,
+      "noPageMarker": true
+    },
+    {
+      "route": "/register",
+      "width": 1440,
+      "outputUnchanged": true,
+      "residentStylesUnchanged": true,
+      "noPageMarker": true
+    },
+    {
+      "route": "/login",
+      "width": 1440,
+      "outputUnchanged": true,
+      "residentStylesUnchanged": true,
+      "noPageMarker": true
+    },
+    {
+      "route": "/verify-email",
+      "width": 1440,
+      "outputUnchanged": true,
+      "residentStylesUnchanged": true,
+      "noPageMarker": true
+    },
+    {
+      "route": "/dashboard",
+      "width": 1440,
+      "outputUnchanged": true,
+      "residentStylesUnchanged": true,
+      "noPageMarker": true
+    },
+    {
+      "route": "/dashboard/accounts/test-account",
+      "width": 1440,
+      "outputUnchanged": true,
+      "residentStylesUnchanged": true,
+      "noPageMarker": true
+    },
+    {
+      "route": "/dashboard/loans",
+      "width": 1440,
+      "outputUnchanged": true,
+      "residentStylesUnchanged": true,
+      "noPageMarker": true
+    },
+    {
+      "route": "/dashboard/loans/apply",
+      "width": 1440,
+      "outputUnchanged": true,
+      "residentStylesUnchanged": true,
+      "noPageMarker": true
+    },
+    {
+      "route": "/dashboard/loans/test-loan",
+      "width": 1440,
+      "outputUnchanged": true,
+      "residentStylesUnchanged": true,
+      "noPageMarker": true
+    },
+    {
+      "route": "/dashboard/loans/applications/test-application",
+      "width": 1440,
+      "outputUnchanged": true,
+      "residentStylesUnchanged": true,
+      "noPageMarker": true
+    },
+    {
+      "route": "/dashboard/loan-review",
+      "width": 1440,
+      "outputUnchanged": true,
+      "residentStylesUnchanged": true,
+      "noPageMarker": true
+    }
+  ]
+}

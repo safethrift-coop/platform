@@ -1,0 +1,19 @@
+{
+  "overview": true,
+  "keyboard": true,
+  "loadingAndReadError": true,
+  "loadMoreErrorRetainsRows": true,
+  "ownedAccount": true,
+  "pagination": true,
+  "disabledGate": true,
+  "lostResponseReplay": true,
+  "unchangedKeyAndBody": true,
+  "withdrawal": true,
+  "gsaGuard": true,
+  "runtimeGateRevocation": true,
+  "pendingEmptyUnscored": true,
+  "reloadRequiresLogin": true,
+  "browserStorageEntries": 0,
+  "axeViolations": 0,
+  "mobileOverflow": false
+}

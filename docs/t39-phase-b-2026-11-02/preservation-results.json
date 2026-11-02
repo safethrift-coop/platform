@@ -1,0 +1,19 @@
+{
+  "baselineFiles": 503,
+  "changedBaselineFiles": [
+    "apps/web/src/app/page.tsx",
+    "apps/web/src/app/products/page.tsx",
+    "apps/web/src/components/public-site/editorial.tsx",
+    "apps/web/src/components/public-site/marketing.css",
+    "apps/web/tests/browser-check.mjs"
+  ],
+  "unexpectedChanges": [],
+  "unchangedBaselineFiles": 498,
+  "T38": "9bfdf891ef525abdef046c48c22f659d17f356a4c08f3055069cf0ea8586696a",
+  "HEAD": "980b1db12a311bd7cf909b4cff64d04317b5d73f",
+  "branch": "main",
+  "index": "",
+  "gitStatus": " M apps/web/src/app/page.tsx\n M apps/web/src/app/products/page.tsx\n M apps/web/src/components/public-site/editorial.tsx\n M apps/web/src/components/public-site/marketing.css\n M apps/web/tests/browser-check.mjs\n?? apps/web/public/fonts/Archivo-OFL.txt\n?? apps/web/public/fonts/archivo-variable.ttf\n?? apps/web/src/components/public-site/graphics.tsx\n?? docs/design-prototypes/\n?? docs/t39-phase-b-2026-11-02/\n",
+  "prototypeFilesUnchanged": true,
+  "ignoreFilesUnchanged": true
+}

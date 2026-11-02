@@ -1,0 +1,50 @@
+[
+  {
+    "page": "home",
+    "width": 1440,
+    "height": 3692,
+    "scrollWidth": 1440,
+    "archivoLoaded": true,
+    "h1": "A cooperative\nstarts with\npeople.",
+    "forms": 0,
+    "overflowElements": [],
+    "violations": [],
+    "incomplete": []
+  },
+  {
+    "page": "home",
+    "width": 390,
+    "height": 4386,
+    "scrollWidth": 390,
+    "archivoLoaded": true,
+    "h1": "A cooperative\nstarts with\npeople.",
+    "forms": 0,
+    "overflowElements": [],
+    "violations": [],
+    "incomplete": []
+  },
+  {
+    "page": "products",
+    "width": 1440,
+    "height": 3529,
+    "scrollWidth": 1440,
+    "archivoLoaded": true,
+    "h1": "Three ways to build\na saving habit.",
+    "forms": 0,
+    "overflowElements": [],
+    "violations": [],
+    "incomplete": []
+  },
+  {
+    "page": "products",
+    "width": 390,
+    "height": 4438,
+    "scrollWidth": 390,
+    "archivoLoaded": true,
+    "h1": "Three ways to build\na saving habit.",
+    "forms": 0,
+    "overflowElements": [],
+    "violations": [],
+    "incomplete": []
+  }
+]

@@ -1,0 +1,22 @@
+{
+  "database": {
+    "database": "safethrift_t39_phase_b_test",
+    "migrations": 8,
+    "members": 2,
+    "accounts": 2,
+    "savingsTransactions": 25,
+    "loans": 0,
+    "otherSessions": 0
+  },
+  "safethrift-t39-phase-b-postgres": {
+    "status": "exited",
+    "running": false,
+    "retained": true
+  },
+  "redisKeys": 0,
+  "safethrift-t39-phase-b-redis": {
+    "status": "exited",
+    "running": false,
+    "retained": true
+  }
+}

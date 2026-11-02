@@ -1,0 +1,496 @@
+[
+  {
+    "page": "home",
+    "width": 1440,
+    "height": 3498,
+    "scrollWidth": 1440,
+    "archivoLoaded": true,
+    "sourceSansLoaded": true,
+    "fontFaces": [
+      {
+        "family": "Archivo",
+        "status": "loaded"
+      },
+      {
+        "family": "Source Sans 3",
+        "status": "loaded"
+      }
+    ],
+    "clippedElements": [],
+    "h1": "Personal saving.\nShared\npurpose.",
+    "forms": 0,
+    "overflowElements": [],
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": [
+          [
+            "a[href$=\"#idea\"] > span[aria-hidden=\"true\"]"
+          ],
+          [
+            ".saving-piece > .piece-symbol[aria-hidden=\"true\"]"
+          ],
+          [
+            ".participation-piece > .piece-symbol[aria-hidden=\"true\"]"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "page": "home",
+    "width": 1024,
+    "height": 3410,
+    "scrollWidth": 1024,
+    "archivoLoaded": true,
+    "sourceSansLoaded": true,
+    "fontFaces": [
+      {
+        "family": "Archivo",
+        "status": "loaded"
+      },
+      {
+        "family": "Source Sans 3",
+        "status": "loaded"
+      }
+    ],
+    "clippedElements": [],
+    "h1": "Personal saving.\nShared\npurpose.",
+    "forms": 0,
+    "overflowElements": [],
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": [
+          [
+            "button > span[aria-hidden=\"true\"]"
+          ],
+          [
+            "a[href$=\"#idea\"] > span[aria-hidden=\"true\"]"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "page": "home",
+    "width": 768,
+    "height": 3795,
+    "scrollWidth": 768,
+    "archivoLoaded": true,
+    "sourceSansLoaded": true,
+    "fontFaces": [
+      {
+        "family": "Archivo",
+        "status": "loaded"
+      },
+      {
+        "family": "Source Sans 3",
+        "status": "loaded"
+      }
+    ],
+    "clippedElements": [],
+    "h1": "Personal saving.\nShared\npurpose.",
+    "forms": 0,
+    "overflowElements": [],
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": [
+          [
+            "button > span[aria-hidden=\"true\"]"
+          ],
+          [
+            "a[href$=\"#idea\"] > span[aria-hidden=\"true\"]"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "page": "home",
+    "width": 390,
+    "height": 4604,
+    "scrollWidth": 390,
+    "archivoLoaded": true,
+    "sourceSansLoaded": true,
+    "fontFaces": [
+      {
+        "family": "Archivo",
+        "status": "loaded"
+      },
+      {
+        "family": "Source Sans 3",
+        "status": "loaded"
+      }
+    ],
+    "clippedElements": [],
+    "h1": "Personal saving.\nShared\npurpose.",
+    "forms": 0,
+    "overflowElements": [],
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": [
+          [
+            "button > span[aria-hidden=\"true\"]"
+          ],
+          [
+            "a[href$=\"#idea\"] > span[aria-hidden=\"true\"]"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "page": "home",
+    "width": 320,
+    "height": 5248,
+    "scrollWidth": 320,
+    "archivoLoaded": true,
+    "sourceSansLoaded": true,
+    "fontFaces": [
+      {
+        "family": "Archivo",
+        "status": "loaded"
+      },
+      {
+        "family": "Source Sans 3",
+        "status": "loaded"
+      }
+    ],
+    "clippedElements": [],
+    "h1": "Personal saving.\nShared\npurpose.",
+    "forms": 0,
+    "overflowElements": [],
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": [
+          [
+            "button > span[aria-hidden=\"true\"]"
+          ],
+          [
+            "a[href$=\"#idea\"] > span[aria-hidden=\"true\"]"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "page": "products",
+    "width": 1440,
+    "height": 3740,
+    "scrollWidth": 1440,
+    "archivoLoaded": true,
+    "sourceSansLoaded": true,
+    "fontFaces": [
+      {
+        "family": "Archivo",
+        "status": "loaded"
+      },
+      {
+        "family": "Source Sans 3",
+        "status": "loaded"
+      }
+    ],
+    "clippedElements": [],
+    "h1": "Your circumstances.\nYour saving approach.",
+    "forms": 0,
+    "overflowElements": [],
+    "violations": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "nodes": [
+          [
+            "#fsa > .story-copy > .note"
+          ]
+        ]
+      }
+    ],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": [
+          [
+            ".account-jump > a[href$=\"#fsa\"] > span[aria-hidden=\"true\"]"
+          ],
+          [
+            ".account-jump > a[href$=\"#rsa\"] > span[aria-hidden=\"true\"]"
+          ],
+          [
+            ".account-jump > a[href$=\"#gsa\"] > span[aria-hidden=\"true\"]"
+          ],
+          [
+            "#fsa-column > a[href$=\"#fsa\"] > span[aria-hidden=\"true\"]"
+          ],
+          [
+            "#rsa-column > a[href$=\"#rsa\"] > span[aria-hidden=\"true\"]"
+          ],
+          [
+            "#gsa-column > a[href$=\"#gsa\"] > span[aria-hidden=\"true\"]"
+          ],
+          [
+            "a[href$=\"#fsa-overview\"] > span[aria-hidden=\"true\"]"
+          ],
+          [
+            "a[href$=\"#rsa-overview\"] > span[aria-hidden=\"true\"]"
+          ],
+          [
+            "a[href$=\"#gsa-overview\"] > span[aria-hidden=\"true\"]"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "page": "products",
+    "width": 1024,
+    "height": 3790,
+    "scrollWidth": 1024,
+    "archivoLoaded": true,
+    "sourceSansLoaded": true,
+    "fontFaces": [
+      {
+        "family": "Archivo",
+        "status": "loaded"
+      },
+      {
+        "family": "Source Sans 3",
+        "status": "loaded"
+      }
+    ],
+    "clippedElements": [],
+    "h1": "Your circumstances.\nYour saving approach.",
+    "forms": 0,
+    "overflowElements": [],
+    "violations": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "nodes": [
+          [
+            "#fsa > .story-copy > .note"
+          ]
+        ]
+      }
+    ],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": [
+          [
+            "button > span[aria-hidden=\"true\"]"
+          ],
+          [
+            ".account-jump > a[href$=\"#fsa\"] > span[aria-hidden=\"true\"]"
+          ],
+          [
+            ".account-jump > a[href$=\"#rsa\"] > span[aria-hidden=\"true\"]"
+          ],
+          [
+            ".account-jump > a[href$=\"#gsa\"] > span[aria-hidden=\"true\"]"
+          ],
+          [
+            "#fsa-column > a[href$=\"#fsa\"] > span[aria-hidden=\"true\"]"
+          ],
+          [
+            "#rsa-column > a[href$=\"#rsa\"] > span[aria-hidden=\"true\"]"
+          ],
+          [
+            "#gsa-column > a[href$=\"#gsa\"] > span[aria-hidden=\"true\"]"
+          ],
+          [
+            "a[href$=\"#fsa-overview\"] > span[aria-hidden=\"true\"]"
+          ],
+          [
+            "a[href$=\"#rsa-overview\"] > span[aria-hidden=\"true\"]"
+          ],
+          [
+            "a[href$=\"#gsa-overview\"] > span[aria-hidden=\"true\"]"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "page": "products",
+    "width": 768,
+    "height": 4357,
+    "scrollWidth": 768,
+    "archivoLoaded": true,
+    "sourceSansLoaded": true,
+    "fontFaces": [
+      {
+        "family": "Archivo",
+        "status": "loaded"
+      },
+      {
+        "family": "Source Sans 3",
+        "status": "loaded"
+      }
+    ],
+    "clippedElements": [],
+    "h1": "Your circumstances.\nYour saving approach.",
+    "forms": 0,
+    "overflowElements": [],
+    "violations": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "nodes": [
+          [
+            "#fsa > .story-copy > .note"
+          ]
+        ]
+      }
+    ],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": [
+          [
+            "button > span[aria-hidden=\"true\"]"
+          ],
+          [
+            ".account-jump > a[href$=\"#fsa\"] > span[aria-hidden=\"true\"]"
+          ],
+          [
+            ".account-jump > a[href$=\"#rsa\"] > span[aria-hidden=\"true\"]"
+          ],
+          [
+            ".account-jump > a[href$=\"#gsa\"] > span[aria-hidden=\"true\"]"
+          ],
+          [
+            "#fsa-column > a[href$=\"#fsa\"] > span[aria-hidden=\"true\"]"
+          ],
+          [
+            "#rsa-column > a[href$=\"#rsa\"] > span[aria-hidden=\"true\"]"
+          ],
+          [
+            "#gsa-column > a[href$=\"#gsa\"] > span[aria-hidden=\"true\"]"
+          ],
+          [
+            "a[href$=\"#fsa-overview\"] > span[aria-hidden=\"true\"]"
+          ],
+          [
+            "a[href$=\"#rsa-overview\"] > span[aria-hidden=\"true\"]"
+          ],
+          [
+            "a[href$=\"#gsa-overview\"] > span[aria-hidden=\"true\"]"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "page": "products",
+    "width": 390,
+    "height": 4095,
+    "scrollWidth": 390,
+    "archivoLoaded": true,
+    "sourceSansLoaded": true,
+    "fontFaces": [
+      {
+        "family": "Archivo",
+        "status": "loaded"
+      },
+      {
+        "family": "Source Sans 3",
+        "status": "loaded"
+      }
+    ],
+    "clippedElements": [],
+    "h1": "Your circumstances.\nYour saving approach.",
+    "forms": 0,
+    "overflowElements": [],
+    "violations": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "nodes": [
+          [
+            "#fsa > .story-copy > .note"
+          ]
+        ]
+      }
+    ],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": [
+          [
+            "button > span[aria-hidden=\"true\"]"
+          ],
+          [
+            ".account-jump > a[href$=\"#fsa\"] > span[aria-hidden=\"true\"]"
+          ],
+          [
+            ".account-jump > a[href$=\"#rsa\"] > span[aria-hidden=\"true\"]"
+          ],
+          [
+            ".account-jump > a[href$=\"#gsa\"] > span[aria-hidden=\"true\"]"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "page": "products",
+    "width": 320,
+    "height": 4684,
+    "scrollWidth": 320,
+    "archivoLoaded": true,
+    "sourceSansLoaded": true,
+    "fontFaces": [
+      {
+        "family": "Archivo",
+        "status": "loaded"
+      },
+      {
+        "family": "Source Sans 3",
+        "status": "loaded"
+      }
+    ],
+    "clippedElements": [],
+    "h1": "Your circumstances.\nYour saving approach.",
+    "forms": 0,
+    "overflowElements": [],
+    "violations": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "nodes": [
+          [
+            "#fsa > .story-copy > .note"
+          ]
+        ]
+      }
+    ],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": [
+          [
+            "button > span[aria-hidden=\"true\"]"
+          ],
+          [
+            ".account-jump > a[href$=\"#fsa\"] > span[aria-hidden=\"true\"]"
+          ],
+          [
+            ".account-jump > a[href$=\"#rsa\"] > span[aria-hidden=\"true\"]"
+          ],
+          [
+            ".account-jump > a[href$=\"#gsa\"] > span[aria-hidden=\"true\"]"
+          ]
+        ]
+      }
+    ]
+  }
+]
