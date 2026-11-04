@@ -1,17 +1,25 @@
 import { describe, it, before, after, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { randomUUID, createHmac } from 'node:crypto';
+import { randomUUID, createHmac, createHash } from 'node:crypto';
+import twilio from 'twilio';
 import { fork } from 'node:child_process';
 import { once } from 'node:events';
 import { setTimeout as delay } from 'node:timers/promises';
 import pg from 'pg';
+import { lookup } from 'node:dns/promises';
+import { isIP } from 'node:net';
 import { PgBoss, TestClock, getConstructionPlans } from 'pg-boss';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import databaseModule from '../dist/core/database/prisma.service.js';
 import jobsModule from '../dist/core/jobs/jobs.service.js';
 import remindersModule from '../dist/modules/reminders/reminders.service.js';
+import renewalModule from '../dist/modules/reminders/renewal-scan.service.js';
+import expiryModule from '../dist/modules/reminders/membership-expiry.service.js';
 import deliveryModule from '../dist/modules/reminders/reminder-delivery.service.js';
+import smsDeliveryModule from '../dist/modules/reminders/reminder-sms-delivery.service.js';
+import twilioControllerModule from '../dist/modules/reminders/twilio-webhook.controller.js';
+import smsProviderModule from '../dist/modules/reminders/reminder-sms.provider.js';
 import providerModule from '../dist/modules/reminders/reminder-email.provider.js';
 import workersModule from '../dist/modules/reminders/reminder-workers.service.js';
 import webhookModule from '../dist/modules/reminders/reminder-webhook.service.js';
@@ -21,13 +29,27 @@ import loggerNestModule from '../dist/core/logger/logger.module.js';
 import remindersNestModule from '../dist/modules/reminders/reminders.module.js';
 import scoringModule from '../dist/modules/scoring/scoring.service.js';
 
-const url = process.env.T36_TEST_DATABASE_URL;
+const suppliedUrl = process.env.T36_TEST_DATABASE_URL;
+if (process.env.T36_TEST_DATABASE_DISPOSABLE !== 'true') throw new Error('Explicit T36_TEST_DATABASE_DISPOSABLE=true confirmation required');
+for (const name of ['RESEND_API_KEY', 'T36_RESEND_WEBHOOK_SECRET', 'TWILIO_ACCOUNT_SID', 'TWILIO_API_KEY_SID', 'TWILIO_API_KEY_SECRET', 'TWILIO_AUTH_TOKEN', 'TWILIO_MESSAGING_SERVICE_SID']) {
+  if (process.env[name]) throw new Error(`Remove provider credential ${name} before testing`);
+}
+let url = suppliedUrl;
 if (!url) throw new Error('Explicit T36_TEST_DATABASE_URL required');
 const parsed = new URL(url);
 if (process.env.NODE_ENV !== 'test' || !['localhost', '127.0.0.1', '[::1]'].includes(parsed.hostname) || !/^\/safethrift_[a-z0-9_]*test$/.test(parsed.pathname)) throw new Error('Refusing nonlocal/non-test PostgreSQL');
+if (parsed.search || parsed.hash) throw new Error('Database URL parameters are not permitted');
+const hostname = parsed.hostname.replace(/^\[|\]$/g, '');
+const addresses = isIP(hostname) ? [{ address: hostname }] : await lookup(hostname, { all: true });
+if (!addresses.length || addresses.some(({ address }) => !(address.startsWith('127.') && isIP(address) === 4) && address !== '::1')) throw new Error('Database host must resolve exclusively to loopback');
+parsed.hostname = addresses[0].address.includes(':') ? `[${addresses[0].address}]` : addresses[0].address;
+url = parsed.toString();
+// Tests inject a fake provider; any accidental SDK HTTP request must fail closed.
+globalThis.fetch = async () => { throw new Error('External requests forbidden in T36 integration tests'); };
 process.env.DATABASE_URL = url;
 process.env.T36_JOBS_ENABLED = 'true';
-process.env.T36_EMAIL_MODE = 'resend'; // All sends below use injected fakes, never a network provider.
+process.env.T36_EMAIL_MODE = 'simulate'; // Injected fakes exercise provider outcomes without enabling live delivery.
+process.env.T36_SMS_MODE = 'disabled';
 const { QUEUES, JobsService } = jobsModule;
 const logger = { info() {}, warn() {}, error() {} };
 let db, jobs, scan, delivery, sql, current;
@@ -64,7 +86,7 @@ async function signedEvent(externalId, type, occurred = now(), id = randomUUID()
   return { payload, headers: { id, timestamp, signature } };
 }
 
-describe('T36 — real PostgreSQL and pg-boss', { concurrency: false, timeout: 30000 }, () => {
+describe('T36 — real PostgreSQL and pg-boss', { concurrency: false, timeout: 60000 }, () => {
   before(async () => {
     sql = new pg.Client({ connectionString: url }); await sql.connect();
     db = new databaseModule.PrismaService(); await db.onModuleInit();
@@ -82,8 +104,10 @@ describe('T36 — real PostgreSQL and pg-boss', { concurrency: false, timeout: 3
     // Fixture-only state change prevents old tests participating in later scans.
     await db.member.updateMany({ where: { id: { in: members } }, data: { membershipStatus: 'closed' } });
     const logs = await db.reminderLog.findMany({ where: { memberId: { in: members }, jobId: { not: null } } });
-    for (const log of logs) await jobs.boss.cancel(QUEUES.email, log.jobId);
-    process.env.T36_EMAIL_MODE = 'resend';
+    for (const log of logs) await jobs.boss.cancel(log.reminderChannel === 'sms' ? QUEUES.sms : QUEUES.email, log.jobId);
+    await jobs.boss.offWork(QUEUES.sms);
+    process.env.T36_SMS_MODE = 'disabled';
+    process.env.T36_EMAIL_MODE = 'simulate';
   });
   after(async () => {
     if (jobs) await jobs.stop();
@@ -102,6 +126,23 @@ describe('T36 — real PostgreSQL and pg-boss', { concurrency: false, timeout: 3
       await db.onModuleDestroy();
     }
     if (sql) await sql.end();
+  });
+
+  it('enforces renewal uniqueness and rolls back expiry and reminder evidence', async () => {
+    const expiryId = randomUUID(), firstId = randomUUID();
+    await sql.query('BEGIN');
+    try {
+      await sql.query(`INSERT INTO membership_expiry_records (id, member_id, expires_on, source_reference, authority_reference) VALUES ($1, $2, CURRENT_DATE + 30, 'test', 'test')`, [expiryId, current.member.id]);
+      const insert = `INSERT INTO reminder_logs (reminder_id, member_id, reminder_type, reminder_channel, membership_expiry_record_id, membership_expires_on, renewal_window_days) VALUES ($1, $2, 'membership_renewal', 'email', $3, CURRENT_DATE + 30, 30)`;
+      await sql.query(insert, [firstId, current.member.id, expiryId]);
+      await sql.query('SAVEPOINT duplicate_check');
+      await assert.rejects(sql.query(insert, [randomUUID(), current.member.id, expiryId]), { code: '23505' });
+      await sql.query('ROLLBACK TO SAVEPOINT duplicate_check');
+    } finally {
+      await sql.query('ROLLBACK');
+    }
+    assert.equal((await sql.query('SELECT 1 FROM membership_expiry_records WHERE id = $1', [expiryId])).rowCount, 0);
+    assert.equal((await sql.query('SELECT 1 FROM reminder_logs WHERE reminder_id = $1', [firstId])).rowCount, 0);
   });
 
   it('queues one initial reminder atomically, preserves financial rows and suppresses later days even after job deletion', async () => {
@@ -281,7 +322,249 @@ describe('T36 — real PostgreSQL and pg-boss', { concurrency: false, timeout: 3
     await assert.rejects(instance.start(), /shutting down/);
   });
 
-  it('registers UTC daily and one-recovery schedules, never renewal or SMS, and safely closes a Nest worker context', async () => {
+  it('queues eligible overdue SMS independently of email exactly once under concurrent scans', async () => {
+    process.env.T36_SMS_MODE = 'simulate'; process.env.T36_EMAIL_MODE = 'disabled';
+    await db.member.update({ where: { id: current.member.id }, data: { emailVerified: false, phoneNumber: '+447700900123', phoneVerifiedAt: now(), phoneVerificationSource: 'test', smsReminderPermissionAt: now(), smsReminderPermissionSource: 'test' } });
+    const results = await Promise.all([scan.scan(), scan.scan()]); assert.equal(results.reduce((a,b) => a+b, 0), 1);
+    const rows = await db.reminderLog.findMany({ where: { memberId: current.member.id } }); assert.equal(rows.length, 1); assert.equal(rows[0].reminderChannel, 'sms');
+    assert.ok(await jobs.boss.getJobById(QUEUES.sms, rows[0].jobId)); assert.equal(await db.auditLog.count({ where: { recordId: rows[0].id } }), 1);
+  });
+  it('does not queue SMS without verified, unrevoked permission', async () => {
+    process.env.T36_SMS_MODE = 'simulate'; process.env.T36_EMAIL_MODE = 'disabled';
+    const base = { phoneNumber: '+447700900123', phoneVerifiedAt: now(), phoneVerificationSource: 'test', smsReminderPermissionAt: now(), smsReminderPermissionSource: 'test', smsReminderPermissionRevokedAt: null };
+    for (const changes of [{ phoneVerifiedAt: null, phoneVerificationSource: null }, { smsReminderPermissionAt: null, smsReminderPermissionSource: null }, { smsReminderPermissionRevokedAt: new Date(Date.now() + 1000) }, { phoneNumber: 'bad' }]) {
+      await db.member.update({ where: { id: current.member.id }, data: { ...base, ...changes } }); assert.equal(await scan.scan(), 0);
+    }
+    assert.equal(await db.reminderLog.count({ where: { memberId: current.member.id } }), 0);
+  });
+  it('rolls back SMS reminder and pg-boss job after enqueue failure', async () => {
+    process.env.T36_SMS_MODE = 'simulate'; process.env.T36_EMAIL_MODE = 'disabled';
+    await db.member.update({ where: { id: current.member.id }, data: { phoneNumber: '+447700900123', phoneVerifiedAt: now(), phoneVerificationSource: 'test', smsReminderPermissionAt: now(), smsReminderPermissionSource: 'test' } });
+    const original = jobs.enqueue.bind(jobs); let jobId;
+    jobs.enqueue = async (...args) => { jobId = await original(...args); throw new Error('sms enqueue failure'); };
+    try { await assert.rejects(scan.scan(), /sms enqueue failure/); } finally { jobs.enqueue = original; }
+    assert.ok(jobId); assert.ok(!(await jobs.boss.getJobById(QUEUES.sms, jobId))); assert.equal(await db.reminderLog.count({ where: { memberId: current.member.id } }), 0);
+  });
+  it('rolls back overdue SMS, the pg-boss job, and audit on an audit insertion failure', async () => {
+    process.env.T36_SMS_MODE = 'simulate'; process.env.T36_EMAIL_MODE = 'disabled';
+    await db.member.update({ where: { id: current.member.id }, data: { phoneNumber: '+447700900123', phoneVerifiedAt: now(), phoneVerificationSource: 'test', smsReminderPermissionAt: now(), smsReminderPermissionSource: 'test' } });
+    const transaction = db.$transaction.bind(db), original = jobs.enqueue.bind(jobs); let jobId, reminderId, providerCalls = 0;
+    const provider = { send: async () => { providerCalls++; return { outcome: 'simulated' }; } };
+    const service = new smsDeliveryModule.ReminderSmsDeliveryService(db, new expiryModule.MembershipExpiryService(db), provider);
+    await jobs.boss.work(QUEUES.sms, { includeMetadata: true, pollingIntervalSeconds: 0.5 }, async ([job]) => service.deliver(job));
+    jobs.enqueue = async (...args) => { reminderId = args[2].reminderId; jobId = await original(...args); return jobId; };
+    db.$transaction = (fn, options) => transaction(tx => fn(new Proxy(tx, { get(client, name) {
+      if (name !== 'auditLog') return Reflect.get(client, name);
+      return { create: args => tx.auditLog.create({ ...args, data: { ...args.data, changedBy: 'missing-t36-actor' } }) };
+    } })), options);
+    try { await assert.rejects(scan.scan()); } finally { db.$transaction = transaction; jobs.enqueue = original; }
+    assert.ok(jobId); assert.equal(await db.reminderLog.count({ where: { id: reminderId } }), 0);
+    assert.ok(!(await jobs.boss.getJobById(QUEUES.sms, jobId)));
+    await delay(750); await jobs.boss.offWork(QUEUES.sms);
+    assert.equal(await db.auditLog.count({ where: { recordId: reminderId } }), 0); assert.equal(providerCalls, 0);
+  });
+  async function smsFixture() {
+    process.env.T36_SMS_MODE = 'simulate';
+    process.env.T36_TWILIO_STATUS_CALLBACK_URL = 'https://example.invalid/status';
+    await db.member.update({ where: { id: current.member.id }, data: { phoneNumber: '+447700900123', phoneVerifiedAt: now(), phoneVerificationSource: 'test', smsReminderPermissionAt: now(), smsReminderPermissionSource: 'test' } });
+    const id = randomUUID(), jobId = randomUUID();
+    await db.reminderLog.create({ data: { id, memberId: current.member.id, relatedLoanId: current.loan.id, repaymentScheduleId: current.schedule.id, reminderType: 'late_payment', reminderChannel: 'sms', jobId, providerKey: `t36-sms/${id}` } });
+    await jobs.boss.send(QUEUES.sms, { reminderId: id }, { id: jobId });
+    const job = { id: jobId, data: { reminderId: id }, retryCount: 0, retryLimit: 5, signal: new AbortController().signal };
+    return { id, job };
+  }
+  it('serializes concurrent SMS claims, persists before dispatch, and never repeats a job', async () => {
+    const { id, job } = await smsFixture(); let calls = 0, release, started;
+    const entered = new Promise(resolve => { started = resolve; });
+    const blocked = new Promise(resolve => { release = resolve; });
+    const provider = { send: async payload => { calls++; const row = await db.reminderLog.findUniqueOrThrow({ where: { id } }); assert.equal(row.deliveryStatus, 'dispatch_claimed'); assert.deepEqual(row.payload, payload); started(); await blocked; return { outcome: 'simulated' }; } };
+    const service = new smsDeliveryModule.ReminderSmsDeliveryService(db, new expiryModule.MembershipExpiryService(db), provider);
+    const first = service.deliver(job); await entered;
+    await Promise.all([service.deliver(job), service.deliver({ ...job, retryCount: 1 })]);
+    assert.equal(calls, 1); assert.equal(await db.reminderAttempt.count({ where: { reminderId: id, outcome: 'dispatch_claimed' } }), 1);
+    release(); await first; await service.deliver(job);
+    assert.equal(calls, 1); assert.equal((await db.reminderLog.findUniqueOrThrow({ where: { id } })).deliveryStatus, 'simulated');
+  });
+  it('runs two real pg-boss SMS workers with one fake-provider call', async () => {
+    const { id } = await smsFixture(); let calls = 0;
+    const provider = { send: async () => { calls++; return { outcome: 'simulated' }; } };
+    const service = new smsDeliveryModule.ReminderSmsDeliveryService(db, new expiryModule.MembershipExpiryService(db), provider);
+    const second = new PgBoss({ connectionString: url, schema: 't36_jobs', migrate: false, schedule: false }); second.on('error', () => {}); await second.start(); extraBosses.push(second);
+    const handler = async ([job]) => service.deliver(job);
+    await Promise.all([jobs.boss.work(QUEUES.sms, { includeMetadata: true, pollingIntervalSeconds: 0.5 }, handler), second.work(QUEUES.sms, { includeMetadata: true, pollingIntervalSeconds: 0.5 }, handler)]);
+    await waitFor(async () => (await db.reminderLog.findUnique({ where: { id } }))?.deliveryStatus === 'simulated');
+    await jobs.boss.offWork(QUEUES.sms); await second.offWork(QUEUES.sms);
+    assert.equal(calls, 1); assert.equal(await db.reminderAttempt.count({ where: { reminderId: id } }), 1);
+  });
+  it('allows only one of two simultaneous PostgreSQL SMS claims and one provider create', async () => {
+    const { id, job } = await smsFixture(); let calls = 0;
+    process.env.T36_SMS_MODE = 'twilio'; process.env.T36_TWILIO_FAKE_ENABLED = 'true';
+    const provider = new smsProviderModule.TwilioReminderProvider({ messages: { create: async () => { calls++; return { sid: 'SM' + 'b'.repeat(32) }; } } });
+    const a = new smsDeliveryModule.ReminderSmsDeliveryService(db, new expiryModule.MembershipExpiryService(db), provider);
+    const b = new smsDeliveryModule.ReminderSmsDeliveryService(db, new expiryModule.MembershipExpiryService(db), provider);
+    try { await Promise.all([a.deliver(job), b.deliver(job)]); } finally { delete process.env.T36_TWILIO_FAKE_ENABLED; }
+    assert.equal(calls, 1); assert.equal(await db.reminderAttempt.count({ where: { reminderId: id } }), 1);
+  });
+  it('does not dispatch a persisted claim after restart before a request', async () => {
+    const { id, job } = await smsFixture(); const token = randomUUID();
+    await db.$transaction(async tx => {
+      await tx.reminderAttempt.create({ data: { id: token, reminderId: id, jobId: job.id, retryCount: 0, outcome: 'dispatch_claimed' } });
+      await tx.reminderLog.update({ where: { id }, data: { deliveryStatus: 'dispatch_claimed', attemptToken: token, firstAttemptAt: now(), payload: { to: '+447700900123', body: 'frozen', statusCallback: 'https://example.invalid/status' } } });
+    });
+    let calls = 0; const service = new smsDeliveryModule.ReminderSmsDeliveryService(db, new expiryModule.MembershipExpiryService(db), { send: async () => { calls++; return { outcome: 'simulated' }; } });
+    await service.deliver({ ...job, retryCount: 1 }); assert.equal(calls, 0);
+    assert.equal(await db.reminderAttempt.count({ where: { reminderId: id } }), 1);
+  });
+  it('persists an ambiguous Twilio 5xx as uncertain and does not call again', async () => {
+    const { id, job } = await smsFixture(); let calls = 0;
+    process.env.T36_SMS_MODE = 'twilio'; process.env.T36_TWILIO_FAKE_ENABLED = 'true';
+    const adapter = new smsProviderModule.TwilioReminderProvider({ messages: { create: async () => { calls++; throw { status: 503 }; } } });
+    const service = new smsDeliveryModule.ReminderSmsDeliveryService(db, new expiryModule.MembershipExpiryService(db), adapter);
+    try { await service.deliver(job); await service.deliver({ ...job, retryCount: 1 }); } finally { delete process.env.T36_TWILIO_FAKE_ENABLED; }
+    assert.equal(calls, 1); assert.equal((await db.reminderLog.findUniqueOrThrow({ where: { id } })).deliveryStatus, 'uncertain');
+  });
+  it('survives a worker restart after claim and a provider outcome lost after acceptance', async () => {
+    const { id, job } = await smsFixture(); let calls = 0, release, started;
+    const entered = new Promise(resolve => { started = resolve; }); const blocked = new Promise(resolve => { release = resolve; });
+    const provider = { send: async () => { calls++; started(); await blocked; return { outcome: 'provider_accepted', externalId: 'SM' + 'a'.repeat(32) }; } };
+    const service = new smsDeliveryModule.ReminderSmsDeliveryService(db, new expiryModule.MembershipExpiryService(db), provider);
+    const first = service.deliver(job); await entered;
+    const restarted = new smsDeliveryModule.ReminderSmsDeliveryService(db, new expiryModule.MembershipExpiryService(db), provider);
+    await restarted.deliver({ ...job, retryCount: 1 }); assert.equal(calls, 1);
+    const transaction = db.$transaction.bind(db); db.$transaction = () => Promise.reject(new Error('injected persistence failure'));
+    release(); try { await assert.rejects(first, /injected persistence failure/); } finally { db.$transaction = transaction; }
+    assert.equal((await db.reminderLog.findUniqueOrThrow({ where: { id } })).deliveryStatus, 'dispatch_claimed');
+    await restarted.deliver({ ...job, retryCount: 2 }); assert.equal(calls, 1);
+  });
+  it('validates signed Twilio callbacks and preserves terminal status across duplicates and out-of-order events', async () => {
+    const { id, job } = await smsFixture();
+    process.env.T36_TWILIO_STATUS_CALLBACK_URL = 'https://example.invalid/api/v1/notifications/webhooks/twilio';
+    process.env.TWILIO_AUTH_TOKEN = 'test-only-token'; process.env.TWILIO_ACCOUNT_SID = 'AC' + 'a'.repeat(32);
+    const sid = 'SM' + randomUUID().replaceAll('-', '');
+    const service = new smsDeliveryModule.ReminderSmsDeliveryService(db, new expiryModule.MembershipExpiryService(db), { send: async () => ({ outcome: 'provider_accepted', externalId: sid }) });
+    await service.deliver(job);
+    const row = await db.reminderLog.findUniqueOrThrow({ where: { id } });
+    const url = new URL(row.payload.statusCallback);
+    const fixture = await Test.createTestingModule({ controllers: [twilioControllerModule.TwilioWebhookController], providers: [{ provide: databaseModule.PrismaService, useValue: { $transaction: db.$transaction.bind(db) } }] }).compile();
+    const app = fixture.createNestApplication({ logger: false }); app.setGlobalPrefix('api/v1'); await app.init();
+    const sendCallback = (body, signature) => request(app.getHttpServer()).post(url.pathname + url.search).type('form').set('x-twilio-signature', signature).send(body);
+    const body = status => ({ AccountSid: process.env.TWILIO_ACCOUNT_SID, MessageSid: sid, MessageStatus: status });
+    const sign = params => twilio.getExpectedTwilioSignature(process.env.TWILIO_AUTH_TOKEN, url.toString(), params);
+    try {
+      const delivered = body('delivered'); await sendCallback(delivered, 'invalid').expect(401);
+      const wrongAccount = { ...delivered, AccountSid: 'AC' + 'c'.repeat(32) }; await sendCallback(wrongAccount, sign(wrongAccount)).expect(400);
+      const wrongSid = { ...delivered, MessageSid: 'SM' + 'd'.repeat(32) }; await sendCallback(wrongSid, sign(wrongSid)).expect(400);
+      await sendCallback(delivered, sign(delivered)).expect(204); await sendCallback(delivered, sign(delivered)).expect(204);
+      const failed = body('failed'); await sendCallback(failed, sign(failed)).expect(204);
+      for (const event of [delivered, failed]) eventIds.push('twilio:' + createHash('sha256').update(JSON.stringify([sid, event.MessageStatus, ''])).digest('hex'));
+      assert.equal((await db.reminderLog.findUniqueOrThrow({ where: { id } })).deliveryStatus, 'delivered');
+      assert.equal(await db.reminderProviderEvent.count({ where: { externalId: sid } }), 2);
+    } finally { await app.close(); delete process.env.TWILIO_AUTH_TOKEN; delete process.env.TWILIO_ACCOUNT_SID; }
+  });
+  it('correlates a delayed signed SMS callback after an uncertain provider outcome', async () => {
+    const { id, job } = await smsFixture();
+    process.env.T36_TWILIO_STATUS_CALLBACK_URL = 'https://example.invalid/api/v1/notifications/webhooks/twilio';
+    process.env.TWILIO_AUTH_TOKEN = 'test-only-token'; process.env.TWILIO_ACCOUNT_SID = 'AC' + 'a'.repeat(32);
+    let calls = 0; const service = new smsDeliveryModule.ReminderSmsDeliveryService(db, new expiryModule.MembershipExpiryService(db), { send: async () => { calls++; throw new Error('timeout'); } });
+    await service.deliver(job); const row = await db.reminderLog.findUniqueOrThrow({ where: { id } }); assert.equal(row.deliveryStatus, 'uncertain');
+    const url = new URL(row.payload.statusCallback), sid = 'SM' + randomUUID().replaceAll('-', '');
+    const params = { AccountSid: process.env.TWILIO_ACCOUNT_SID, MessageSid: sid, MessageStatus: 'delivered' };
+    const signature = twilio.getExpectedTwilioSignature(process.env.TWILIO_AUTH_TOKEN, url.toString(), params);
+    const fixture = await Test.createTestingModule({ controllers: [twilioControllerModule.TwilioWebhookController], providers: [{ provide: databaseModule.PrismaService, useValue: { $transaction: db.$transaction.bind(db) } }] }).compile();
+    const app = fixture.createNestApplication({ logger: false }); app.setGlobalPrefix('api/v1'); await app.init();
+    try {
+      await request(app.getHttpServer()).post(url.pathname + url.search).type('form').set('x-twilio-signature', signature).send(params).expect(204);
+      eventIds.push('twilio:' + createHash('sha256').update(JSON.stringify([sid, 'delivered', ''])).digest('hex'));
+      const updated = await db.reminderLog.findUniqueOrThrow({ where: { id } }); assert.equal(updated.deliveryStatus, 'delivered'); assert.equal(updated.externalId, sid);
+      await service.deliver({ ...job, retryCount: 1 }); assert.equal(calls, 1);
+    } finally { await app.close(); delete process.env.TWILIO_AUTH_TOKEN; delete process.env.TWILIO_ACCOUNT_SID; }
+  });
+  it('reconciles a missing claimed job to uncertainty without another send', async () => {
+    const { id, job } = await smsFixture(); const token = randomUUID(); let calls = 0;
+    await db.$transaction(async tx => {
+      await tx.reminderAttempt.create({ data: { id: token, reminderId: id, jobId: job.id, retryCount: 0, outcome: 'dispatch_claimed' } });
+      await tx.reminderLog.update({ where: { id }, data: { deliveryStatus: 'dispatch_claimed', attemptToken: token, firstAttemptAt: now() } });
+    });
+    await jobs.boss.deleteJob(QUEUES.sms, job.id);
+    const service = new smsDeliveryModule.ReminderSmsDeliveryService(db, new expiryModule.MembershipExpiryService(db), { send: async () => { calls++; return { outcome: 'simulated' }; } });
+    await service.reconcile(jobs); assert.equal((await db.reminderLog.findUniqueOrThrow({ where: { id } })).deliveryStatus, 'uncertain');
+    await service.deliver({ ...job, retryCount: 1 }); assert.equal(calls, 0);
+  });
+  it('records dead-letter evidence without dispatching a failed SMS job', async () => {
+    const { id, job } = await smsFixture();
+    await jobs.boss.update(QUEUES.sms, undefined, { id: job.id, retryLimit: 0 });
+    const [active] = await jobs.boss.fetch(QUEUES.sms, { includeMetadata: true }); assert.equal(active.id, job.id);
+    await jobs.boss.fail(QUEUES.sms, job.id);
+    const dead = await jobs.boss.findJobs(QUEUES.dead, { data: { reminderId: id } }); assert.equal(dead.length, 1);
+    const service = new smsDeliveryModule.ReminderSmsDeliveryService(db, new expiryModule.MembershipExpiryService(db), { send: async () => { throw new Error('must not send'); } });
+    await service.reconcile(jobs); assert.equal((await db.reminderLog.findUniqueOrThrow({ where: { id } })).lastError, 'sms_job_dead_lettered');
+    await jobs.boss.deleteJob(QUEUES.dead, dead[0].id);
+  });
+  it('rejects an email reminder at the SMS worker', async () => {
+    await scan.scan(); const row = await store(); let calls = 0;
+    process.env.T36_SMS_MODE = 'simulate';
+    const service = new smsDeliveryModule.ReminderSmsDeliveryService(db, new expiryModule.MembershipExpiryService(db), { send: async () => { calls++; return { outcome: 'simulated' }; } });
+    await assert.rejects(service.deliver({ id: row.jobId, data: { reminderId: row.id }, retryCount: 0, retryLimit: 5, signal: new AbortController().signal }), /channel mismatch/);
+    assert.equal(calls, 0);
+  });
+  it('naturally expires and retries an orphaned SMS job without a second provider request', { timeout: 25000 }, async () => {
+    const { id, job } = await smsFixture(); let calls = 0, first, restarted, supervisor;
+    await jobs.boss.update(QUEUES.sms, undefined, { id: job.id, expireInSeconds: 1, heartbeatSeconds: null, retryLimit: 2, retryDelay: 0, retryBackoff: false });
+    const spawn = point => fork(new URL('./fixtures/t36-sms-crash-worker.mjs', import.meta.url), { env: { ...process.env, T36_JOB_ID: job.id, T36_REMINDER_ID: id, T36_CRASH_POINT: point }, stdio: ['ignore', 'ignore', 'inherit', 'ipc'] });
+    try {
+      first = spawn('accepted-before-persistence');
+      const [claim] = await once(first, 'message', { signal: AbortSignal.timeout(8000) }); assert.equal(claim.event, 'accepted-before-persistence'); calls++;
+      const firstExit = once(first, 'exit'); first.kill('SIGKILL'); await firstExit;
+      assert.equal((await db.reminderLog.findUniqueOrThrow({ where: { id } })).deliveryStatus, 'dispatch_claimed');
+      const orphan = await jobs.boss.getJobById(QUEUES.sms, job.id); assert.equal(orphan.state, 'active');
+      supervisor = new PgBoss({ connectionString: url, schema: 't36_jobs', migrate: false, schedule: false, superviseIntervalSeconds: 1, monitorIntervalSeconds: 1 }); supervisor.on('error', () => {}); await supervisor.start();
+      restarted = spawn('unexpected-create');
+      const [result] = await once(restarted, 'message', { signal: AbortSignal.timeout(15000) });
+      if (result.event === 'unexpected-create') calls++;
+      assert.equal(result.event, 'done');
+      await waitFor(async () => (await jobs.boss.getJobById(QUEUES.sms, job.id))?.state === 'completed', 5000);
+      const recovered = await jobs.boss.getJobById(QUEUES.sms, job.id); assert.ok(recovered.retryCount > 0);
+      assert.equal(calls, 1); assert.equal(await db.reminderAttempt.count({ where: { reminderId: id, outcome: 'dispatch_claimed' } }), 1);
+    } finally {
+      for (const child of [first, restarted]) if (child && child.exitCode === null && child.signalCode === null) { const exited = once(child, 'exit'); child.kill('SIGKILL'); await exited; }
+      if (supervisor) await supervisor.stop();
+    }
+  });
+  for (const point of ['before-create', 'accepted-before-persistence']) {
+    it(`survives an actual SMS process kill at ${point} without a second request`, async () => {
+      const { id, job } = await smsFixture(); let calls = 0;
+      await jobs.boss.update(QUEUES.sms, undefined, { id: job.id, expireInSeconds: 1, heartbeatSeconds: null, retryLimit: 2, retryDelay: 0, retryBackoff: false });
+      const spawn = crashPoint => fork(new URL('./fixtures/t36-sms-crash-worker.mjs', import.meta.url), { env: { ...process.env, T36_JOB_ID: job.id, T36_REMINDER_ID: id, T36_CRASH_POINT: crashPoint }, stdio: ['ignore', 'ignore', 'inherit', 'ipc'] });
+      const child = spawn(point);
+      try {
+        const [msg] = await once(child, 'message', { signal: AbortSignal.timeout(12000) }); assert.equal(msg.event, point);
+        if (point === 'accepted-before-persistence') calls++;
+        const exited = once(child, 'exit'); child.kill('SIGKILL'); await exited;
+        assert.equal((await db.reminderLog.findUniqueOrThrow({ where: { id } })).deliveryStatus, 'dispatch_claimed');
+        // Explicitly fail the orphaned pg-boss attempt so its configured retry is replayed.
+        await jobs.boss.fail(QUEUES.sms, job.id);
+        const restarted = spawn('unexpected-create');
+        try { const [restart] = await once(restarted, 'message', { signal: AbortSignal.timeout(12000) }); if (restart.event === 'unexpected-create') calls++; assert.equal(restart.event, 'done'); await waitFor(async () => (await jobs.boss.getJobById(QUEUES.sms, job.id))?.state === 'completed'); const exit = once(restarted, 'exit'); restarted.kill('SIGTERM'); await exit; } finally { if (restarted.exitCode === null && restarted.signalCode === null) restarted.kill('SIGKILL'); }
+        assert.equal(calls, point === 'accepted-before-persistence' ? 1 : 0);
+        assert.equal(await db.reminderAttempt.count({ where: { reminderId: id } }), 1);
+      } finally { if (child.exitCode === null && child.signalCode === null) child.kill('SIGKILL'); }
+    });
+  }
+  it('does not claim on a pre-claim transaction failure and safely claims on retry', async () => {
+    const { id, job } = await smsFixture(); let calls = 0;
+    const service = new smsDeliveryModule.ReminderSmsDeliveryService(db, new expiryModule.MembershipExpiryService(db), { send: async () => { calls++; return { outcome: 'simulated' }; } });
+    const transaction = db.$transaction.bind(db); db.$transaction = () => Promise.reject(new Error('pre-claim failure'));
+    try { await assert.rejects(service.deliver(job), /pre-claim failure/); } finally { db.$transaction = transaction; }
+    assert.equal((await db.reminderLog.findUniqueOrThrow({ where: { id } })).deliveryStatus, 'queued'); assert.equal(calls, 0);
+    await service.deliver(job); assert.equal(calls, 1);
+  });
+  it('persists uncertain SMS outcomes and never resends on restart', async () => {
+    const { id, job } = await smsFixture(); let calls = 0;
+    const service = new smsDeliveryModule.ReminderSmsDeliveryService(db, new expiryModule.MembershipExpiryService(db), { send: async () => { calls++; throw new Error('timeout'); } });
+    await service.deliver(job); assert.equal((await db.reminderLog.findUniqueOrThrow({ where: { id } })).deliveryStatus, 'uncertain');
+    await service.deliver({ ...job, retryCount: 1 }); assert.equal(calls, 1);
+  });
+  it('registers UTC daily renewal and overdue schedules and safely closes a Nest worker context', async () => {
     // Prevent this registration test from delivering fixture emails.
     process.env.T36_EMAIL_MODE = 'disabled';
     const isolatedDb = new databaseModule.PrismaService();
@@ -292,10 +575,231 @@ describe('T36 — real PostgreSQL and pg-boss', { concurrency: false, timeout: 3
     const schedules = await isolatedJobs.boss.getSchedules();
     const daily = schedules.find(s => s.name === QUEUES.scan);
     assert.equal(daily.cron, '0 8 * * *'); assert.equal(daily.timezone, 'UTC'); assert.equal(daily.options.missed, 'once');
-    assert.ok(schedules.every(s => !/renewal|sms/.test(s.name)));
+    assert.ok(schedules.some(s => s.name === 't36-renewal-scan' && s.cron === '0 8 * * *' && s.timezone === 'UTC'));
+    assert.ok(schedules.every(s => !/sms/.test(s.name)));
     const incoming = isolatedJobs.boss;
     await app.close();
     await assert.rejects(incoming.send(QUEUES.scan, {}));
+  });
+});
+
+// Expiry evidence is append-only. These explicitly disposable-database fixtures
+// remain as closed members after the suite, preserving their historical chains.
+describe('T36 renewal — PostgreSQL and transactional pg-boss', { concurrency: false, timeout: 30000 }, () => {
+  let db, jobs, expiry, renewal, delivery, member, root;
+  const fixtureMembers = [];
+  const logFor = () => db.reminderLog.findFirstOrThrow({ where: { memberId: member.id, reminderType: 'membership_renewal' } });
+  async function record(previous, days) {
+    const [{ date }] = await db.$queryRaw`SELECT (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')::date + ${days}::int AS date`;
+    return expiry.record({ memberId: member.id, expiresOn: days === null ? null : date, sourceReference: 'disposable-test', authorityReference: 'disposable-test', expectedPredecessorId: previous });
+  }
+  before(async () => {
+    db = new databaseModule.PrismaService(); await db.onModuleInit();
+    jobs = new JobsService(db, logger); await jobs.start();
+    expiry = new expiryModule.MembershipExpiryService(db);
+    renewal = new renewalModule.RenewalScanService(db, jobs, expiry);
+    delivery = new deliveryModule.ReminderDeliveryService(db, jobs, { send: (...args) => send(...args) }, logger);
+  });
+  beforeEach(async () => {
+    const id = randomUUID();
+    member = await db.member.create({ data: { id, membershipNumber: `T36-RENEWAL-${id}`, email: `${id}@example.invalid`, firstName: 'Renewal', lastName: 'Test', dateOfBirth: new Date('1990-01-01'), phoneNumber: '0000', addressLine1: 'Test', city: 'Test', postcode: 'TEST', passwordHash: 'not-a-login', membershipStatus: 'active', emailVerified: true } });
+    fixtureMembers.push(id); root = await record(null, 30);
+    send = async () => ({ outcome: 'provider_accepted', externalId: `renewal-${randomUUID()}` });
+  });
+  afterEach(async () => {
+    await db.member.update({ where: { id: member.id }, data: { membershipStatus: 'closed' } });
+    const logs = await db.reminderLog.findMany({ where: { memberId: member.id, jobId: { not: null } } });
+    for (const row of logs) await jobs.boss.cancel(QUEUES.email, row.jobId);
+  });
+  after(async () => { if (jobs) await jobs.stop(); if (db) await db.onModuleDestroy(); });
+
+  async function enableRenewalSms() {
+    process.env.T36_SMS_MODE = 'simulate'; process.env.T36_EMAIL_MODE = 'disabled';
+    await db.member.update({ where: { id: member.id }, data: { emailVerified: false, phoneNumber: '+447700900123', phoneVerifiedAt: now(), phoneVerificationSource: 'test', smsReminderPermissionAt: now(), smsReminderPermissionSource: 'test' } });
+  }
+  it('rolls back renewal SMS, its actual pg-boss job, and audit when audit insertion fails', async () => {
+    await enableRenewalSms(); const transaction = db.$transaction.bind(db), original = jobs.enqueue.bind(jobs); let jobId, reminderId, providerCalls = 0;
+    const provider = { send: async () => { providerCalls++; return { outcome: 'simulated' }; } };
+    const service = new smsDeliveryModule.ReminderSmsDeliveryService(db, expiry, provider);
+    await jobs.boss.work(QUEUES.sms, { includeMetadata: true, pollingIntervalSeconds: 0.5 }, async ([job]) => service.deliver(job));
+    jobs.enqueue = async (...args) => { reminderId = args[2].reminderId; jobId = await original(...args); return jobId; };
+    db.$transaction = (fn, options) => transaction(tx => fn(new Proxy(tx, { get(client, name) {
+      if (name !== 'auditLog') return Reflect.get(client, name);
+      return { create: args => tx.auditLog.create({ ...args, data: { ...args.data, changedBy: 'missing-t36-actor' } }) };
+    } })), options);
+    try { await assert.rejects(renewal.scan()); } finally { db.$transaction = transaction; jobs.enqueue = original; }
+    await delay(750); await jobs.boss.offWork(QUEUES.sms);
+    process.env.T36_SMS_MODE = 'disabled'; process.env.T36_EMAIL_MODE = 'simulate';
+    assert.ok(jobId); assert.equal(await db.reminderLog.count({ where: { id: reminderId } }), 0);
+    assert.ok(!(await jobs.boss.getJobById(QUEUES.sms, jobId)));
+    assert.equal(await db.auditLog.count({ where: { recordId: reminderId } }), 0); assert.equal(providerCalls, 0);
+  });
+  it('does not infer an unknown expiry for an SMS-eligible member', async () => {
+    await db.member.update({ where: { id: member.id }, data: { membershipStatus: 'closed' } });
+    const id = randomUUID(); member = await db.member.create({ data: { id, membershipNumber: `T36-UNKNOWN-${id}`, email: `${id}@example.invalid`, firstName: 'Unknown', lastName: 'Test', dateOfBirth: new Date('1990-01-01'), phoneNumber: '0000', addressLine1: 'Test', city: 'Test', postcode: 'TEST', passwordHash: 'not-a-login', membershipStatus: 'active', emailVerified: false } }); fixtureMembers.push(id);
+    await enableRenewalSms();
+    try { assert.equal(await expiry.current(member.id), null); assert.equal(await renewal.scan(), 0); assert.equal(await db.reminderLog.count({ where: { memberId: member.id } }), 0); }
+    finally { process.env.T36_SMS_MODE = 'disabled'; process.env.T36_EMAIL_MODE = 'simulate'; }
+  });
+  it('does not use a withdrawn or stale expiry to authorize an SMS', async () => {
+    await enableRenewalSms();
+    try {
+      await record(root.id, null); assert.equal(await renewal.scan(), 0); assert.equal(await db.reminderLog.count({ where: { memberId: member.id } }), 0);
+    } finally { process.env.T36_SMS_MODE = 'disabled'; process.env.T36_EMAIL_MODE = 'simulate'; }
+  });
+  it('does not use a superseded target-date expiry record', async () => {
+    await enableRenewalSms();
+    try { await record(root.id, 15); assert.equal(await renewal.scan(), 0); assert.equal(await db.reminderLog.count({ where: { memberId: member.id } }), 0); }
+    finally { process.env.T36_SMS_MODE = 'disabled'; process.env.T36_EMAIL_MODE = 'simulate'; }
+  });
+  it('fails closed on a corrupted expiry chain in a rolled-back PostgreSQL transaction', async () => {
+    await enableRenewalSms(); const rollback = new Error('test rollback');
+    try {
+      await assert.rejects(db.$transaction(async tx => {
+        // Test-only corruption is local to this transaction and is rolled back.
+        await tx.$executeRawUnsafe('SET LOCAL session_replication_role = replica');
+        await tx.membershipExpiryRecord.create({ data: { id: randomUUID(), memberId: member.id, expiresOn: root.expiresOn, sourceReference: 'test-corrupt', authorityReference: 'test', replacesRecordId: randomUUID() } });
+        const facade = { $queryRaw: tx.$queryRaw.bind(tx), $transaction: async fn => fn(tx) };
+        const scanner = new renewalModule.RenewalScanService(facade, jobs, expiry);
+        await assert.rejects(scanner.scan(), /Invalid membership expiry chain/);
+        assert.equal(await tx.reminderLog.count({ where: { memberId: member.id } }), 0);
+        throw rollback;
+      }), error => error === rollback);
+      assert.equal((await expiry.current(member.id)).id, root.id);
+    } finally { process.env.T36_SMS_MODE = 'disabled'; process.env.T36_EMAIL_MODE = 'simulate'; }
+  });
+  it('queues the exact seven-day renewal SMS window', async () => {
+    process.env.T36_SMS_MODE = 'simulate'; process.env.T36_EMAIL_MODE = 'disabled';
+    try {
+      await db.member.update({ where: { id: member.id }, data: { emailVerified: false, phoneNumber: '+447700900123', phoneVerifiedAt: now(), phoneVerificationSource: 'test', smsReminderPermissionAt: now(), smsReminderPermissionSource: 'test' } });
+      await record(root.id, 7); assert.equal(await renewal.scan(), 1);
+      const row = await logFor(); assert.equal(row.reminderChannel, 'sms'); assert.equal(row.renewalWindowDays, 7); assert.equal(await renewal.scan(), 0); assert.equal(await db.reminderLog.count({ where: { memberId: member.id, reminderChannel: 'sms' } }), 1); await jobs.boss.cancel(QUEUES.sms, row.jobId);
+    } finally { process.env.T36_SMS_MODE = 'disabled'; process.env.T36_EMAIL_MODE = 'simulate'; }
+  });
+  it('queues renewal SMS independently and skips dispatch after expiry correction', async () => {
+    process.env.T36_SMS_MODE = 'simulate'; process.env.T36_EMAIL_MODE = 'disabled'; process.env.T36_TWILIO_STATUS_CALLBACK_URL = 'https://example.invalid/status';
+    try {
+      await db.member.update({ where: { id: member.id }, data: { emailVerified: false, phoneNumber: '+447700900123', phoneVerifiedAt: now(), phoneVerificationSource: 'test', smsReminderPermissionAt: now(), smsReminderPermissionSource: 'test' } });
+      const results = await Promise.all([renewal.scan(), renewal.scan()]); assert.equal(results.reduce((a,b) => a+b, 0), 1);
+      const row = await logFor(); assert.equal(row.reminderChannel, 'sms'); assert.ok(await jobs.boss.getJobById(QUEUES.sms, row.jobId));
+      await record(root.id, 15); let calls = 0;
+      const service = new smsDeliveryModule.ReminderSmsDeliveryService(db, expiry, { send: async () => { calls++; return { outcome: 'simulated' }; } });
+      await service.deliver({ id: row.jobId, data: { reminderId: row.id }, retryCount: 0, retryLimit: 5, signal: new AbortController().signal });
+      assert.equal(calls, 0); assert.equal((await logFor()).deliveryStatus, 'skipped');
+      await jobs.boss.cancel(QUEUES.sms, row.jobId);
+    } finally { process.env.T36_SMS_MODE = 'disabled'; process.env.T36_EMAIL_MODE = 'simulate'; }
+  });
+  it('concurrent scans commit one reminder, job and audit while preserving financial and expiry evidence', async () => {
+    const beforeMember = await db.member.findUniqueOrThrow({ where: { id: member.id } });
+    const results = await Promise.all([renewal.scan(), renewal.scan()]);
+    assert.equal(results.reduce((a, b) => a + b, 0), 1);
+    assert.equal(await renewal.scan(), 0);
+    const logs = await db.reminderLog.findMany({ where: { memberId: member.id, reminderType: 'membership_renewal' } });
+    assert.equal(logs.length, 1);
+    const row = logs[0]; assert.equal(row.membershipExpiryRecordId, root.id); assert.equal(row.renewalWindowDays, 30); assert.equal(row.reminderChannel, 'email');
+    const job = await jobs.boss.getJobById(QUEUES.email, row.jobId); assert.equal(job.data.reminderId, row.id);
+    assert.equal(await db.auditLog.count({ where: { tableName: 'reminder_logs', recordId: row.id } }), 1);
+    assert.deepEqual(await db.member.findUniqueOrThrow({ where: { id: member.id } }), beforeMember);
+    assert.equal(await db.savingsTransaction.count({ where: { memberId: member.id } }), 0);
+    assert.equal((await expiry.current(member.id)).id, root.id);
+    assert.equal((await db.membershipExpiryRecord.findUniqueOrThrow({ where: { id: root.id } })).sourceReference, 'disposable-test');
+  });
+  it('rolls back the actual pg-boss insert and reminder when enqueue fails after insert', async () => {
+    const original = jobs.enqueue.bind(jobs); let jobId, reminderId;
+    jobs.enqueue = async (...args) => { reminderId = args[2].reminderId; jobId = await original(...args); throw new Error('injected enqueue failure'); };
+    try { await assert.rejects(renewal.scan(), /injected enqueue failure/); } finally { jobs.enqueue = original; }
+    assert.ok(jobId); assert.ok(!(await jobs.boss.getJobById(QUEUES.email, jobId)));
+    assert.equal(await db.reminderLog.count({ where: { memberId: member.id } }), 0);
+    assert.equal(await db.auditLog.count({ where: { tableName: 'reminder_logs', recordId: reminderId } }), 0);
+  });
+  it('rolls back the actual job and reminder when audit insertion fails', async () => {
+    const transaction = db.$transaction.bind(db), original = jobs.enqueue.bind(jobs); let jobId;
+    jobs.enqueue = async (...args) => { jobId = await original(...args); return jobId; };
+    db.$transaction = (fn, options) => transaction(tx => fn(new Proxy(tx, { get(client, name) {
+      if (name !== 'auditLog') return Reflect.get(client, name);
+      return { create: args => tx.auditLog.create({ ...args, data: { ...args.data, changedBy: 'missing-t36-actor' } }) };
+    } })), options);
+    try { await assert.rejects(renewal.scan()); } finally { db.$transaction = transaction; jobs.enqueue = original; }
+    assert.ok(jobId); assert.ok(!(await jobs.boss.getJobById(QUEUES.email, jobId)));
+    assert.equal(await db.reminderLog.count({ where: { memberId: member.id } }), 0);
+    assert.equal(await db.auditLog.count({ where: { tableName: 'reminder_logs', newValue: { contains: jobId } } }), 0);
+  });
+  it('retries an injected serialization conflict then commits through the real transaction adapter', async () => {
+    const transaction = db.$transaction.bind(db); let attempts = 0;
+    db.$transaction = (fn, options) => { if (++attempts === 1) return Promise.reject(Object.assign(new Error('injected conflict'), { code: 'P2034' })); return transaction(fn, options); };
+    try { assert.equal(await renewal.scan(), 1); } finally { db.$transaction = transaction; }
+    assert.equal(attempts, 2); const row = await logFor(); assert.ok(await jobs.boss.getJobById(QUEUES.email, row.jobId));
+  });
+  it('retries a PostgreSQL serialization conflict caused by a concurrent member update', async () => {
+    const blocker = new pg.Client({ connectionString: url }); await blocker.connect();
+    const transaction = db.$transaction.bind(db); let attempts = 0, scanPromise;
+    try {
+      await blocker.query('BEGIN');
+      await blocker.query('UPDATE members SET first_name = first_name WHERE member_id = $1', [member.id]);
+      db.$transaction = (fn, options) => { attempts++; return transaction(fn, options); };
+      scanPromise = renewal.scan();
+      await waitFor(async () => {
+        const result = await blocker.query("SELECT 1 FROM pg_stat_activity WHERE pid <> pg_backend_pid() AND datname = current_database() AND wait_event_type = 'Lock' AND pg_backend_pid() = ANY(pg_blocking_pids(pid))");
+        return result.rowCount > 0;
+      });
+      await blocker.query('COMMIT');
+      assert.equal(await scanPromise, 1);
+      assert.ok(attempts >= 2, `expected a serialization retry, got ${attempts} attempts`);
+      const row = await logFor(); assert.ok(await jobs.boss.getJobById(QUEUES.email, row.jobId));
+    } finally {
+      db.$transaction = transaction;
+      await blocker.query('ROLLBACK').catch(() => {});
+      if (scanPromise) await scanPromise.catch(() => {});
+      await blocker.end();
+    }
+  });
+  it('revalidates expiry corrected after candidate selection and before the transaction', async () => {
+    const transaction = db.$transaction.bind(db); let corrected = false;
+    db.$transaction = async (fn, options) => {
+      if (!corrected) { corrected = true; db.$transaction = transaction; await record(root.id, 15); db.$transaction = transaction; }
+      return transaction(fn, options);
+    };
+    try { assert.equal(await renewal.scan(), 0); } finally { db.$transaction = transaction; }
+    assert.equal(await db.reminderLog.count({ where: { memberId: member.id } }), 0);
+  });
+  it('skips an unsent email after a correction and retains its old expiry evidence', async () => {
+    await renewal.scan(); const row = await logFor(); await record(root.id, 15);
+    let calls = 0; send = async () => { calls++; throw new Error('must not send'); };
+    await delivery.deliver({ id: row.jobId, data: { reminderId: row.id }, retryCount: 0, retryLimit: 5, signal: new AbortController().signal });
+    const updated = await db.reminderLog.findUniqueOrThrow({ where: { id: row.id } });
+    assert.equal(calls, 0); assert.equal(updated.deliveryStatus, 'skipped'); assert.equal(updated.membershipExpiryRecordId, root.id);
+    assert.ok(await db.membershipExpiryRecord.findUnique({ where: { id: root.id } }));
+  });
+  it('correlates a signed renewal webhook after an uncertain response and preserves delivered history after correction', async () => {
+    await renewal.scan(); const row = await logFor();
+    let frozen;
+    send = async (payload, key) => { frozen = { payload, key }; assert.deepEqual((await db.reminderLog.findUniqueOrThrow({ where: { id: row.id } })).payload, payload); throw new providerModule.ReminderProviderError('timeout', true, true); };
+    const job = { id: row.jobId, data: { reminderId: row.id }, retryCount: 0, retryLimit: 5, signal: new AbortController().signal };
+    await assert.rejects(delivery.deliver(job));
+    assert.equal(frozen.key, `t36-renewal/${row.id}`);
+    assert.equal(frozen.payload.tags[0].value, row.id);
+    const event = await signedEvent(`renewal-webhook-${randomUUID()}`, 'email.delivered', now(), randomUUID(), row.id);
+    const webhooks = new webhookModule.ReminderWebhookService(db, jobs);
+    assert.deepEqual(await webhooks.receive(Buffer.from(event.payload), event.headers), { received: true });
+    assert.equal(await delivery.processEvent(`resend:${event.headers.id}`), true);
+    const delivered = await db.reminderLog.findUniqueOrThrow({ where: { id: row.id } });
+    assert.equal(delivered.deliveryStatus, 'delivered');
+    await record(root.id, 15);
+    await delivery.deliver({ ...job, retryCount: 1 });
+    const after = await db.reminderLog.findUniqueOrThrow({ where: { id: row.id } });
+    assert.equal(after.deliveryStatus, 'delivered'); assert.equal(after.externalId, delivered.externalId);
+    assert.deepEqual(after.payload, frozen.payload);
+  });
+  it('enforces append-only history and rejects cross-member expiry references', async () => {
+    await assert.rejects(db.membershipExpiryRecord.update({ where: { id: root.id }, data: { sourceReference: 'tampered' } }));
+    await assert.rejects(db.membershipExpiryRecord.delete({ where: { id: root.id } }));
+    const replacement = await record(root.id, 7);
+    assert.equal((await expiry.current(member.id)).id, replacement.id);
+    assert.equal((await db.membershipExpiryRecord.findUniqueOrThrow({ where: { id: root.id } })).sourceReference, 'disposable-test');
+    const otherId = randomUUID();
+    await db.member.create({ data: { id: otherId, membershipNumber: `T36-RENEWAL-${otherId}`, email: `${otherId}@example.invalid`, firstName: 'Other', lastName: 'Test', dateOfBirth: new Date('1990-01-01'), phoneNumber: '0000', addressLine1: 'Test', city: 'Test', postcode: 'TEST', passwordHash: 'not-a-login', membershipStatus: 'closed', emailVerified: true } }); fixtureMembers.push(otherId);
+    await assert.rejects(db.membershipExpiryRecord.create({ data: { id: randomUUID(), memberId: otherId, expiresOn: root.expiresOn, sourceReference: 'test', authorityReference: 'test', replacesRecordId: root.id } }));
+    await assert.rejects(db.reminderLog.create({ data: { id: randomUUID(), memberId: otherId, reminderType: 'membership_renewal', reminderChannel: 'email', membershipExpiryRecordId: root.id, membershipExpiresOn: root.expiresOn, renewalWindowDays: 30 } }));
   });
 });
 

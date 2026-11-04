@@ -6,8 +6,13 @@ import { PrismaService } from '../../core/database/prisma.service';
 import { JobsService, RETRY_OPTIONS } from '../../core/jobs/jobs.service';
 import { ReminderWorkersService } from './reminder-workers.service';
 import { ReminderDeliveryService } from './reminder-delivery.service';
+import { ReminderSmsDeliveryService } from './reminder-sms-delivery.service';
+import { RenewalScanService } from './renewal-scan.service';
 import { RemindersService } from './reminders.service';
-import { ResendReminderProvider } from './reminder-email.provider';
+import {
+  DormantResendTransport,
+  ResendReminderProvider,
+} from './reminder-email.provider';
 import {
   eligible,
   overdueEmail,
@@ -66,12 +71,20 @@ describe('T36 reminder policy and transport', () => {
     const member = {
       phoneNumber: '+447700900123',
       phoneVerifiedAt: new Date(),
+      phoneVerificationSource: 'test',
       smsReminderPermissionAt: new Date(),
+      smsReminderPermissionSource: 'test',
       smsReminderPermissionRevokedAt: null as Date | null,
     };
     expect(smsEligible(member)).toBe(true);
     expect(smsEligible({ ...member, phoneNumber: '07700900123' })).toBe(false);
     expect(smsEligible({ ...member, phoneVerifiedAt: null })).toBe(false);
+    expect(smsEligible({ ...member, phoneVerificationSource: ' ' })).toBe(
+      false,
+    );
+    expect(smsEligible({ ...member, smsReminderPermissionSource: null })).toBe(
+      false,
+    );
     expect(smsEligible({ ...member, smsReminderPermissionAt: null })).toBe(
       false,
     );
@@ -140,7 +153,7 @@ describe('T36 reminder policy and transport', () => {
   it('defaults to disabled, refuses invalid flags and forbids production/staging Resend activation', () => {
     expect(config({}).T36_JOBS_ENABLED).toBe('false');
     expect(config({}).T36_EMAIL_MODE).toBe('disabled');
-    for (const NODE_ENV of ['production', 'staging'])
+    for (const NODE_ENV of ['development', 'test', 'production', 'staging'])
       expect(() => config({ NODE_ENV, T36_EMAIL_MODE: 'resend' })).toThrow(
         'not authorized',
       );
@@ -168,6 +181,27 @@ describe('T36 reminder policy and transport', () => {
     ).rejects.toThrow('external_delivery_disabled');
     expect(fetch).not.toHaveBeenCalled();
   });
+
+  it.each(['development', 'test', 'staging', 'production'])(
+    'rejects T36 live delivery in %s even if validation is bypassed',
+    async (environment) => {
+      process.env.NODE_ENV = environment;
+      const fetch = jest.spyOn(globalThis, 'fetch');
+      const provider = new ResendReminderProvider();
+      const payload = overdueEmail(fixture(), new Date());
+      for (const mode of ['disabled', 'resend']) {
+        process.env.T36_EMAIL_MODE = mode;
+        await expect(
+          provider.send(payload, 'key', new AbortController().signal),
+        ).rejects.toThrow('external_delivery_disabled');
+      }
+      process.env.T36_EMAIL_MODE = 'simulate';
+      await expect(
+        provider.send(payload, 'key', new AbortController().signal),
+      ).resolves.toEqual({ outcome: 'simulated' });
+      expect(fetch).not.toHaveBeenCalled();
+    },
+  );
   it('aborts the installed SDK request at the timeout and records ambiguity rather than false failure', async () => {
     jest.useFakeTimers();
     process.env.T36_EMAIL_MODE = 'resend';
@@ -183,7 +217,7 @@ describe('T36 reminder policy and transport', () => {
         }),
     );
     try {
-      const pending = new ResendReminderProvider().send(
+      const pending = new DormantResendTransport().send(
         overdueEmail(fixture(), new Date()),
         'timeout-key',
         new AbortController().signal,
@@ -218,7 +252,7 @@ describe('T36 reminder policy and transport', () => {
           { status: 503 },
         ),
       );
-    const provider = new ResendReminderProvider();
+    const provider = new DormantResendTransport();
     const payload = overdueEmail(fixture(), new Date());
     await expect(
       provider.send(payload, 'stable-key', new AbortController().signal),
@@ -245,9 +279,45 @@ describe('T36 lifecycle boundaries', () => {
     await new ReminderWorkersService(
       { start } as unknown as JobsService,
       {} as RemindersService,
+      {} as RenewalScanService,
       {} as ReminderDeliveryService,
+      {} as ReminderSmsDeliveryService,
     ).onApplicationBootstrap();
     expect(start).not.toHaveBeenCalled();
+  });
+  it('registers the renewal scan daily at 08:00 UTC', async () => {
+    process.env.T36_JOBS_ENABLED = 'true';
+    process.env.T36_EMAIL_MODE = 'disabled';
+    const boss = {
+      work: jest.fn().mockResolvedValue(undefined),
+      schedule: jest.fn().mockResolvedValue(undefined),
+    };
+    const jobs = {
+      start: jest.fn().mockResolvedValue(undefined),
+      boss,
+      stop: jest.fn(),
+    };
+    await new ReminderWorkersService(
+      jobs as unknown as JobsService,
+      {} as RemindersService,
+      {} as RenewalScanService,
+      {} as ReminderDeliveryService,
+      {} as ReminderSmsDeliveryService,
+    ).onApplicationBootstrap();
+    expect(boss.work).toHaveBeenCalledWith(
+      't36-renewal-scan',
+      { batchSize: 1 },
+      expect.any(Function),
+    );
+    expect(boss.schedule).toHaveBeenCalledWith(
+      't36-renewal-scan',
+      '0 8 * * *',
+      {},
+      { tz: 'UTC', key: 'daily-renewal', missed: 'once' },
+    );
+    expect(
+      boss.work.mock.calls.some(([queue]) => queue === 't36-reminder-sms'),
+    ).toBe(false);
   });
   it('drains workers exactly once before a registered Prisma disconnect hook completes', async () => {
     const hooks: (() => Promise<void>)[] = [];

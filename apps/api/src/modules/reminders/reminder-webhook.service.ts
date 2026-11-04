@@ -73,7 +73,12 @@ export class ReminderWebhookService {
         if (
           !reminder?.firstAttemptAt ||
           !reminder.payload ||
-          !reminder.providerKey?.startsWith('t36-initial-overdue/') ||
+          !(
+            (reminder.reminderType === 'late_payment' &&
+              reminder.providerKey === `t36-initial-overdue/${reminder.id}`) ||
+            (reminder.reminderType === 'membership_renewal' &&
+              reminder.providerKey === `t36-renewal/${reminder.id}`)
+          ) ||
           (reminder.externalId && reminder.externalId !== externalId)
         )
           return false;

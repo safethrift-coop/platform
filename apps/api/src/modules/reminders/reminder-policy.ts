@@ -14,7 +14,9 @@ export const scheduleInclude = {
           emailVerified: true,
           phoneNumber: true,
           phoneVerifiedAt: true,
+          phoneVerificationSource: true,
           smsReminderPermissionAt: true,
+          smsReminderPermissionSource: true,
           smsReminderPermissionRevokedAt: true,
           membershipStatus: true,
         },
@@ -86,13 +88,17 @@ export const isE164 = (value: string) => /^\+[1-9]\d{7,14}$/.test(value);
 export function smsEligible(member: {
   phoneNumber: string;
   phoneVerifiedAt: Date | null;
+  phoneVerificationSource: string | null;
   smsReminderPermissionAt: Date | null;
+  smsReminderPermissionSource: string | null;
   smsReminderPermissionRevokedAt: Date | null;
 }) {
   return (
     isE164(member.phoneNumber) &&
     member.phoneVerifiedAt !== null &&
+    Boolean(member.phoneVerificationSource?.trim()) &&
     member.smsReminderPermissionAt !== null &&
+    Boolean(member.smsReminderPermissionSource?.trim()) &&
     member.smsReminderPermissionRevokedAt === null
   );
 }

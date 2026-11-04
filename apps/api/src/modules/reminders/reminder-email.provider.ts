@@ -28,7 +28,6 @@ export class ReminderProviderError extends Error {
     super(code);
   }
 }
-// No selected SMS provider, queue producer or worker is registered.
 export interface SmsProvider {
   send(
     to: string,
@@ -54,19 +53,30 @@ class AbortableResend extends Resend {
 
 @Injectable()
 export class ResendReminderProvider extends ReminderEmailProvider {
+  send(
+    _payload: ReminderEmail,
+    _key: string,
+    signal: AbortSignal,
+  ): Promise<EmailAcceptance> {
+    if (signal.aborted)
+      return Promise.reject(new ReminderProviderError('aborted', true, true));
+    if (process.env.T36_EMAIL_MODE === 'simulate')
+      return Promise.resolve({ outcome: 'simulated' });
+    return Promise.reject(
+      new ReminderProviderError('external_delivery_disabled', false),
+    );
+  }
+}
+
+// This transport is deliberately not registered or selected by configuration.
+// Enabling it requires a separately authorized code change.
+export class DormantResendTransport extends ReminderEmailProvider {
   async send(
     payload: ReminderEmail,
     key: string,
     signal: AbortSignal,
   ): Promise<EmailAcceptance> {
     if (signal.aborted) throw new ReminderProviderError('aborted', true, true);
-    if (process.env.T36_EMAIL_MODE === 'simulate')
-      return { outcome: 'simulated' };
-    if (
-      process.env.T36_EMAIL_MODE !== 'resend' ||
-      !['development', 'test'].includes(process.env.NODE_ENV ?? '')
-    )
-      throw new ReminderProviderError('external_delivery_disabled', false);
     // A transport timeout may occur after acceptance. Keep the same key and body
     // on retry; never interpret a timeout as proof that no email was sent.
     const controller = new AbortController();

@@ -312,12 +312,12 @@ model MembershipExpiryRecord {
 
   member     Member                  @relation("MembershipExpiryOwner", fields: [memberId], references: [id], onDelete: Restrict)
   recorder   Member?                 @relation("MembershipExpiryRecorder", fields: [recordedBy], references: [id], onDelete: Restrict)
-  replaces   MembershipExpiryRecord? @relation("MembershipExpiryChain", fields: [replacesRecordId], references: [id], onDelete: Restrict)
-  replacedBy MembershipExpiryRecord? @relation("MembershipExpiryChain")
+  replaces   MembershipExpiryRecord? @relation("MembershipExpiryChain", fields: [replacesRecordId, memberId], references: [id, memberId], onDelete: Restrict, onUpdate: Restrict, map: "membership_expiry_same_member_predecessor_fkey")
+  replacedBy MembershipExpiryRecord[] @relation("MembershipExpiryChain")
   reminders  ReminderLog[]
 
   @@unique([id, memberId], map: "membership_expiry_records_id_member_key")
-  @@index([memberId, recordedAt, id])
+  @@index([memberId, recordedAt(sort: Desc), id(sort: Desc)], map: "membership_expiry_records_member_recorded_idx")
   @@map("membership_expiry_records")
 }
 

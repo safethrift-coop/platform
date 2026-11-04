@@ -133,11 +133,21 @@ jobs:
           NODE_ENV: test
           T36_MIGRATION_TEST_DATABASE_URL: postgresql://safethrift:safethrift_test@localhost:5432/safethrift_reminder_migration_test
 
+      - name: Prepare disposable T36 integration database
+        run: |
+          createdb --host localhost --username safethrift safethrift_renewal_test
+          pnpm --filter @safethrift/prisma exec prisma migrate deploy
+          pnpm --filter @safethrift/api jobs:migrate
+        env:
+          PGPASSWORD: safethrift_test
+          DATABASE_URL: postgresql://safethrift:safethrift_test@localhost:5432/safethrift_renewal_test
+
       - name: T36 PostgreSQL jobs, reminders, webhook and recovery integration
         run: pnpm --filter @safethrift/api test:reminders
         env:
           NODE_ENV: test
-          T36_TEST_DATABASE_URL: postgresql://safethrift:safethrift_test@localhost:5432/safethrift_test
+          T36_TEST_DATABASE_DISPOSABLE: "true"
+          T36_TEST_DATABASE_URL: postgresql://safethrift:safethrift_test@localhost:5432/safethrift_renewal_test
 
       - name: Install isolated pinned T38 payment jobs schema
         run: pnpm --filter @safethrift/api payments:jobs:migrate

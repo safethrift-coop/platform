@@ -136,6 +136,7 @@ export class ReminderDeliveryService {
           member.emailVerified &&
           expiry?.id === row.membershipExpiryRecordId &&
           expiry.expiresOn &&
+          row.membershipExpiresOn?.getTime() === expiry.expiresOn.getTime() &&
           window &&
           window === row.renewalWindowDays &&
           (!row.payload || emailPayload(row.payload).to === member.email)
@@ -345,6 +346,7 @@ export class ReminderDeliveryService {
       const pending = await this.db.reminderLog.findMany({
         where: {
           id: { gt: cursor },
+          reminderChannel: 'email',
           jobId: { not: null },
           providerEventAt: null,
           deliveryStatus: {

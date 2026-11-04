@@ -109,15 +109,9 @@ export function validate(
     );
   }
 
-  // Production Resend activation requires separate authorization and a reviewed
-  // change to this deployment gate. This implementation cannot enable it.
-  if (
-    ['production', 'staging'].includes(validated.NODE_ENV) &&
-    validated.T36_EMAIL_MODE === 'resend'
-  )
-    throw new Error(
-      'T36 external email is not authorized in production/staging',
-    );
+  // Live T36 reminder delivery requires separate authorization and a code change.
+  if (validated.T36_EMAIL_MODE === 'resend')
+    throw new Error('T36 external email is not authorized');
   if (
     ['production', 'staging'].includes(validated.NODE_ENV) &&
     validated.T36_SMS_MODE === 'twilio'
