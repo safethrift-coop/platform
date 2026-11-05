@@ -147,7 +147,7 @@ jobs:
         env:
           NODE_ENV: test
           T36_TEST_DATABASE_DISPOSABLE: "true"
-          T36_TEST_DATABASE_URL: postgresql://safethrift:safethrift_test@localhost:5432/safethrift_renewal_test
+          T36_TEST_DATABASE_URL: postgresql://safethrift:safethrift_test@127.0.0.1:5432/safethrift_renewal_test
 
       - name: Install isolated pinned T38 payment jobs schema
         run: pnpm --filter @safethrift/api payments:jobs:migrate

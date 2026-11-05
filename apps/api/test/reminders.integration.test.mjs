@@ -42,7 +42,10 @@ if (parsed.search || parsed.hash) throw new Error('Database URL parameters are n
 const hostname = parsed.hostname.replace(/^\[|\]$/g, '');
 const addresses = isIP(hostname) ? [{ address: hostname }] : await lookup(hostname, { all: true });
 if (!addresses.length || addresses.some(({ address }) => !(address.startsWith('127.') && isIP(address) === 4) && address !== '::1')) throw new Error('Database host must resolve exclusively to loopback');
-parsed.hostname = addresses[0].address.includes(':') ? `[${addresses[0].address}]` : addresses[0].address;
+// Prefer IPv4 when localhost resolves to both families: pg's connection-string
+// parser retains IPv6 URL brackets in the hostname passed to DNS.
+const address = addresses.find(({ address }) => isIP(address) === 4)?.address ?? addresses[0].address;
+parsed.hostname = address.includes(':') ? `[${address}]` : address;
 url = parsed.toString();
 // Tests inject a fake provider; any accidental SDK HTTP request must fail closed.
 globalThis.fetch = async () => { throw new Error('External requests forbidden in T36 integration tests'); };
