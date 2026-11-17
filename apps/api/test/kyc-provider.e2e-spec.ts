@@ -1,4 +1,7 @@
-import { SyntheticKycProvider, syntheticEligibility } from './fixtures/t24-synthetic-provider';
+import {
+  SyntheticKycProvider,
+  syntheticEligibility,
+} from './fixtures/t24-synthetic-provider';
 
 describe('T24 isolated synthetic provider', () => {
   it('uses deterministic outcomes and retains an accepted correlation on retry', async () => {
@@ -14,9 +17,17 @@ describe('T24 isolated synthetic provider', () => {
   });
 
   it('never treats a synthetic KYC outcome as authority for a real loan', () => {
-    for (const status of [undefined, 'pending', 'verified', 'rejected', 'expired']) {
+    for (const status of [
+      undefined,
+      'pending',
+      'verified',
+      'rejected',
+      'expired',
+    ]) {
       expect(syntheticEligibility(status).realLoanAuthorized).toBe(false);
     }
-    expect(syntheticEligibility('verified').synthetic).toBe('synthetic_verified');
+    expect(syntheticEligibility('verified').synthetic).toBe(
+      'synthetic_verified',
+    );
   });
 });

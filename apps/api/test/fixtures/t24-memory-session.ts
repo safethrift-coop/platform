@@ -80,41 +80,53 @@ function read(service: RedisService, key: string): string | null {
 RedisService.prototype.onModuleInit = function (): void {
   stores.set(this, new Map());
 };
-RedisService.prototype.onModuleDestroy = async function (): Promise<void> {
-  stores.delete(this);
+RedisService.prototype.onModuleDestroy = function (): Promise<void> {
+  return new Promise((resolve) => {
+    stores.delete(this);
+    resolve();
+  });
 };
-RedisService.prototype.set = async function (
+RedisService.prototype.set = function (
   key: string,
   value: string,
   ttlSeconds: number,
 ): Promise<void> {
-  store(this).set(key, { value, expiresAt: Date.now() + ttlSeconds * 1000 });
+  return new Promise((resolve) => {
+    store(this).set(key, { value, expiresAt: Date.now() + ttlSeconds * 1000 });
+    resolve();
+  });
 };
-RedisService.prototype.get = async function (
-  key: string,
-): Promise<string | null> {
-  return read(this, key);
+RedisService.prototype.get = function (key: string): Promise<string | null> {
+  return new Promise((resolve) => resolve(read(this, key)));
 };
-RedisService.prototype.del = async function (key: string): Promise<void> {
-  store(this).delete(key);
+RedisService.prototype.del = function (key: string): Promise<void> {
+  return new Promise((resolve) => {
+    store(this).delete(key);
+    resolve();
+  });
 };
-RedisService.prototype.exists = async function (key: string): Promise<boolean> {
-  return read(this, key) !== null;
+RedisService.prototype.exists = function (key: string): Promise<boolean> {
+  return new Promise((resolve) => resolve(read(this, key) !== null));
 };
-RedisService.prototype.compareAndSwap = async function (
+RedisService.prototype.compareAndSwap = function (
   key: string,
   expected: string,
   replacement: string | null,
   ttlSeconds: number,
 ): Promise<boolean> {
-  // No await between comparison and mutation: this fixture arbitrates within
-  // one JS process. It makes no claim about Redis or distributed sessions.
-  if (read(this, key) !== expected) return false;
-  if (replacement === null) store(this).delete(key);
-  else
-    store(this).set(key, {
-      value: replacement,
-      expiresAt: Date.now() + ttlSeconds * 1000,
-    });
-  return true;
+  return new Promise((resolve) => {
+    // No await between comparison and mutation: this fixture arbitrates within
+    // one JS process. It makes no claim about Redis or distributed sessions.
+    if (read(this, key) !== expected) {
+      resolve(false);
+      return;
+    }
+    if (replacement === null) store(this).delete(key);
+    else
+      store(this).set(key, {
+        value: replacement,
+        expiresAt: Date.now() + ttlSeconds * 1000,
+      });
+    resolve(true);
+  });
 };

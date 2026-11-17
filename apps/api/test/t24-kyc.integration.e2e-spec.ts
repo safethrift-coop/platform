@@ -9,6 +9,7 @@ import { join } from 'node:path';
 import express from 'express';
 import request from 'supertest';
 import { SyntheticKycTestModule } from './fixtures/t24-kyc-test.module';
+import type { SyntheticAttemptRow } from './fixtures/t24-kyc-test.module';
 import { SyntheticKycProvider } from './fixtures/t24-synthetic-provider';
 import { SyntheticWebhookVerifier } from './fixtures/t24-synthetic-webhook';
 import { assertT24Isolation } from './fixtures/t24-assert-isolation';
@@ -103,8 +104,13 @@ const submit = (id: string, idempotencyKey = 'acceptance') =>
     .auth(token(id), { type: 'bearer' })
     .set('Idempotency-Key', idempotencyKey)
     .send({});
-async function attemptFor(id: string) {
-  const result = await pool.query(
+function jsonObject(value: unknown): Record<string, unknown> {
+  if (!value || typeof value !== 'object' || Array.isArray(value))
+    throw new Error('Expected a JSON object');
+  return value as Record<string, unknown>;
+}
+async function attemptFor(id: string): Promise<SyntheticAttemptRow> {
+  const result = await pool.query<SyntheticAttemptRow>(
     'SELECT a.*, k.verification_status FROM kyc_synthetic_attempts a JOIN kyc_verification k ON k.kyc_id=a.verification_id WHERE a.member_id=$1 AND a.is_current',
     [id],
   );
@@ -138,7 +144,9 @@ async function snapshot(id: string): Promise<string> {
   ];
   return JSON.stringify(
     await Promise.all(
-      statements.map(async (sql) => (await pool.query(sql, [id])).rows),
+      statements.map(
+        async (sql) => (await pool.query<{ row: unknown }>(sql, [id])).rows,
+      ),
     ),
   );
 }
@@ -265,8 +273,8 @@ describe('T24 isolated synthetic KYC application', () => {
         .send({});
     const [a, b] = await Promise.all([submit(), submit()]);
     expect([a.status, b.status]).toEqual([202, 202]);
-    expect(a.body.attemptId).toBe(b.body.attemptId);
-    expect(a.body.mode).toBe('synthetic');
+    expect(jsonObject(a.body).attemptId).toBe(jsonObject(b.body).attemptId);
+    expect(jsonObject(a.body).mode).toBe('synthetic');
     const attempt = await attemptFor(member);
     expect(
       (
@@ -302,17 +310,21 @@ describe('T24 isolated synthetic KYC application', () => {
         .set('Idempotency-Key', 'recover')
         .send({});
     await submit().expect(503);
-    const before = await pool.query(
+    const before = await pool.query<
+      Pick<SyntheticAttemptRow, 'id' | 'correlation_id'>
+    >(
       'SELECT id, correlation_id FROM kyc_synthetic_attempts WHERE member_id=$1',
       [recovery],
     );
     const response = await submit().expect(202);
-    const after = await pool.query(
+    const after = await pool.query<
+      Pick<SyntheticAttemptRow, 'id' | 'correlation_id'>
+    >(
       'SELECT id, correlation_id FROM kyc_synthetic_attempts WHERE member_id=$1',
       [recovery],
     );
     expect(after.rows).toEqual(before.rows);
-    expect(response.body.attemptId).toBe(before.rows[0].id);
+    expect(jsonObject(response.body).attemptId).toBe(before.rows[0].id);
     expect(call.mock.calls.slice(-2).map((args) => args[0])).toEqual([
       before.rows[0].correlation_id,
       before.rows[0].correlation_id,
@@ -391,14 +403,17 @@ describe('T24 isolated synthetic KYC application', () => {
         expect(before.verification_status).toBe('pending');
         const exit = once(child, 'exit');
         expect(child.kill('SIGTERM')).toBe(true);
-        const [code, signal] = await exit;
+        const [code, signal] = (await exit) as [
+          number | null,
+          NodeJS.Signals | null,
+        ];
         expect(code).toBeNull();
         expect(signal).toBe('SIGTERM');
         const call = jest.spyOn(provider, 'initiate');
         try {
           const response = await submit(id, `crash-${point}`).expect(202);
           const after = await attemptFor(id);
-          expect(response.body.attemptId).toBe(before.id);
+          expect(jsonObject(response.body).attemptId).toBe(before.id);
           expect(after.correlation_id).toBe(before.correlation_id);
           expect(after.initiation_state).toBe('started');
           expect(after.verification_status).toBe('in_progress');
@@ -552,7 +567,9 @@ describe('T24 isolated synthetic KYC application', () => {
   });
 
   it('rolls back event evidence and status if the audit insert fails', async () => {
-    const attempt = await pool.query(
+    const attempt = await pool.query<
+      Pick<SyntheticAttemptRow, 'correlation_id' | 'verification_id'>
+    >(
       'SELECT correlation_id, verification_id FROM kyc_synthetic_attempts WHERE member_id=$1',
       [recovery],
     );
@@ -581,10 +598,11 @@ describe('T24 isolated synthetic KYC application', () => {
         'SELECT id FROM kyc_synthetic_events WHERE event_id=$1',
         [id],
       );
-      const status = await pool.query(
-        'SELECT verification_status FROM kyc_verification WHERE kyc_id=$1',
-        [attempt.rows[0].verification_id],
-      );
+      const status = await pool.query<
+        Pick<SyntheticAttemptRow, 'verification_status'>
+      >('SELECT verification_status FROM kyc_verification WHERE kyc_id=$1', [
+        attempt.rows[0].verification_id,
+      ]);
       expect(evidence.rowCount).toBe(0);
       expect(status.rows[0].verification_status).toBe('in_progress');
     } finally {
@@ -661,7 +679,7 @@ describe('T24 isolated synthetic KYC application', () => {
     expect((await attemptFor(terminal)).verification_status).toBe('rejected');
     expect(
       (
-        await pool.query(
+        await pool.query<{ outcome: string }>(
           'SELECT outcome FROM kyc_synthetic_events WHERE attempt_id=$1 ORDER BY sequence',
           [attempt.id],
         )
@@ -684,7 +702,7 @@ describe('T24 isolated synthetic KYC application', () => {
   it('authenticates, orders and deduplicates synthetic events', async () => {
     const firstEvent = randomUUID();
     const secondEvent = randomUUID();
-    const a = await pool.query(
+    const a = await pool.query<Pick<SyntheticAttemptRow, 'correlation_id'>>(
       'SELECT correlation_id FROM kyc_synthetic_attempts WHERE member_id=$1',
       [member],
     );
@@ -766,15 +784,15 @@ describe('T24 isolated synthetic KYC application', () => {
     let status = await http()
       .get('/api/v1/kyc/status')
       .auth(token(member), { type: 'bearer' });
-    expect(status.body.status).toBe('in_progress');
+    expect(jsonObject(status.body).status).toBe('in_progress');
     await send(firstEvent, 1, 'verified').expect(200);
     await send(firstEvent, 1, 'verified').expect(200);
     await send(firstEvent, 1, 'rejected').expect(409);
     status = await http()
       .get('/api/v1/kyc/status')
       .auth(token(member), { type: 'bearer' });
-    expect(status.body.status).toBe('expired');
-    const rows = await pool.query(
+    expect(jsonObject(status.body).status).toBe('expired');
+    const rows = await pool.query<{ outcome: string }>(
       'SELECT outcome FROM kyc_synthetic_events WHERE attempt_id=(SELECT id FROM kyc_synthetic_attempts WHERE member_id=$1) ORDER BY sequence',
       [member],
     );
@@ -782,7 +800,9 @@ describe('T24 isolated synthetic KYC application', () => {
   });
 
   it('does not restore a superseded terminal attempt after a late event', async () => {
-    const prior = await pool.query(
+    const prior = await pool.query<
+      Pick<SyntheticAttemptRow, 'id' | 'correlation_id'>
+    >(
       'SELECT id, correlation_id FROM kyc_synthetic_attempts WHERE member_id=$1 AND is_current',
       [member],
     );
@@ -792,7 +812,7 @@ describe('T24 isolated synthetic KYC application', () => {
       .set('Idempotency-Key', 'new-after-expiry')
       .send({})
       .expect(202);
-    expect(created.body.attemptId).not.toBe(prior.rows[0].id);
+    expect(jsonObject(created.body).attemptId).not.toBe(prior.rows[0].id);
     const body = JSON.stringify({
       eventId: randomUUID(),
       correlationId: prior.rows[0].correlation_id,
@@ -812,17 +832,19 @@ describe('T24 isolated synthetic KYC application', () => {
       .get('/api/v1/kyc/status')
       .auth(token(member), { type: 'bearer' })
       .expect(200);
-    expect(status.body.attemptId).toBe(created.body.attemptId);
-    expect(status.body.status).toBe('in_progress');
+    expect(jsonObject(status.body).attemptId).toBe(
+      jsonObject(created.body).attemptId,
+    );
+    expect(jsonObject(status.body).status).toBe('in_progress');
     expect(
       (
-        await pool.query(
+        await pool.query<Pick<SyntheticAttemptRow, 'is_current'>>(
           'SELECT is_current FROM kyc_synthetic_attempts WHERE id=$1',
           [prior.rows[0].id],
         )
       ).rows[0].is_current,
     ).toBe(false);
-    const rejected = await pool.query(
+    const rejected = await pool.query<{ outcome: string }>(
       'SELECT outcome FROM kyc_synthetic_events WHERE attempt_id=$1 AND sequence=3',
       [prior.rows[0].id],
     );
@@ -836,10 +858,11 @@ describe('T24 isolated synthetic KYC application', () => {
       .set('Idempotency-Key', 'loan-fixture')
       .send({})
       .expect(202);
-    const attempt = await pool.query(
-      'SELECT correlation_id FROM kyc_synthetic_attempts WHERE member_id=$1',
-      [loanFixture],
-    );
+    const attempt = await pool.query<
+      Pick<SyntheticAttemptRow, 'correlation_id'>
+    >('SELECT correlation_id FROM kyc_synthetic_attempts WHERE member_id=$1', [
+      loanFixture,
+    ]);
     const body = JSON.stringify({
       eventId: randomUUID(),
       correlationId: attempt.rows[0].correlation_id,
@@ -859,7 +882,7 @@ describe('T24 isolated synthetic KYC application', () => {
       .get('/api/v1/kyc/status')
       .auth(token(loanFixture), { type: 'bearer' })
       .expect(200);
-    expect(status.body.status).toBe('verified');
+    expect(jsonObject(status.body).status).toBe('verified');
     expect((await attemptFor(loanFixture)).verification_status).toBe(
       'verified',
     );
@@ -872,13 +895,16 @@ describe('T24 isolated synthetic KYC application', () => {
         loanPurpose: 'synthetic test',
       })
       .expect(403);
-    expect(response.body.message).toBe(LOAN_EXECUTION_DISABLED);
+    expect(jsonObject(response.body).message).toBe(LOAN_EXECUTION_DISABLED);
     const eligibility = await http()
       .get('/api/v1/loans/eligibility')
       .auth(token(loanFixture), { type: 'bearer' })
       .expect(200);
-    expect(eligibility.body.kycStatus).toBe('not_evaluated');
-    expect(eligibility.body.applicationCapability.allowed).toBe(false);
+    const eligibilityBody = jsonObject(eligibility.body);
+    expect(eligibilityBody.kycStatus).toBe('not_evaluated');
+    expect(jsonObject(eligibilityBody.applicationCapability).allowed).toBe(
+      false,
+    );
     const service = new LoansService(app.get(PrismaService));
     await expect(
       service.applyForLoan(loanFixture, {
@@ -887,7 +913,7 @@ describe('T24 isolated synthetic KYC application', () => {
         loanPurpose: 'synthetic test',
       }),
     ).rejects.toThrow(LOAN_EXECUTION_DISABLED);
-    const privileges = await pool.query(
+    const privileges = await pool.query<{ can_insert: boolean }>(
       "SELECT has_table_privilege(current_user,'loan_applications','INSERT') AS can_insert",
     );
     expect(privileges.rows[0].can_insert).toBe(false);
@@ -973,7 +999,10 @@ describe('T24 isolated synthetic KYC application', () => {
         T40_APPLICATIONS_ENABLED: 'false',
         SAVINGS_SIMULATION_ENABLED: 'false',
       });
-      const { AppModule } = require('../src/app.module');
+      const { AppModule } =
+        jest.requireActual<typeof import('../src/app.module')>(
+          '../src/app.module',
+        );
       const module = await Test.createTestingModule({
         imports: [AppModule],
       }).compile();
@@ -1021,7 +1050,7 @@ describe('T24 isolated synthetic KYC application', () => {
           loanPurpose: 'synthetic verified still denied',
         })
         .expect(403);
-      expect(denial.body.message).toBe(LOAN_EXECUTION_DISABLED);
+      expect(jsonObject(denial.body).message).toBe(LOAN_EXECUTION_DISABLED);
       expect(providerCalls).not.toHaveBeenCalled();
       expect(await snapshot(loanFixture)).toBe(before);
     } finally {
@@ -1084,8 +1113,11 @@ describe('T24 isolated synthetic KYC application', () => {
           'audit_logs',
         ].map(
           async (table) =>
-            (await pool.query(`SELECT to_jsonb(t) AS row FROM ${table} t`))
-              .rows,
+            (
+              await pool.query<{ row: unknown }>(
+                `SELECT to_jsonb(t) AS row FROM ${table} t`,
+              )
+            ).rows,
         ),
       ),
     );
@@ -1099,11 +1131,13 @@ describe('T24 isolated synthetic KYC application', () => {
       expect(contents).not.toContain(value);
       expect(logs).not.toContain(value);
     }
-    const audits = await pool.query(
+    const audits = await pool.query<{ new_value: string | null }>(
       'SELECT new_value FROM audit_logs WHERE record_id IN (SELECT verification_id FROM kyc_synthetic_attempts)',
     );
     for (const row of audits.rows) {
-      const value = JSON.parse(row.new_value) as Record<string, unknown>;
+      if (typeof row.new_value !== 'string')
+        throw new Error('Expected synthetic audit JSON text');
+      const value = jsonObject(JSON.parse(row.new_value));
       expect(Object.keys(value).sort()).toEqual(['mode', 'status']);
       expect(value.mode).toBe('synthetic');
     }
@@ -1111,7 +1145,7 @@ describe('T24 isolated synthetic KYC application', () => {
       .get('/api/v1/kyc/status')
       .auth(token(loanFixture), { type: 'bearer' })
       .expect(200);
-    expect(Object.keys(status.body).sort()).toEqual([
+    expect(Object.keys(jsonObject(status.body)).sort()).toEqual([
       'attemptId',
       'mode',
       'status',

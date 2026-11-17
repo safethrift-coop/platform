@@ -28,7 +28,45 @@ import { PrismaService } from '../../src/core/database/prisma.service';
 import { CurrentMember } from '../../src/core/decorators/current-member.decorator';
 import type { JwtPayload } from '../../src/core/decorators/current-member.decorator';
 import { SyntheticKycProvider } from './t24-synthetic-provider';
-import { SyntheticWebhookVerifier } from './t24-synthetic-webhook';
+import {
+  SyntheticWebhookVerifier,
+  type SyntheticWebhookEvent,
+} from './t24-synthetic-webhook';
+
+export interface SyntheticAttemptRow {
+  id: string;
+  verification_id: string;
+  member_id: string;
+  idempotency_key: string;
+  request_hash: string;
+  correlation_id: string;
+  sequence: number;
+  is_current: boolean;
+  initiation_state: 'pending' | 'started' | 'permanent_failure';
+  created_at: Date;
+  verification_status: 'pending' | SyntheticWebhookEvent['transition'];
+}
+
+type AttemptState = Pick<
+  SyntheticAttemptRow,
+  | 'id'
+  | 'verification_id'
+  | 'member_id'
+  | 'correlation_id'
+  | 'initiation_state'
+  | 'verification_status'
+>;
+
+interface SyntheticEventRow {
+  id: string;
+  attempt_id: string;
+  event_id: string;
+  event_hash: string;
+  sequence: number;
+  transition: SyntheticWebhookEvent['transition'];
+  outcome: 'pending' | 'applied' | 'rejected';
+  created_at: Date;
+}
 
 const CONFIG = Symbol('synthetic test configuration');
 export interface SyntheticTestConfig {
@@ -82,8 +120,8 @@ export class SyntheticKycService {
 
   async submit(memberId: string, key: string): Promise<unknown> {
     const requestHash = createHash('sha256').update('{}').digest('hex');
-    const attempt = await this.transaction(async (db) => {
-      const member = await db.query(
+    const attempt = await this.transaction<AttemptState>(async (db) => {
+      const member = await db.query<{ email: string }>(
         "SELECT email FROM members WHERE member_id=$1 AND membership_status='active' FOR UPDATE",
         [memberId],
       );
@@ -93,7 +131,7 @@ export class SyntheticKycService {
         !String(member.rows[0].email).toLowerCase().endsWith('.invalid')
       )
         throw new UnauthorizedException();
-      const existing = await db.query(
+      const existing = await db.query<SyntheticAttemptRow>(
         'SELECT a.*, k.verification_status FROM kyc_synthetic_attempts a JOIN kyc_verification k ON k.kyc_id=a.verification_id AND k.member_id=a.member_id WHERE a.member_id=$1 AND a.idempotency_key=$2',
         [memberId, key],
       );
@@ -102,7 +140,7 @@ export class SyntheticKycService {
           throw new ConflictException();
         return existing.rows[0];
       }
-      const current = await db.query(
+      const current = await db.query<SyntheticAttemptRow>(
         'SELECT a.*, k.verification_status FROM kyc_synthetic_attempts a JOIN kyc_verification k ON k.kyc_id=a.verification_id AND k.member_id=a.member_id WHERE a.member_id=$1 AND a.is_current',
         [memberId],
       );
@@ -117,7 +155,7 @@ export class SyntheticKycService {
           'UPDATE kyc_synthetic_attempts SET is_current=false WHERE id=$1',
           [current.rows[0].id],
         );
-      const sequence = await db.query(
+      const sequence = await db.query<{ next: number }>(
         'SELECT COALESCE(MAX(sequence),0)+1 AS next FROM kyc_synthetic_attempts WHERE member_id=$1',
         [memberId],
       );
@@ -157,7 +195,7 @@ export class SyntheticKycService {
       if (outcome === 'retryable_failure')
         throw new ServiceUnavailableException();
       await this.transaction(async (db) => {
-        const locked = await db.query(
+        const locked = await db.query<SyntheticAttemptRow>(
           'SELECT a.*, k.verification_status FROM kyc_synthetic_attempts a JOIN kyc_verification k ON k.kyc_id=a.verification_id WHERE a.id=$1 FOR UPDATE OF a, k',
           [attempt.id],
         );
@@ -185,7 +223,9 @@ export class SyntheticKycService {
         throw new ServiceUnavailableException();
     } else if (attempt.initiation_state === 'permanent_failure')
       throw new ServiceUnavailableException();
-    const result = await this.config.pool.query(
+    const result = await this.config.pool.query<
+      Pick<SyntheticAttemptRow, 'verification_status'>
+    >(
       'SELECT k.verification_status FROM kyc_synthetic_attempts a JOIN kyc_verification k ON k.kyc_id=a.verification_id WHERE a.id=$1',
       [attempt.id],
     );
@@ -204,7 +244,9 @@ export class SyntheticKycService {
       [memberId],
     );
     if (fixture.rowCount !== 1) throw new UnauthorizedException();
-    const rows = await this.config.pool.query(
+    const rows = await this.config.pool.query<
+      Pick<SyntheticAttemptRow, 'id' | 'verification_status'>
+    >(
       "SELECT a.id,k.verification_status FROM kyc_synthetic_attempts a JOIN kyc_verification k ON k.kyc_id=a.verification_id AND k.member_id=a.member_id JOIN members m ON m.member_id=a.member_id WHERE a.member_id=$1 AND a.is_current AND m.membership_status='active' AND lower(m.email) LIKE '%.invalid'",
       [memberId],
     );
@@ -233,7 +275,7 @@ export class SyntheticWebhookService extends SyntheticKycService {
     }
     const { event, hash } = verified;
     await this.transaction(async (db) => {
-      const found = await db.query(
+      const found = await db.query<SyntheticAttemptRow>(
         "SELECT a.*, k.verification_status FROM kyc_synthetic_attempts a JOIN kyc_verification k ON k.kyc_id=a.verification_id AND k.member_id=a.member_id JOIN members m ON m.member_id=a.member_id WHERE a.correlation_id=$1 AND lower(m.email) LIKE '%.invalid' FOR UPDATE OF a, k",
         [event.correlationId],
       );
@@ -243,7 +285,7 @@ export class SyntheticWebhookService extends SyntheticKycService {
       )
         throw new BadRequestException('Unknown synthetic attempt');
       const attempt = found.rows[0];
-      const duplicate = await db.query(
+      const duplicate = await db.query<SyntheticEventRow>(
         'SELECT * FROM kyc_synthetic_events WHERE event_id=$1',
         [event.eventId],
       );
@@ -271,12 +313,13 @@ export class SyntheticWebhookService extends SyntheticKycService {
           ],
         );
       }
-      const events = await db.query(
+      const events = await db.query<SyntheticEventRow>(
         'SELECT * FROM kyc_synthetic_events WHERE attempt_id=$1 ORDER BY sequence',
         [attempt.id],
       );
       let next = 1,
-        state: string = attempt.verification_status;
+        state: SyntheticAttemptRow['verification_status'] =
+          attempt.verification_status;
       for (const item of events.rows) {
         if (item.sequence !== next) break;
         next++;

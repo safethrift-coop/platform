@@ -52,7 +52,11 @@ export async function assertT24Isolation(pool: Pool): Promise<void> {
       error.code === 'ENETUNREACH' ? resolve() : reject(error),
     );
   });
-  const identity = await pool.query(
+  const identity = await pool.query<{
+    database: string;
+    username: string;
+    marker: string;
+  }>(
     'SELECT current_database() AS database, current_user AS username, marker FROM t24_harness_identity',
   );
   if (
