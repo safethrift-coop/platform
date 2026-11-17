@@ -187,6 +187,14 @@ jobs:
           NODE_ENV: test
           T40_MIGRATION_TEST_DATABASE_URL: postgresql://safethrift:safethrift_test@localhost:5432/safethrift_registration_migration_test
 
+      - name: Install T24 isolation harness dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes bubblewrap iproute2 postgresql-16
+
+      - name: T24 isolated synthetic KYC acceptance
+        run: pnpm --filter @safethrift/api test:e2e:t24
+
       - name: API e2e, governance, authentication and savings integration
         run: pnpm --filter @safethrift/api test:e2e --runInBand
         env:

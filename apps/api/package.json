@@ -18,6 +18,7 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
+    "test:e2e:t24": "cd ../.. && bash apps/api/test/t24-harness-security.sh --acceptance",
     "test:migrations": "node test/verify-savings-migrations.mjs",
     "test:governance-migrations": "node test/verify-governance-migration.mjs",
     "jobs:migrate": "node scripts/migrate-jobs.mjs",

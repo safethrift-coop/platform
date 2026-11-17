@@ -53,9 +53,22 @@ $ pnpm run test
 # e2e tests
 $ pnpm run test:e2e
 
+# isolated T24 synthetic KYC acceptance
+$ pnpm run test:e2e:t24
+
 # test coverage
 $ pnpm run test:cov
 ```
+
+The ordinary e2e command uses the explicit local test database and Redis
+configuration supplied by CI. The T24 PostgreSQL suite requires a separate Linux
+network and filesystem namespace, so it is discovered by `test/jest-t24-e2e.cjs`
+and run through the existing `test/t24-harness-security.sh --acceptance` harness.
+Install `bubblewrap`, `iproute2`, and PostgreSQL 16 before running
+`pnpm --filter @safethrift/api test:e2e:t24`. The harness creates and cleans up its
+own disposable databases and credentials; it rejects externally supplied
+`DATABASE_URL`, `T24_TEST_DATABASE_URL`, or `PG*` configuration. CI runs both
+commands as required checks.
 
 ## Deployment
 

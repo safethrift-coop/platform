@@ -324,6 +324,7 @@ if [[ ${T24_TEST_MODE-} == acceptance ]]; then
     --ro-bind "$task_root/apps/api/test/t24-synthetic-webhook.e2e-spec.ts" "$task_root/apps/api/test/t24-synthetic-webhook.e2e-spec.ts" \
     --ro-bind "$task_root/apps/api/test/t24-module-wiring.e2e-spec.ts" "$task_root/apps/api/test/t24-module-wiring.e2e-spec.ts" \
     --ro-bind "$task_root/apps/api/test/jest-e2e.json" "$task_root/apps/api/test/jest-e2e.json" \
+    --ro-bind "$task_root/apps/api/test/jest-t24-e2e.cjs" "$task_root/apps/api/test/jest-t24-e2e.cjs" \
     --ro-bind "$task_root/apps/api/tsconfig.json" "$task_root/apps/api/tsconfig.json" \
     --ro-bind "$task_root/apps/api/package.json" "$task_root/apps/api/package.json" \
     --ro-bind "$task_root/package.json" "$task_root/package.json" \
@@ -331,7 +332,7 @@ if [[ ${T24_TEST_MODE-} == acceptance ]]; then
     --setenv NODE_ENV test --setenv HOME /tmp --setenv T24_TEST_DATABASE_URL "$task_url" \
     --setenv T24_HARNESS_MARKER "$task_marker" --setenv T24_PRIVATE_PATH "$task_dir" \
     --setenv T24_SESSION_BACKEND memory \
-    -- /opt/node "$task_root/apps/api/node_modules/jest/bin/jest.js" --config ./test/jest-e2e.json --runInBand --detectOpenHandles \
+    -- /opt/node "$task_root/apps/api/node_modules/jest/bin/jest.js" --config ./test/jest-t24-e2e.cjs --runInBand --detectOpenHandles \
     --setupFilesAfterEnv "$task_root/apps/api/test/fixtures/t24-memory-session.ts" --runTestsByPath \
     test/t24-kyc.integration.e2e-spec.ts test/kyc-provider.e2e-spec.ts test/t24-synthetic-webhook.e2e-spec.ts test/t24-module-wiring.e2e-spec.ts
   if [[ $(financial_snapshot) != "$task_financial_snapshot" ]]; then echo 'Financial rows changed during T24 acceptance' >&2; exit 1; fi
