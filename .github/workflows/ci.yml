@@ -12,7 +12,8 @@ env:
 jobs:
   ci:
     name: Lint, typecheck, and test
-    runs-on: ubuntu-latest
+    # PostgreSQL 16 is available in this release and required by the T24 harness.
+    runs-on: ubuntu-24.04
 
     services:
       postgres:
