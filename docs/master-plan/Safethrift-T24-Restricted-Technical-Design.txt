@@ -1,0 +1,236 @@
+Recommendation: READY FOR RESTRICTED IMPLEMENTATION, limited to an isolated synthetic test foundation after explicit authorization of that implementation and its additive migration. This design does not make T24 operationally complete: T13 is unverified, the live provider contract has not been checked, T19 audit immutability and T29 encryption are not established, and loan execution remains denied.
+
+The proposed boundary is intentionally strong: the fake provider and fake webhook verifier are registered only in a test-created Nest application. The normal application has no registered live or fake provider and no configuration switch capable of enabling one. Synthetic verification never constitutes real KYC or loan eligibility.
+
+## Existing foundations
+
+The current repository is clean on main at 6bd95e81a7f66e0690bf8fe410cca5668f55ed54. This design task changed no files, ran no migrations or tests, and made no provider contact.
+
+| Foundation | What exists | Design implication |
+|---|---|---|
+| KYC schema | KycVerification (packages/prisma/prisma/schema.prisma:369) has a required member and document type, optional document number and provider identifiers, status, dates and risk fields. KycStatus (packages/prisma/prisma/schema.prisma:52) has pending, in-progress, verified, rejected and expired values. | Reuse the table for a synthetic attempt, with an explicit separate synthetic marker. Do not infer that old rows are synthetic or authoritative. |
+| Database constraints | The initial migration (packages/prisma/prisma/migrations/20260421015703_init_all_21_tables/migration.sql:148) creates the table and foreign key, but has no submission idempotency or event-deduplication constraints. | Additive, test-foundation constraints and tables are needed. Preserve all existing rows. |
+| Identity | JWT validation (apps/api/src/core/strategies/jwt.strategy.ts:54) authenticates the member and reloads member status. | Derive identity from JWT sub; never accept a member ID in a submission body. |
+| Restricted fixtures | T40 fixture checks (apps/api/src/modules/membership/registration/registration.config.ts:1) show established test-only database and .invalid conventions. | Reuse the pattern as a starting point, with the stronger test-only module boundary described below. A test flag or email suffix alone is insufficient. |
+| Transactions and audit | T40 submission (apps/api/src/modules/membership/registration/application-submission.service.ts:75) locks a member row and commits a receipt and audit together. T37 evidence (docs/T37-governance-checkpoint.md:25) warns that audit immutability is absent. | Reuse the transaction pattern, without claiming an append-only audit log. |
+| Webhooks | T38 raw-body handling (apps/api/src/modules/payment-webhooks/payment-webhook-body.ts:1) and evidence processing (apps/api/src/modules/payment-webhooks/payment-webhooks.service.ts:1) demonstrate bounded parsing, verification before processing and deduplication. | Reuse concepts only. Stripe and GoCardless formats do not establish Onfido’s contract. |
+| Loans | Loan application execution (apps/api/src/modules/loans/loans.service.ts:19) always denies, and eligibility (apps/api/src/modules/loans/loan-reads.service.ts:118) returns kycStatus: not_evaluated. | Preserve both behaviors in the restricted implementation. |
+| Test infrastructure | API uses Jest, HTTP integration tests, disposable PostgreSQL and Redis fixtures; T38 provides real-PostgreSQL webhook evidence tests. | Add isolated KYC tests without relying on shared application databases or provider credentials. |
+
+## A. Original requirement-to-design matrix
+
+| Original T24 requirement | Restricted design | Acceptance boundary |
+|---|---|---|
+| POST /kyc/submit | JWT-protected, owner-scoped route in a test-only Nest application. | Unavailable in normal application runtime; accepts synthetic fixtures only. |
+| Create kyc_verification | Create an existing-table row plus a uniquely linked synthetic-attempt record and audit in one transaction. | No historical row is reclassified; no document number or real identity data is accepted. |
+| Initiate an Onfido applicant | Call an injected fake applicant provider with a generated synthetic reference. | Exercises the integration boundary only. No Onfido applicant is created, and original live acceptance remains incomplete. |
+| POST /webhooks/onfido | Provide the original route in the test-only application using an explicitly fake event protocol and verifier. | The fake protocol must never be described as the real provider’s header, signature or payload contract. |
+| Verify authenticity before processing | Fake verifier authenticates bounded raw bytes using a test-generated key before parsing or database effects. | Only a verified synthetic event can affect an explicitly marked synthetic attempt. |
+| Update KYC status | Apply the synthetic transition rules below in a transaction with event evidence and audit. | A synthetic verified status is labelled as such and has no real eligibility effect. |
+| Write an audit record | Write a minimal audit record in the same transaction as creation or status transition. | Transactional persistence is testable; database-enforced immutability is not available. |
+| GET /kyc/status | JWT-protected status for the authenticated synthetic member’s current synthetic attempt. | No member selector, provider data or document fields in the response. |
+| Require verified KYC for loan applications | Specify an interface that returns denial/unknown for real loan execution. Test a synthetic evaluator separately. | Do not alter the existing unconditional loan execution denial or expose synthetic verification as real eligibility. |
+
+## B. Proposed files and modules
+
+These are proposed paths, not files created by this task.
+
+| Proposed location | Responsibility |
+|---|---|
+| apps/api/src/modules/kyc/kyc.controller.ts | Owner-scoped submission and status contracts, using the existing JWT guard. Registered only by the test module in this phase. |
+| apps/api/src/modules/kyc/kyc.service.ts | Submission arbitration, synthetic status projection and transactional orchestration. |
+| apps/api/src/modules/kyc/kyc-provider.ts | Injectable interface and normalized, explicitly synthetic result types; no live transport implementation. |
+| apps/api/src/modules/kyc/kyc-webhook.service.ts | Verified synthetic event correlation, transitions, deduplication and audit. |
+| apps/api/src/modules/kyc/kyc-eligibility.ts | Explicit synthetic evaluation and a fail-closed real-eligibility boundary. |
+| apps/api/test/fixtures/kyc-test.module.ts | Test-only module wiring, fake provider, fake verifier and disposable-environment checks. Never imported by AppModule. |
+| apps/api/test/kyc.integration.e2e-spec.ts | Real disposable PostgreSQL/Redis HTTP and concurrency tests, with no external provider access. |
+| packages/prisma/prisma/schema.prisma and a new additive migration | Synthetic attempt and synthetic event evidence, constraints and relations. No modification of past migrations. |
+
+No live Onfido SDK, credential configuration, network client or live adapter is included. No T31 or T43 module is included.
+
+## C. API contracts
+
+All responses use Cache-Control: private, no-store, contain no real identity documents, and use sanitized error messages. The global prefix makes the HTTP paths /api/v1/....
+
+### POST /api/v1/kyc/submit
+
+Available only in the dedicated test application:
+
+- Requires a valid JWT and obtains the member ID from sub.
+- Requires an Idempotency-Key: a bounded opaque string using the existing T40-style validation convention.
+- Requires an empty JSON object, {}. Unknown fields—including member ID, names, dates, document type or number, files, URLs and provider identifiers—are rejected. No multipart upload is supported.
+- The fixture must be explicitly registered in the isolated test harness and have a .invalid address. The server uses a fixed synthetic DocumentType value to satisfy the existing non-null column; it does not accept a document type from the caller.
+- Returns 202 Accepted with an opaque attempt ID, mode: "synthetic" and a coarse pending or in_progress status. The response does not contain the idempotency key, synthetic provider reference or identity data.
+- Same member, key and normalized empty request returns the same attempt and its current coarse state. The same key used with a different normalized request is 409; in this phase unknown request fields fail validation before acceptance.
+- A different key while a current attempt is pending or in progress returns 409. A new key after a terminal attempt creates a new synthetic attempt and supersedes the prior one as described below.
+
+The restricted fixture convention is not an authorization mechanism for real personal data: it is combined with an independently created, isolated test application and database. Local hostname and database naming are additional guards, not proof that a database is disposable.
+
+### GET /api/v1/kyc/status
+
+JWT-protected and available only in the dedicated test application. No member ID or attempt selector is accepted.
+
+Example shape:
+
+{
+  "mode": "synthetic",
+  "status": "in_progress",
+  "attemptId": "opaque-id"
+}
+
+When no unambiguous current synthetic attempt exists, return status: "not_available" and no attempt ID. Do not return provider references, event IDs, document fields, audit contents or other members’ data. The endpoint describes test state only and must never label it real-world verification.
+
+### POST /api/v1/webhooks/onfido
+
+The route exists only in the test application in this phase. Its header and body are a deliberately named test protocol, defined alongside the fake verifier, and are not assertions about the provider. Normal application runtime does not register this handler; an HTTP request cannot reach the fake or live processing service.
+
+A valid verified synthetic event returns an acknowledgement only after its event evidence and any permitted status/audit update commit. Invalid or missing synthetic authentication fails before parsing or state changes. Persistence failure returns a retryable server error.
+
+## D. Database and migration requirements
+
+A future additive migration needs to preserve the existing KYC table and all historical data.
+
+### Synthetic-attempt record
+
+Propose a separate kyc_synthetic_attempts table with:
+
+- A unique foreign key to the new kyc_verification row and a member reference checked to match that row’s member.
+- A member-scoped idempotency key and normalized request hash, with a unique (member_id, idempotency_key) constraint.
+- An opaque test-only applicant correlation ID, unique within the synthetic provider scope.
+- A per-member attempt sequence and an explicit current/superseded relationship.
+- Synthetic initiation state and timestamps sufficient to recover an interrupted fake call.
+- Constraints preventing two current synthetic attempts for one member and preventing cross-member links.
+
+The migration must not add synthetic markers to historical rows or infer their provenance. The existing documentNumber, provider identifier columns, document dates, address proof, notes and risk fields remain null/default for this restricted flow. The required documentType receives the fixed synthetic placeholder selected by the test harness; it is not evidence that a document exists.
+
+### Synthetic-event evidence
+
+Propose a kyc_synthetic_events table with:
+
+- Unique synthetic provider scope plus event ID.
+- Canonical event hash, correlated synthetic-attempt ID, synthetic sequence number, normalized transition, processing outcome and timestamp.
+- Constraints preventing duplicate sequence numbers per attempt and cross-attempt/cross-member references.
+- No raw body, document information, provider credentials or real provider payloads.
+
+A duplicate ID with the same hash is an idempotent acknowledgement. A duplicate ID with a different hash is a collision: reject or record a minimal collision outcome without changing KYC status; never replace the original event.
+
+### Migration acceptance
+
+Test migration on a fresh disposable database and separately on a database containing seeded synthetic historical fixtures. Assert existing rows, foreign keys, statuses and audit records are unchanged; invalid cross-member references and duplicate current attempts are rejected. Do not execute or create the migration during this design task.
+
+## E. Provider adapter and webhook design
+
+### Injection and structural isolation
+
+The interface should accept only generated synthetic identifiers, never names or documents. For example, conceptually:
+
+interface SyntheticKycProvider {
+  initiate(input: { attemptId: string; correlationId: string }): Promise<
+    | { outcome: "started" }
+    | { outcome: "retryable_failure" }
+    | { outcome: "permanent_failure" }
+  >;
+}
+
+The fake provider is deterministic and idempotent for a given correlation ID. It has no HTTP capability. Its code and registration are in test fixtures; the normal AppModule does not import the test module or register an adapter. There is no ONFIDO_ENABLED, credential variable or environment switch that can register or enable a live client.
+
+A separately approved future live implementation must verify current official provider documentation and account configuration for: applicant creation and supported identity fields; API version and SDK; webhook raw-body and signature scheme; event IDs, ordering and redelivery; correlation and idempotency; status mappings; retries; sandbox/live separation; secrets and rotation; and retention/error behavior. None of those details is inferred here.
+
+### Submission transaction and recovery
+
+1. Validate the test application, disposable database identity, registered synthetic fixture and JWT-derived member. Reject before any write if any condition fails.
+2. In a PostgreSQL transaction, lock the member’s row; resolve the member/key receipt and current synthetic attempt. Create the KYC row, synthetic marker and minimal audit entry atomically if this is a new allowed request.
+3. Commit before invoking the fake provider. Do not hold a database transaction over a provider call.
+4. Invoke the fake with the persisted correlation ID. In a second transaction, lock the attempt and record the fake outcome and corresponding audit change.
+5. If the process stops after step 2 or between steps 3 and 4, a retry with the same key resumes the same attempt and calls only the idempotent fake with the same correlation ID. A failure never creates a fresh attempt automatically.
+
+The two-transaction design explicitly permits a durable pending initiation. It does not claim an atomic database/provider operation or generalize the fake’s idempotency guarantee to Onfido.
+
+### Synthetic webhook verification and processing
+
+- Enforce a small fixed test-only request size, expected content type and raw bytes before parsing. Do not forward body excerpts to logs.
+- The test harness generates an ephemeral fake signing key and signs its own test protocol. The verifier checks the exact raw bytes before parsing. It does not load a real provider secret.
+- After successful verification, validate a strictly bounded normalized event containing the synthetic event ID, synthetic correlation ID, positive sequence and one allowed synthetic outcome. Reject unknown fields.
+- Look up only kyc_synthetic_attempts; require its linked KYC row and member to match. A historical KYC row or an arbitrary caller-supplied member identifier is never sufficient correlation.
+- Lock the attempt, insert the event receipt, apply a permitted transition and insert the audit row in one transaction. An audit or persistence error rolls back the event and status change.
+- A repeated identical event is acknowledged without a second transition or audit. A collision or a cross-member/missing correlation never changes a KYC record.
+- Events must arrive with the next sequence number. A later sequence received early is stored as pending and does not change status; processing can retry it after the missing event commits. An event with an already-used sequence and different content is a conflict. Recovery must not acknowledge an unpersisted event.
+- Unknown transitions and conflicting terminal outcomes are recorded as rejected/review evidence without changing the attempt. They do not become a real KYC decision.
+
+### Synthetic status transitions
+
+For this test protocol only:
+
+| Current | Allowed next state | Notes |
+|---|---|---|
+| pending | in_progress | Fake initiation or a verified test event establishes progress. |
+| in_progress | verified or rejected | A verified synthetic terminal event only. |
+| verified | expired | A verified synthetic expiry event only. |
+| rejected, expired | No further transitions | A new submission creates a new synthetic attempt; it does not rewrite the terminal attempt. |
+
+Repeated events do not create new transitions. No wall-clock expiry period, KYC validity period or production provider mapping is invented. A new attempt supersedes the prior attempt for synthetic status display, even if the prior one was verified; late events can be retained against their original attempt but cannot make it current again.
+
+## F. Security and audit controls
+
+- Isolation: only a test-created module can register the fake routes and adapters; require NODE_ENV=test, an explicitly selected disposable loopback database, a registered synthetic fixture and an .invalid email. Verify database exclusivity separately in the harness. Block outbound network calls in the test process.
+- Authorization: use JWT-derived identity for submit/status. The webhook relies on its test signature and synthetic correlation, not a member JWT. The fake webhook is never available in normal runtime.
+- Data minimization: accept no identity fields or documents. Store only generated synthetic identifiers, coarse state, idempotency/evidence metadata and minimal audit data. Never log the raw fake signature or signing key.
+- Concurrency: serialize submissions for a member using a member-row lock plus database uniqueness; serialize event transitions using an attempt lock plus unique event/sequence constraints. Constraints remain the final arbiter.
+- Failure handling: do not acknowledge a status change without committed event and audit evidence. Return sanitized failures and make same-key retries resume durable state.
+- Audit integrity: each KYC creation and accepted transition has an audit row committed atomically with it. Since T19’s append-only protection is absent from checked-in migrations, this design makes no immutability claim.
+- Encryption: T29’s field-encryption service is not established. The restricted design avoids collecting or storing real document data and provider credentials. Before real identity data or live credentials are handled, separately reconcile and remediate T29 and secret-management requirements; do not silently implement them within T24.
+
+## G. Loan eligibility integration boundary
+
+The restricted implementation should expose a small internal result that distinguishes:
+
+- synthetic_verified — test observation only;
+- synthetic_not_verified or synthetic_unavailable — test observation only;
+- real_kyc_unavailable — no approved real KYC decision can be made.
+
+The real-loan boundary must map all of these to not authorized for execution in this phase. Do not change LoansService’s unconditional denial (apps/api/src/modules/loans/loans.service.ts:19), enable any loan operation, or turn the existing member-facing not_evaluated value into a real verification claim.
+
+A future approved execution design must re-read the authoritative KYC state at the actual application decision boundary, within an appropriately reviewed transaction or concurrency strategy. Attempt selection, expiry and risk policy must be approved first. Historical rows or a synthetic verified row must not satisfy that future requirement.
+
+## H. Test and acceptance matrix
+
+All tests use synthetic .invalid identities, a fresh dedicated disposable PostgreSQL database, dedicated Redis where JWT setup needs it, fake credentials and blocked external network access.
+
+| Area | Required acceptance tests |
+|---|---|
+| Isolation | Normal AppModule cannot resolve a live/fake KYC provider or expose the test webhook. Production, staging, non-test process, nonlocal DB, unregistered fixture and non-synthetic identity fail closed. No network call is possible. |
+| Authentication and ownership | Missing, forged, expired and inactive-member JWTs fail. Body/query member overrides are rejected. Two members cannot read or affect each other’s attempts. |
+| Submission | Empty body accepted for a registered fixture; identity/document fields and uploads rejected. Same key returns one attempt; concurrent same-key calls produce one attempt and audit; different keys racing produce at most one current attempt. |
+| Fake provider and recovery | Retryable and permanent failures, process interruption after initial commit, and retry after lost response preserve one attempt and correlation ID. No live provider path is invoked. |
+| Signatures | Missing, malformed, tampered or wrong-key synthetic signatures cause no event, status or audit effect. Bounded-body and content-type failures do not leak payloads. |
+| Replay and collision | Identical repeated event is acknowledged once; concurrent duplicate deliveries produce one effect. Same event ID with different hash and same sequence with conflicting content do not update status. |
+| Ordering and transitions | Out-of-order event is retained pending; it applies only after its predecessor. Rejected transitions and conflicting terminal events cannot overwrite the terminal state. Late events for superseded attempts cannot restore authority. |
+| Correlation | Unknown synthetic correlation, historical KYC row, cross-member linkage and inconsistent database references fail without status changes. |
+| Transactions and audit | Force audit insertion failure and event insertion failure; confirm the status and evidence transaction rolls back. Confirm one minimal audit per accepted creation/transition. Separately demonstrate that append-only protection is not claimed. |
+| Sensitive data | Reject real-looking identity inputs, document uploads and provider credentials; inspect responses, logs, error handling and database rows for forbidden fields or raw payloads. |
+| Eligibility | Missing, ambiguous, expired, rejected, superseded and synthetic-verified states all leave actual loan creation denied. Existing approval, disbursement and repayment denial regressions continue to pass. |
+| Historical preservation | Seed pre-existing KYC, audit and financial fixture rows before migration/tests; compare them afterward. No historical row acquires synthetic provenance or changes status. |
+
+## I. Unresolved policy and provider decisions
+
+Before any live T24 implementation or acceptance, independently resolve:
+
+- T13 account and legal prerequisites; authorized provider contract and sandbox/live boundaries.
+- Which KYC attempt is authoritative, how expiry and supersession work, and how address and risk flags affect the decision.
+- Provider-specific event authentication, correlation, retry and ordering guarantees, verified from current official documentation.
+- Permitted identity data, retention, access, audit and recovery policies.
+- T19 audit immutability and T29 encryption/secret management remediation.
+- How real KYC evidence is revalidated at a future loan-application decision without weakening existing restrictions.
+
+The synthetic sequence and status rules above are test-fixture rules, not a substitute for those decisions.
+
+## J. Explicit implementation blockers
+
+For the restricted test foundation, the remaining prerequisites are authorization to implement, review of the proposed additive schema and test-only module boundary, and a genuinely dedicated disposable test environment. The design does not require a live provider account.
+
+For real KYC or full T24 acceptance, blockers include unverified T13/provider approval and contract, unresolved KYC policy, absent T19 audit immutability, unestablished T29 encryption/secret handling, and the separately disabled loan execution path. T31 and T43 are outside this proposal.
+
+## K. Recommendation
+
+READY FOR RESTRICTED IMPLEMENTATION, subject to the limited authorization and review above. The expected outcome would be a locally verified synthetic foundation, not completion or activation of the original live T24 workflow.
+  Worked for 1m 50s • 12:14 PM

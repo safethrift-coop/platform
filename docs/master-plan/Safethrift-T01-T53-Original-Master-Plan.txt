@@ -1,0 +1,365 @@
+T01
+Create GitHub organisation and monorepo
+One repo with /apps/api (NestJS), /apps/web (Next.js), /packages/prisma (shared schema). Enable branch protection on main: require PR + passing CI before merge.
+Infrastructure
+No dependencies
+T02
+Install Node.js 20 LTS and global tooling
+Install Node 20 LTS via nvm. Global installs: pnpm (workspace manager), @nestjs/cli, prisma CLI, typescript. Add .nvmrc to repo root so every developer uses the same version.
+Infrastructure
+Needs:
+T01
+T03
+Bootstrap NestJS application
+nest new api inside /apps/api. Enable strict TypeScript in tsconfig. Install core packages: @nestjs/config, @nestjs/jwt, @nestjs/passport, @nestjs/throttler, @nestjs/bull, @nestjs/event-emitter, @nestjs/swagger.
+Infrastructure
+Needs:
+T02
+T04
+Bootstrap Next.js 15 application
+npx create-next-app@latest inside /apps/web with TypeScript, Tailwind, App Router. Install shadcn/ui. Install next-i18next for multi-language support. Configure WCAG-friendly Tailwind theme.
+Infrastructure
+Needs:
+T02
+T05
+Install and configure Prisma with PostgreSQL
+npm install prisma @prisma/client inside /packages/prisma. Set DATABASE_URL pointing to local Postgres 16. Run prisma init. Begin schema.prisma with the members table and all required enums (MembershipStatus, AccountType, KycStatus, etc.).
+Database
+Needs:
+T03
+T06
+Set up Docker Compose for local development
+docker-compose.yml with postgres:16, redis:7-alpine, and mailhog (local email testing). All services on a named network. Volume mounts for Postgres data persistence. Add npm run dev:services script.
+Infrastructure
+Needs:
+T01
+T07
+Configure Railway project
+Create Railway project. Add three services: NestJS app (from GitHub), PostgreSQL plugin, Redis plugin. Set NODE_ENV=production. Do not add real secrets yet — use placeholder values until T28.
+Infrastructure
+Needs:
+T01
+T08
+Set up GitHub Actions CI pipeline
+Create .github/workflows/ci.yml. Jobs: install, typecheck, lint (ESLint + Prettier), unit tests (Jest), docker build check. Runs on every pull request. Merge blocked if any job fails.
+Infrastructure
+Needs:
+T01
+T03
+T04
+T09
+Incorporate as CIC limited by shares
+File with Companies House online. Draft articles of association including the asset lock clause (required for CIC). Appoint founding directors. Lead time: 2–4 weeks. This must complete before Onfido and GoCardless accounts can be opened.
+Legal
+No dependencies
+2–4 week lead time — start immediately
+T10
+Register with the ICO (GDPR)
+Register at ico.org.uk as a data controller. Cost: £40/year. Required by law before collecting any member personal data. Takes 1–2 weeks. Store the ICO registration number in a visible location on the privacy notice page.
+Legal
+Needs:
+T09
+Legal requirement — cannot collect data without this
+T11
+Draft and review GDPR privacy notice
+Privacy notice must cover: what data is collected, why, retention periods, member rights (access, erasure, portability), ICO registration number, DPO contact. Must match what the backend actually does. Get legal review.
+Legal
+Needs:
+T10
+T12
+Draft membership terms and conditions
+Covers: membership rights and obligations, fee structure (£30 individual / £50 family), savings account terms (FSA/RSA/GSA), interest-free loan terms, cooperative governance rights, asset lock explanation. Legal review required.
+Legal
+Needs:
+T09
+T13
+Open Onfido account (KYC provider)
+Apply at onfido.com. Requires registered company. Account review takes 1–2 weeks. Obtain API key and webhook secret. Documents needed: CIC certificate, director IDs. Store credentials in Railway env (after T28).
+Legal
+Needs:
+T09
+1–2 week approval — apply as soon as CIC is registered
+T14
+Open Stripe account
+Register at stripe.com/gb. Requires CIC registration number and bank account. Enable UK payment methods. Obtain publishable key, secret key, and webhook secret. Activate Direct Debit (BACS) via Stripe Financial Connections.
+Legal
+Needs:
+T09
+T15
+Open GoCardless account
+Register at gocardless.com. Requires registered UK company and business bank account. Used for recurring savings collection via Direct Debit mandates. Obtain access token and webhook secret. Takes 3–5 days.
+Legal
+Needs:
+T09
+T16
+Open SendGrid and Twilio accounts
+SendGrid for transactional email (approval notices, reminders, statements). Twilio for SMS (critical alerts: loan decisions, large withdrawals). Both require company details. Configure domain authentication in SendGrid to avoid spam filtering.
+Legal
+Needs:
+T09
+T17
+Build full Prisma schema — all 21 tables
+Define all tables A–U in schema.prisma: members, member_registration, kyc_verification, next_of_kin, member_accounts, savings_transactions, withdrawal_transactions, income_records, reminder_logs, reminder_responses, loan_applications, loans, repayment_schedule, repayment_transactions, behavioural_feature_snapshots, risk_scores, repayment_outcomes, member_shares, group_memberships, groups, audit_logs. All enums, all relations, all @db.Decimal(12,2) on money fields.
+Database
+Needs:
+T05
+T06
+T18
+Run first migration and add all indexes
+prisma migrate dev --name init. Then add composite indexes: (account_id, transaction_date DESC) on savings_transactions and repayment_transactions. Indexes on member_id for every child table. Partial index on membership_status = active for scoring queries.
+Database
+Needs:
+T17
+T19
+Add Postgres audit trigger (append-only audit_logs)
+Write SQL migration adding prevent_audit_modification() trigger function. Apply BEFORE UPDATE OR DELETE on audit_logs — raises exception if triggered. Also add auto-write triggers on savings_transactions, loans, repayment_transactions, member_accounts, and kyc_verification.
+Database
+Needs:
+T18
+This cannot be added later without risk — do it now
+T20
+Add monthly partitioning on savings_transactions
+Convert savings_transactions to a partitioned table using PARTITION BY RANGE (transaction_date). Create initial monthly partitions (current month + 12 months forward). Add pg_partman for automatic future partition creation via a scheduled job.
+Database
+Needs:
+T18
+T21
+Build AuthModule — registration, login, JWT, refresh
+POST /auth/register (creates member + member_registration, sends verification email via BullMQ). POST /auth/login (bcrypt compare, issues JWT access token RS256 15min + refresh token UUID hashed in Redis 7 days). POST /auth/refresh (rotate refresh token, invalidate on replay). POST /auth/logout (delete refresh from Redis). JwtStrategy via @nestjs/passport.
+Backend
+Needs:
+T03
+T18
+T22
+Build MembersModule — profile, GDPR endpoints
+GET /members/me (returns profile, excludes encrypted fields from response). PATCH /members/me (name, address, preferred_language — not email without re-verify). GET /members/me/data-export (collects all rows across all 21 tables for this member, returns JSON). POST /members/me/anonymise (redacts PII fields, preserves financial records).
+Backend
+Needs:
+T21
+T23
+Build MembershipModule — application and admin approval
+POST /membership/apply (stores member_registration row, status=pending, queues confirmation email). GET /membership/me. PATCH /admin/membership/:id/approve (status=active, creates default FSA member_account, queues approval email with payment instructions). PATCH /admin/membership/:id/reject.
+Backend
+Needs:
+T21
+T22
+T24
+Build KycModule — Onfido integration
+POST /kyc/submit (creates kyc_verification row, initiates Onfido applicant). POST /webhooks/onfido (raw body, verify HMAC signature, update kyc_verification.status, write audit log). GET /kyc/status. KYC must be verified before loan applications are accepted.
+Backend
+Needs:
+T13
+T21
+T25
+Build SavingsModule — accounts and transactions
+POST /accounts (create FSA, RSA, or GSA — one of each per member max). GET /accounts/:id. POST /accounts/:id/deposit (idempotency key, Prisma $transaction: INSERT savings_transaction + UPDATE balance, fires savings.deposited event). POST /accounts/:id/withdraw (balance check, GSA cooling-off logic). GET /accounts/:id/transactions (cursor paginated).
+Backend
+Needs:
+T21
+T18
+T19
+T26
+Build PointsModule — savings points engine
+OnEvent(savings.deposited) listener: recalculates savings_points_total from savings_transactions for the member, updates members.savings_points_total, caches in Redis with 60s TTL. GET /points/me (read from Redis cache, fallback to DB). GET /points/me/history.
+Backend
+Needs:
+T25
+T27
+Build LoansModule and RepaymentModule
+POST /loans/apply (checks: membership active, KYC verified, points threshold met, fetches risk score — stores behavioural_score_at_application immutably). GET /loans/:id. POST /admin/loans/:id/approve (creates loans row, queues repayment schedule generation job). POST /loans/:id/repay (idempotency key, records repayment_transaction, updates schedule status).
+Backend
+Needs:
+T25
+T26
+T28
+Configure AWS Secrets Manager
+Create secret safethrift/production with JSON containing: DATABASE_URL, REDIS_URL, JWT_PRIVATE_KEY (RS256), JWT_PUBLIC_KEY, ENCRYPTION_KEY (32-byte hex for AES-256-GCM), STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, GOCARDLESS_ACCESS_TOKEN, GOCARDLESS_WEBHOOK_SECRET, ONFIDO_API_KEY, ONFIDO_WEBHOOK_SECRET, SENDGRID_API_KEY, TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN. Load via @nestjs/config at startup. Never in .env files committed to git.
+Security
+Needs:
+T09
+T13
+T14
+T15
+T16
+Zero secrets in source code or .env files ever
+T29
+Add AES-256-GCM field encryption service
+Build EncryptionService using Node.js crypto. Encrypt before write: members.email, members.national_id_number, members.phone_number, kyc_verification.document_number. Decrypt on read in service layer. IV + authTag + ciphertext stored as single colon-delimited string. Key from Secrets Manager.
+Security
+Needs:
+T28
+T22
+T30
+Configure Helmet.js, CORS, rate limiting
+app.use(helmet()) with CSP (defaultSrc self only, frameSrc none, objectSrc none), HSTS (1 year + preload), frameguard deny. app.enableCors() whitelisted to production domain only. @nestjs/throttler: login 5/min, register 2/hr, payment endpoints 10/day. ValidationPipe: whitelist true, forbidNonWhitelisted true, transform true.
+Security
+Needs:
+T03
+T31
+Add TOTP MFA for staff accounts
+Install speakeasy and qrcode. POST /auth/mfa/setup (generates secret, returns QR code URL — only for STAFF, COMPLIANCE_OFFICER, BOARD, ADMIN roles). POST /auth/mfa/verify (validates TOTP code, marks mfa_enabled=true on member). Enforce MFA on all admin endpoints — redirect to setup if not enabled.
+Security
+Needs:
+T21
+Mandatory for all staff before admin portal goes live
+T32
+Add Postgres Row-Level Security (RLS)
+Write SQL migration enabling RLS on: member_accounts, savings_transactions, withdrawal_transactions, loan_applications, loans, repayment_schedule, repayment_transactions, behavioural_feature_snapshots, risk_scores. Policy: USING (member_id = current_setting(app.current_member_id)). Set via Prisma middleware before every query.
+Security
+Needs:
+T18
+T33
+Add global AuditInterceptor and ownership guards
+AuditInterceptor: on every POST/PATCH/DELETE, after response, writes to audit_logs (action, memberId, IP, redacted body). OwnershipGuard: on account/loan/transaction routes, verifies resource.memberId === JWT.sub. Resource ownership check is separate from role check — both must pass.
+Security
+Needs:
+T21
+T19
+T34
+Build ScoringModule — behavioural engine
+BullMQ cron job (02:00 UTC nightly): for each active member, reads savings_transactions, withdrawal_transactions, income_records, reminder_responses over 6-month window (using read replica connection). Computes 5 features into behavioural_feature_snapshots. Computes score_s_i = β0 + β·xi, repayment_probability_p_i = 1/(1+e^-si), risk_band. Writes risk_scores. Invalidates Redis cache. GET /scoring/me.
+Backend
+Needs:
+T25
+T26
+T27
+T35
+Build ComplianceModule — AML checks and flags
+OnEvent(savings.deposited): BullMQ job checks deposit against AML rules (deposit > 3x 3-month average, velocity > 5 deposits in 24h, total monthly > £5000 for unverified income). On flag: writes compliance flag record, sends alert to compliance officer queue. GET /admin/compliance/flags (COMPLIANCE_OFFICER only).
+Backend
+Needs:
+T33
+T34
+T36
+Build RemindersModule and NotificationsModule
+RemindersModule: BullMQ cron (08:00 UTC daily) scans repayment_schedule for overdue installments, writes reminder_logs, queues notification jobs. BullMQ cron for membership renewals (30d and 7d before expiry). NotificationsModule: SendGrid service for email, Twilio service for SMS. All sends logged to reminder_logs.
+Backend
+Needs:
+T27
+T16
+T37
+Build GovernanceModule — shares and groups
+GET /shares/me (member_shares for this member). GET /groups (list all groups). GET /groups/:id. POST /groups/:id/join (creates group_memberships row). Admin: POST /admin/groups (create savings circle). These endpoints support Community Investment Circles from the product roadmap.
+Backend
+Needs:
+T21
+T18
+T38
+Add payment webhooks — Stripe and GoCardless
+POST /webhooks/stripe: raw body middleware, stripe.webhooks.constructEvent() signature verify, handle payment_intent.succeeded (membership fee paid → update membership_fee_paid), invoice.paid, payment_intent.payment_failed. POST /webhooks/gocardless: verify GoCardless-Signature header, handle mandate created, payment collected, payment failed.
+Backend
+Needs:
+T14
+T15
+T28
+Never process a webhook without verifying the signature
+T39
+Build public marketing site (Next.js SSR/SSG)
+Pages: Homepage (headline, How It Works 4 steps, Why Safethrift, products overview), About Us (Who We Are, Meet the Team placeholder, Join the Team, Governance and Board, FAQs), Products and Services (FSA/RSA/GSA detail cards, roadmap section), Membership page (fees, what it means), Knowledge Centre (4 placeholder buttons — not live yet). All pages SSG. SEO meta tags, Open Graph, sitemap.xml.
+Frontend
+Needs:
+T04
+T11
+T12
+T40
+Build membership registration form
+Multi-step form using React Hook Form + Zod. Steps: Personal Details → Membership Type → Household Members (conditional) → Additional Info → Declaration (4 checkboxes) → Signature + Date → Payment Method. On submit: POST /api/v1/membership/apply. Show success state with "we will review your application" message. Privacy notice visible throughout.
+Frontend
+Needs:
+T39
+T23
+T41
+Build member dashboard — accounts and transactions
+Protected route (JWT required). Dashboard: savings points total, active accounts summary, recent transactions, current risk band (low/moderate/high). Account detail: balance, transaction history (cursor paginated, load more), deposit form, withdrawal form. All amounts formatted with Intl.NumberFormat for GBP.
+Frontend
+Needs:
+T25
+T26
+T42
+Build loan application flow and repayment view
+Loan application: eligibility summary (points, risk band), requested amount slider (capped at points multiple), purpose field, submit. Application status page. Active loan detail: principal, schedule table, repayment form. Repayment history. Admin: loan application review queue with score + probability displayed.
+Frontend
+Needs:
+T27
+T34
+T41
+T43
+Build admin portal
+Role-gated to STAFF and above. Sections: Membership queue (approve/reject with notes), Member management (search, view profile, view KYC status, freeze), Loan queue (review application, score, probability, savings history), Compliance flags (view, resolve, add notes), BullMQ board at /admin/queues (visual job monitoring).
+Frontend
+Needs:
+T23
+T24
+T27
+T35
+T31
+T44
+Configure Cloudflare and set up DNS
+Add domain to Cloudflare. Set SSL mode to Full (Strict) — TLS from client to Cloudflare AND from Cloudflare to Railway/server. Enable WAF rules (OWASP top 10 managed ruleset). Enable bot fight mode. Configure geofencing to UK traffic. Set up HSTS preload via Cloudflare. Point DNS A records to Railway deployment.
+Frontend
+Needs:
+T07
+T39
+Full Strict mode only — never Flexible for a financial app
+T45
+Add PWA manifest and service worker
+Add next-pwa. Configure manifest.json: name "Safethrift", short_name, icons (512px, 192px), theme_color, display: standalone. Service worker: cache public pages and static assets for offline access. Register push notification support (for future Expo React Native parity).
+Frontend
+Needs:
+T39
+T46
+Write unit tests for all business logic
+Jest tests for: SavingsService (deposit atomicity, balance assertion), PointsModule (FSA/RSA/GSA rate calculations), ScoringModule (feature computation, logistic regression formula, risk band thresholds), LoanService (eligibility gates, schedule generation), EncryptionService (encrypt/decrypt round-trip). Target 80%+ coverage on all service files. Mock Prisma using jest-mock-extended.
+Testing
+Needs:
+T25
+T26
+T27
+T34
+T47
+Write integration tests (Jest + Docker Compose)
+Full API integration tests against real Postgres and Redis running in Docker. Test flows: register → verify email → admin approve → open account → deposit → check balance → check points. Loan flow: apply → score check → admin approve → schedule generated → repayment recorded. Run in CI on every PR.
+Testing
+Needs:
+T46
+T06
+T48
+Write Playwright E2E tests for critical journeys
+E2E against staging environment. Flows: full registration form submission, login and dashboard load, deposit and balance update, loan application submission. Admin: approve membership, approve loan. Run in CI before production deploy. Add visual regression snapshots for registration form and dashboard.
+Testing
+Needs:
+T40
+T41
+T42
+T43
+T49
+Run k6 load test on critical endpoints
+k6 script targeting: POST /accounts/:id/deposit at 500 virtual users for 60s, GET /accounts/:id/transactions at 2000 virtual users for 60s. Pass criteria: p95 latency < 500ms, error rate < 0.1%. Run before every release. Identify and fix any connection pool exhaustion before go-live.
+Testing
+Needs:
+T47
+T50
+Set up Sentry error tracking
+Install @sentry/nestjs. Configure DSN (free tier). Add SentryInterceptor globally in NestJS. Configure member context (anonymised ID, role — never PII). Set up Sentry for Next.js frontend separately. Create Slack alert channel for new issues. Test with a deliberate thrown error.
+Ops
+Needs:
+T03
+T04
+T51
+Set up uptime monitoring and alerting
+Configure UptimeRobot or Better Uptime (free tier). Monitor GET /api/v1/health every 60 seconds. Alert via Slack and email if down for 2 consecutive checks. Create /health endpoint in NestJS that checks DB connection and Redis connection — returns 503 if either is unavailable.
+Ops
+Needs:
+T07
+T44
+T52
+Run external penetration test and remediate
+Engage a freelance security tester (budget £500–1500) to run OWASP top 10 tests against staging: injection, broken auth, IDOR on account endpoints, XSS on forms, CSRF, security misconfiguration. Remediate all critical and high findings before production launch. Document results in security ADR.
+Ops
+Needs:
+T44
+T30
+T31
+T32
+T33
+Book early — good testers are 2–4 weeks out

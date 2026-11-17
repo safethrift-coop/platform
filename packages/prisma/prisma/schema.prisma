@@ -387,11 +387,49 @@ model KycVerification {
   updatedAt            DateTime     @updatedAt @map("updated_at")
 
   member Member @relation(fields: [memberId], references: [id])
+  syntheticAttempt KycSyntheticAttempt?
 
+  @@unique([id, memberId])
   @@index([memberId])
   @@index([verificationStatus])
   @@index([onfidoCheckId])
   @@map("kyc_verification")
+}
+
+// Test-only provenance; historical KYC rows are never classified by this relation.
+model KycSyntheticAttempt {
+  id               String   @id @default(uuid())
+  verificationId   String   @unique @map("verification_id")
+  memberId         String   @map("member_id")
+  idempotencyKey   String   @map("idempotency_key")
+  requestHash      String   @map("request_hash")
+  correlationId    String   @unique @map("correlation_id")
+  sequence         Int
+  isCurrent        Boolean  @default(true) @map("is_current")
+  initiationState  String   @default("pending") @map("initiation_state")
+  createdAt        DateTime @default(now()) @map("created_at")
+  verification     KycVerification @relation(fields: [verificationId, memberId], references: [id, memberId], onDelete: Restrict)
+  events           KycSyntheticEvent[]
+
+  @@unique([memberId, idempotencyKey])
+  @@unique([memberId, sequence])
+  @@unique([verificationId, memberId])
+  @@map("kyc_synthetic_attempts")
+}
+
+model KycSyntheticEvent {
+  id           String   @id @default(uuid())
+  attemptId    String   @map("attempt_id")
+  eventId      String   @unique @map("event_id")
+  eventHash    String   @map("event_hash")
+  sequence     Int
+  transition   String
+  outcome      String
+  createdAt    DateTime @default(now()) @map("created_at")
+  attempt      KycSyntheticAttempt @relation(fields: [attemptId], references: [id], onDelete: Restrict)
+
+  @@unique([attemptId, sequence])
+  @@map("kyc_synthetic_events")
 }
 
 // ─────────────────────────────────────────────
