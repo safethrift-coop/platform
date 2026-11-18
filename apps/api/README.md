@@ -70,6 +70,13 @@ own disposable databases and credentials; it rejects externally supplied
 `DATABASE_URL`, `T24_TEST_DATABASE_URL`, or `PG*` configuration. CI runs both
 commands as required checks.
 
+Ubuntu 24.04's AppArmor user-namespace policy can prevent Bubblewrap from
+configuring its isolated loopback interface (`Failed RTM_NEWADDR: Operation not
+permitted`). The T24 CI step temporarily allows unprivileged user namespaces on
+the disposable runner and restores the original policy when the step exits,
+including on failure. The harness continues to enforce its network, filesystem,
+database identity, and limited-role checks.
+
 ## Deployment
 
 When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.

@@ -194,7 +194,16 @@ jobs:
           sudo apt-get install --yes bubblewrap iproute2 postgresql-16
 
       - name: T24 isolated synthetic KYC acceptance
-        run: pnpm --filter @safethrift/api test:e2e:t24
+        run: |
+          # Ubuntu 24.04 restricts the user namespaces needed by Bubblewrap.
+          t24_userns_restriction=$(sysctl -n kernel.apparmor_restrict_unprivileged_userns)
+          if [[ "$t24_userns_restriction" != 0 ]]; then
+            trap 'sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns="$t24_userns_restriction"' EXIT
+            trap 'exit 130' INT
+            trap 'exit 143' TERM
+            sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          fi
+          pnpm --filter @safethrift/api test:e2e:t24
 
       - name: API e2e, governance, authentication and savings integration
         run: pnpm --filter @safethrift/api test:e2e --runInBand
