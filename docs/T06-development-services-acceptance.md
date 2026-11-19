@@ -1,24 +1,94 @@
 # T06 — Development Services — Acceptance Evidence Record
 
-- **Disposition:** **READY FOR FORMAL ACCEPTANCE — FORMAL ACCEPTANCE PENDING PR REVIEW AND MERGE.**
-- **Formal acceptance decision:** Pending approval and merge of the dedicated pull request
-- **Assessment date:** 2026-11-19, Africa/Lagos (UTC+01:00)
+- **Disposition:** **IMPLEMENTATION MERGED AND CI-VERIFIED — ACCEPTANCE EVIDENCE UPDATED FOR REVIEW.**
+- **Acceptance evidence:** Updated and submitted for review through a separate documentation pull request
+- **Formal acceptance decision:** Pending review, approval and merge of this documentation pull request
+- **Evidence update date:** 2026-11-19, Africa/Lagos (UTC+01:00)
+- **Historical reassessment date:** 2026-11-19, Africa/Lagos (UTC+01:00), before the implementation merge
 - **Repository:** https://github.com/safethrift-coop/platform
-- **Inspected checkout:** /home/princewill/Projects/safethrift-coop/platform
-- **Inspected branch:** docs/t01-repository-governance-acceptance
-- **Inspected HEAD:** e1256f46a3970fa6838e4ffbd8b6bcd3ad5631af
-- **Verified live main HEAD:** fbd79cb468e39b302c8eb7afd59187af40eddbab
-- **Working-tree scope:** The inspected repository includes the previously approved, unstaged root package.json development-services addition.
+- **Historically inspected checkout:** /home/princewill/Projects/safethrift-coop/platform
+- **Historically inspected branch:** docs/t01-repository-governance-acceptance
+- **Historically inspected HEAD:** e1256f46a3970fa6838e4ffbd8b6bcd3ad5631af
+- **Live main HEAD at the original reassessment:** fbd79cb468e39b302c8eb7afd59187af40eddbab
+- **Historical working-tree scope:** The inspected repository included the previously approved, unstaged root package.json development-services addition.
 
-This record documents the T06 reassessment dated 2026-11-19 against the original
-master plan and submits its evidence and limitations for review. T06 formal
-acceptance remains pending approval and merge of this dedicated pull request.
+This record preserves the T06 reassessment dated 2026-11-19 against the original
+master plan and adds a dated update confirming the implementation merge,
+successful CI and committed startup script. Acceptance evidence is updated and
+submitted for review. Formal T06 acceptance remains pending review, approval and
+merge of this documentation pull request.
 
-Runtime and preservation findings below come from that reassessment. Preparation
-of this PR used a separate clean checkout based on verified live main commit
+Runtime and preservation findings remain evidence from the original reassessment.
+Preparation of the original acceptance-evidence PR used a separate clean checkout
+based on verified live main commit
 `fbd79cb468e39b302c8eb7afd59187af40eddbab`, on branch
 `docs/t06-development-services-acceptance`. The original checkout and its approved
-unstaged package.json change were preserved; that change is excluded from this PR.
+unstaged package.json change were preserved; that change was excluded from that
+documentation PR and subsequently merged through implementation PR #5.
+
+**Implementation merge evidence update — 2026-11-19**
+
+Live GitHub PR metadata confirms that
+[PR #5 — feat(t06): add development services script](https://github.com/safethrift-coop/platform/pull/5)
+was merged into `main` at `2026-11-19T21:22:50Z`:
+
+| Item | Verified evidence |
+|---|---|
+| Implementation branch | `feat/t06-dev-services-script` |
+| Feature commit | `68b69eba5027f3b2db45e36fa327f47e6cc79f3f` |
+| Merge commit | [`112fc651a70bb504731dbfb00eb439bacbc32c86`](https://github.com/safethrift-coop/platform/commit/112fc651a70bb504731dbfb00eb439bacbc32c86) |
+| Latest fetched `origin/main` for this update | `112fc651a70bb504731dbfb00eb439bacbc32c86` |
+| Documentation branch | `docs/t06-acceptance-after-implementation-merge` |
+| Separate documentation worktree | `/tmp/safethrift-platform-t06-acceptance-after-merge` |
+
+The existing GitHub Actions runs were independently read from GitHub and verified
+against their branch, commit, event, run number, status and conclusion:
+
+| CI evidence | Event | Branch | Commit | Status | Conclusion |
+|---|---|---|---|---|---|
+| [Feature CI #68](https://github.com/safethrift-coop/platform/actions/runs/44616937741) | `pull_request` | `feat/t06-dev-services-script` | `68b69eba5027f3b2db45e36fa327f47e6cc79f3f` | `completed` | `success` |
+| [Merge/main CI #69](https://github.com/safethrift-coop/platform/actions/runs/44618181311) | `push` | `main` | `112fc651a70bb504731dbfb00eb439bacbc32c86` | `completed` | `success` |
+
+GitHub returned the last-update times `2026-11-19T21:19:53Z` for CI #68 and
+`2026-11-19T21:26:52Z` for CI #69. Verification used
+`mcp__codex_apps__github_get_pr_info` for PR #5 and
+`mcp__codex_apps__github_fetch` for these existing run endpoints:
+
+```text
+https://api.github.com/repos/safethrift-coop/platform/actions/runs/44616937741
+https://api.github.com/repos/safethrift-coop/platform/actions/runs/44618181311
+```
+
+After fetching `origin/main`, read-only inspection of
+[the root package.json at the merge commit](https://github.com/safethrift-coop/platform/blob/112fc651a70bb504731dbfb00eb439bacbc32c86/package.json)
+confirmed that its JSON parses and that the exact approved script is committed
+on `main`:
+
+```json
+"dev:services": "docker compose -f docker-compose.yml up -d --no-recreate postgres redis mailhog"
+```
+
+The previous missing-script limitation is **resolved** by PR #5 and its merge.
+The definition has no `predev:services` or `postdev:services` hook. This update
+changes only `docs/T06-development-services-acceptance.md`; the original checkout
+and its existing unstaged package.json change remain preserved.
+
+This update verified repository files and existing GitHub merge/CI evidence only.
+No post-merge runtime verification, startup-command execution or persistence test
+was performed, and no runtime services or database contents were changed. CI
+success is recorded as CI evidence; it does not establish a new execution of
+`npm run dev:services` or a restart-based persistence test. No CI run was triggered
+or rerun as part of the evidence inspection.
+
+**Historical reassessment evidence — 2026-11-19, before implementation merge**
+
+The sections from "Authoritative original requirements" through "Data preservation
+and non-destructive verification" below preserve the original reassessment evidence.
+Their observations, commands, output, working-tree state and references to
+"current" or "live main" describe the state at that reassessment, before PR #5
+merged. Runtime probes and preservation comparisons in those sections were not
+repeated for this documentation update. The earlier startup-command execution
+remains separately dated historical evidence from 2026-11-18 (UTC).
 
 **Authoritative original requirements**
 
@@ -724,26 +794,30 @@ matched. The final Git/file check completed at
 
 **Verification limitations and scope**
 
-1. The startup script remains an approved, unstaged working-tree addition and
-   is absent from committed HEAD and live main. This record describes the
-   inspected working tree explicitly.
+1. **Resolved after implementation merge:** At the original reassessment, the
+   startup script was an approved, unstaged working-tree addition, absent from
+   committed HEAD and live main. PR #5 merged it into `main` as
+   `112fc651a70bb504731dbfb00eb439bacbc32c86`; the exact approved script is now
+   committed on `main`, as verified in the dated update above.
 
-2. npm run dev:services was not executed again. Its exact current definition,
-   service targets, absent hooks, matching configuration hashes and current
-   runtime were verified safely. The earlier successful execution was
-   corroborated as historical evidence.
+2. npm run dev:services was not executed again during the original reassessment
+   or this documentation update. Its definition, service targets, absent hooks,
+   matching configuration hashes and runtime were verified during the original
+   reassessment. The earlier successful execution remains historical evidence;
+   this update adds committed-script and merge/CI evidence only.
 
-3. MailHog has no Docker health check. Current SMTP and HTTP responses supplied
-   endpoint verification without submitting email.
+3. MailHog has no configured Docker health check. SMTP and HTTP responses from
+   the original reassessment supplied endpoint verification without submitting
+   email. Those endpoint probes were not repeated after the implementation merge.
 
-4. No persistence test involving a restart or recreation was performed.
-   Persistent storage was established from named-volume configuration,
-   the existing mount, the server's reported data directory and preserved
-   volume metadata.
+4. No persistence test involving a restart or recreation was performed during
+   the original reassessment or this update. Persistent-storage evidence remains
+   the reassessment's named-volume configuration, existing mount, server-reported
+   data directory and preserved volume metadata.
 
 5. Historical table fingerprints and migration-history comparisons were not
-   repeated. The current assessment makes no new claim that application-table
-   contents match the historical snapshot.
+   repeated during the reassessment or this update. This record makes no new
+   claim that application-table contents match the historical snapshot.
 
 6. Initial sandboxed Docker and endpoint attempts were blocked by Docker-socket
    or network restrictions. Authorized read-only retries outside the sandbox
@@ -751,12 +825,15 @@ matched. The final Git/file check completed at
 
 **Disposition and review gate**
 
-**READY FOR FORMAL ACCEPTANCE — FORMAL ACCEPTANCE PENDING PR REVIEW AND MERGE.**
+**Implementation: merged and CI-verified.** PR #5 merged the exact approved
+development-services script into `main`; feature CI #68 and merge/main CI #69
+both completed successfully on their recorded commits.
 
-Every original T06 criterion passes for the inspected working tree, and its
-T01 dependency is formally accepted on live main with the expected merge
-and successful associated CI.
+**Acceptance evidence: updated and submitted for review.** The missing-script
+limitation is resolved. Original runtime and preservation observations remain
+dated historical evidence, with the remaining verification limitations above.
 
-This evidence record is submitted for review. T06 must not be declared formally
-accepted until the dedicated PR has been approved and merged. Formal acceptance
-remains pending that review and merge; automatic merging is not authorized.
+**Formal T06 acceptance: pending review, approval and merge of this documentation
+pull request.** This update does not declare T06 formally accepted. Formal
+acceptance remains pending this separate documentation PR's review, approval and
+merge; automatic merging is not authorized.
